@@ -57,7 +57,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "docker-compose.yml"
-          target: "/opt/nadamudash"
+          target: "/opt/stacks/nadamudash"
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -66,7 +66,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /opt/nadamudash
+            cd /opt/stacks/nadamudash
             
             # Создаем скрытый файл .env, в котором будет храниться точное имя свежего образа
             echo "IMAGE_NAME=ghcr.io/${{ env.IMAGE_NAME }}:latest" > .env.image
