@@ -1,0 +1,84 @@
+name: Deploy Next.js to Server
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ВАЖНО: GitHub сам предоставляет GITHUB_TOKEN для пуша в свой реестр.
+      # Не нужно создавать для этого секрет вручную!
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Собираем образ и ставим ему тег latest
+          tags: type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build-and-push-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (to copy docker-compose)
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose via scp
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml"
+          target: "/opt/nadamudash"
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/nadamudash
+            
+            # Создаем скрытый файл .env, в котором будет храниться точное имя свежего образа
+            echo "IMAGE_NAME=ghcr.io/${{ env.IMAGE_NAME }}:latest" > .env.image
+            
+            # Ваш основной .env останется нетронутым, мы подтягиваем оба файла
+            
+            # Логиним сервер в Github Registry (ВАЖНО: сервер должен быть авторизован)
+            # Если образ публичный, это не обязательно, но если репозиторий приватный:
+            # На сервере уже должен быть выполнен `docker login ghcr.io -u YOUR_GITHUB -p PAT_TOKEN`
+            
+            # Скачиваем новый образ
+            docker compose --env-file .env.image --env-file .env pull
+            
+            # Перезапускаем контейнер
+            docker compose --env-file .env.image --env-file .env up -d
