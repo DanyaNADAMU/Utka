@@ -3,7 +3,6 @@ name: Deploy Next.js to Server
 on:
   push:
     branches: ["main"]
-  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -19,8 +18,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ВАЖНО: GitHub сам предоставляет GITHUB_TOKEN для пуша в свой реестр.
-      # Не нужно создавать для этого секрет вручную!
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -33,7 +30,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          # Собираем образ и ставим ему тег latest
           tags: type=raw,value=latest
 
       - name: Build and push Docker image
@@ -48,17 +44,17 @@ jobs:
     needs: build-and-push-image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo (to copy docker-compose)
+      - name: Checkout repo (to copy compose.yml)
         uses: actions/checkout@v4
 
-      - name: Copy docker-compose via scp
+      - name: Copy compose.yml via scp
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "docker-compose.yml"
+          source: "compose.yml"
           target: "/opt/stacks/nadamudash"
 
       - name: Deploy to Server via SSH
@@ -71,19 +67,11 @@ jobs:
           script: |
             cd /opt/stacks/nadamudash
             
-            # Создаем скрытый файл .env, в котором будет храниться точное имя свежего образа
+            # Inject dynamic image name
             echo "IMAGE_NAME=ghcr.io/${{ env.IMAGE_NAME }}:latest" > .env.image
             
-            # Ваш основной .env останется нетронутым, мы подтягиваем оба файла
-            
-            # Логиним сервер в Github Registry (ВАЖНО: сервер должен быть авторизован)
-            # Если образ публичный, это не обязательно, но если репозиторий приватный:
-            # На сервере уже должен быть выполнен `docker login ghcr.io -u YOUR_GITHUB -p PAT_TOKEN`
-            # Создаем пустой .env, если его вдруг нет (чтобы команда не падала с ошибкой)
+            # Ensure .env exists to prevent docker compose errors
             touch .env
             
-            # Скачиваем новый образ
             docker compose --env-file .env.image --env-file .env pull
-            
-            # Перезапускаем контейнер
             docker compose --env-file .env.image --env-file .env up -d

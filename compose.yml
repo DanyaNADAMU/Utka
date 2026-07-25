@@ -1,6 +1,5 @@
 services:
   nadamudash:
-    # Имя образа будет передано из GitHub Actions
     image: ${IMAGE_NAME}
     container_name: nadamudash
     restart: unless-stopped
@@ -10,4 +9,3 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      # - AUTH_TRUST_HOST=true # Раскомментируйте, если NextAuth ругается на reverse proxy
