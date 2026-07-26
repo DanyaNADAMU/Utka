@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import db from "@/lib/db"
 import { queryUserStats } from "@/lib/xray"
 import { QRCodeSVG } from 'qrcode.react'
+import { getSettings } from "@/lib/settings"
 
 export default async function Dashboard() {
   const session = await auth();
@@ -41,7 +42,12 @@ export default async function Dashboard() {
   const sni = process.env.XRAY_SNI || "biz.mail.ru";
   
   const vlessLink = `vless://${sub.xrayUuid}@${sub.node.address}:${sub.node.port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#${encodeURIComponent(sub.name || "NadamuDash")}`;
-  const subLink = `${process.env.AUTH_URL || 'https://nada.mu'}/api/sub/${sub.token}`;
+  
+  const settings = await getSettings();
+  const subPath = settings.SUB_PATH.replace('[token]', sub.token);
+  // Ensure subPath starts with slash
+  const safeSubPath = subPath.startsWith('/') ? subPath : `/${subPath}`;
+  const subLink = `${process.env.AUTH_URL || 'https://nada.mu'}${safeSubPath}`;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 p-8 flex flex-col items-center selection:bg-emerald-500/30">

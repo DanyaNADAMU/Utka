@@ -2,10 +2,35 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { addVlessUser, removeVlessUser } from '@/lib/xray';
 import crypto from 'crypto';
+import { getSettings } from '@/lib/settings';
 
-export async function GET(request: Request, { params }: { params: Promise<{ token: string }> }) {
-  const token = (await params).token;
-  if (!token) return NextResponse.json({ error: "Missing token" }, { status: 400 });
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
+  const slug = (await params).slug;
+  if (!slug || slug.length === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // 1. Fetch dynamic settings
+  const settings = await getSettings();
+  const subPathParts = settings.SUB_PATH.split('/').filter(Boolean);
+  
+  // 2. Validate URL against configured SUB_PATH
+  if (slug.length !== subPathParts.length) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  let token = null;
+  for (let i = 0; i < subPathParts.length; i++) {
+    if (subPathParts[i] === '[token]') {
+      token = slug[i];
+    } else if (subPathParts[i] !== slug[i]) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+  }
+
+  if (!token) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const inboundTag = settings.XRAY_INBOUND_TAG;
 
   // Cleanup expired UUIDs across all subscriptions (lazy cleanup)
   try {
@@ -14,13 +39,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     });
 
     for (const exp of expiredUuids) {
-      // In a real multi-node setup, we would connect to the specific node's API.
-      // For now, we assume all Xray operations happen on the local node.
-      // We hardcode the inbound tag as 'vless-in' or similar? Wait, what is the inbound tag in the config?
-      // Let's assume 'vless-in' for now, but we should verify the config.
-      const success = await removeVlessUser('vless-reality', exp.xrayEmail);
+      const success = await removeVlessUser(inboundTag, exp.xrayEmail);
       if (success || !success) { 
-        // We delete from DB even if remove fails (maybe Xray restarted or it's already removed)
         await db.expiringUuid.delete({ where: { id: exp.id } });
       }
     }
@@ -33,18 +53,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     include: { node: true }
   });
 
-  // If not found, return 404. This is important since this is a root-level catch-all!
   if (!sub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // 1. Generate new UUID
+  // Generate new UUID
   const newUuid = crypto.randomUUID();
   const oldUuid = sub.xrayUuid;
-  
-  // Xray email format: subscriptionId_xrayUuid
   const newXrayEmail = `${sub.id}_${newUuid}`;
   const oldXrayEmail = `${sub.id}_${oldUuid}`;
 
-  // 2. Add old UUID to ExpiringUuid (2031 minutes = 33.85 hours)
+  // Add old UUID to ExpiringUuid (2031 minutes)
   const expiresAt = new Date(Date.now() + 2031 * 60 * 1000);
   await db.expiringUuid.create({
     data: {
@@ -56,7 +73,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     }
   });
 
-  // 3. Update subscription in DB
+  // Update subscription in DB
   await db.subscription.update({
     where: { id: sub.id },
     data: { 
@@ -65,11 +82,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     }
   });
 
-  // 4. Add new UUID to Xray
-  // We assume the inbound tag is 'vless-reality', this should match the Xray config.json
-  await addVlessUser('vless-reality', newXrayEmail, newUuid);
+  // Add new UUID to Xray
+  await addVlessUser(inboundTag, newXrayEmail, newUuid);
 
-  // 5. Generate vless link
+  // Generate vless link
   const address = sub.node.address;
   const port = sub.node.port;
   const name = encodeURIComponent(sub.name || "NadamuDash");

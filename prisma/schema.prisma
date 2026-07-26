@@ -61,3 +61,10 @@ model ExpiringUuid {
   nodeId         String       // We need to know which node to remove it from
   expiresAt      DateTime
 }
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
