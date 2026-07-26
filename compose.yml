@@ -1,6 +1,6 @@
 services:
   nadamudash:
-    image: ${IMAGE_NAME}
+    image: ghcr.io/danyanadamu/nadamudash:latest
     container_name: nadamudash
     restart: unless-stopped
     ports:

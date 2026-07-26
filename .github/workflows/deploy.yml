@@ -67,11 +67,8 @@ jobs:
           script: |
             cd /opt/stacks/nadamudash
             
-            # Inject dynamic image name
-            echo "IMAGE_NAME=ghcr.io/${{ env.IMAGE_NAME }}:latest" > .env.image
-            
             # Ensure .env exists to prevent docker compose errors
             touch .env
             
-            docker compose --env-file .env.image --env-file .env pull
-            docker compose --env-file .env.image --env-file .env up -d
+            docker compose pull
+            docker compose up -d
