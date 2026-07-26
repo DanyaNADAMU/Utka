@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
-export async function GET(request: Request, { params }: { params: { token: string } }) {
-  const token = params.token;
+export async function GET(request: Request, { params }: { params: Promise<{ token: string }> }) {
+  const token = (await params).token;
   if (!token) return NextResponse.json({ error: "Missing token" }, { status: 400 });
 
   const sub = await db.subscription.findUnique({
