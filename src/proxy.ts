@@ -3,8 +3,9 @@ import { NextResponse } from "next/server"
 
 export const proxy = auth((req) => {
   if (!req.auth) {
-    // Auto-redirect unauthenticated users directly to Authentik (skips NextAuth intermediate page)
-    return NextResponse.redirect(new URL("/api/auth/signin/authentik", req.url))
+    // Auth.js v5 doesn't allow GET requests to /api/auth/signin/authentik
+    // So we redirect to a custom /login route which triggers the POST signIn flow
+    return NextResponse.redirect(new URL("/login", req.url))
   }
 })
 
