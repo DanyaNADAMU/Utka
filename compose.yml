@@ -19,6 +19,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nadamu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nadamu_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-nadamu_db}
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     healthcheck:

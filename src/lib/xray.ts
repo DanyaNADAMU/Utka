@@ -31,9 +31,15 @@ const handlerClient = new xrayProxyman.HandlerService(XRAY_API_URL, grpc.credent
 const statsClient = new xrayStats.StatsService(XRAY_API_URL, grpc.credentials.createInsecure());
 
 // Load protobufjs root for encoding TypedMessages
-let root: protobuf.Root;
+let root = new protobuf.Root();
 try {
-  root = protobuf.loadSync([PROXYMAN_PROTO, STATS_PROTO, VLESS_ACCOUNT_PROTO]);
+  root.resolvePath = function(origin, target) {
+    if (target.match(/^(app|common|proxy|transport|core)\//)) {
+      return path.join(process.cwd(), 'src/proto', target);
+    }
+    return protobuf.util.path.resolve(origin, target);
+  };
+  root.loadSync([PROXYMAN_PROTO, STATS_PROTO, VLESS_ACCOUNT_PROTO]);
 } catch (e) {
   console.error("Failed to load Xray protobufs:", e);
 }
