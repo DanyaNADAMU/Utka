@@ -4,7 +4,7 @@ services:
     container_name: nadamudash
     restart: unless-stopped
     ports:
-      - "${HOST_PORT:-127.0.0.1:8001}:3000"
+      - "${HOST_PORT:-127.0.0.1:3000}:3000"
     env_file:
       - .env
     environment:
@@ -34,4 +34,4 @@ services:
     volumes:
       - ./xray:/etc/xray
     ports:
-      - "${HOST_XRAY_PORT:-127.0.0.1:8002}:40443" # VLESS Reality Inbound (for HAProxy)
+      - "${HOST_XRAY_PORT:-127.0.0.1:443}:443"
