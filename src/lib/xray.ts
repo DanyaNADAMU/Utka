@@ -21,8 +21,8 @@ const loadOptions = {
 const proxymanDef = protoLoader.loadSync(PROXYMAN_PROTO, loadOptions);
 const statsDef = protoLoader.loadSync(STATS_PROTO, loadOptions);
 
-const xrayProxyman = grpc.loadPackageDefinition(proxymanDef).xray.app.proxyman.command as any;
-const xrayStats = grpc.loadPackageDefinition(statsDef).xray.app.stats.command as any;
+const xrayProxyman = (grpc.loadPackageDefinition(proxymanDef) as any).xray.app.proxyman.command;
+const xrayStats = (grpc.loadPackageDefinition(statsDef) as any).xray.app.stats.command;
 
 const XRAY_API_URL = process.env.XRAY_API_URL || 'xray:7999';
 
