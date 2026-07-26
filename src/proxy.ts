@@ -3,8 +3,8 @@ import { NextResponse } from "next/server"
 
 export const proxy = auth((req) => {
   if (!req.auth) {
-    // Если пользователь не авторизован, автоматически перекидываем его на логин Authentik
-    return NextResponse.redirect(new URL("/api/auth/signin/authentik", req.url))
+    // Auto-redirect unauthenticated users to default sign-in
+    return NextResponse.redirect(new URL("/api/auth/signin", req.url))
   }
 })
 
