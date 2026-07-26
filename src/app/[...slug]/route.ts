@@ -61,8 +61,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const newXrayEmail = `${sub.id}_${newUuid}`;
   const oldXrayEmail = `${sub.id}_${oldUuid}`;
 
-  // Add old UUID to ExpiringUuid (2031 minutes)
-  const expiresAt = new Date(Date.now() + 2031 * 60 * 1000);
+  const expireMinutes = Number(settings.OLD_UUID_EXPIRE_MINUTES) || 2031;
+
+  // Add old UUID to ExpiringUuid
+  const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
   await db.expiringUuid.create({
     data: {
       subscriptionId: sub.id,

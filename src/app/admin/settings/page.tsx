@@ -54,6 +54,23 @@ export default async function SettingsPage() {
                 placeholder="vless-reality"
               />
             </div>
+
+            <div className="pt-4">
+              <label htmlFor="OLD_UUID_EXPIRE_MINUTES" className="block text-sm font-medium text-slate-300 mb-1">
+                Время жизни старых ключей (в минутах)
+              </label>
+              <p className="text-xs text-slate-500 mb-2">
+                Сколько минут старый UUID будет работать после того, как клиентская программа запросит новый.
+              </p>
+              <input 
+                type="number" 
+                id="OLD_UUID_EXPIRE_MINUTES" 
+                name="OLD_UUID_EXPIRE_MINUTES" 
+                defaultValue={settings.OLD_UUID_EXPIRE_MINUTES}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                placeholder="2031"
+              />
+            </div>
           </div>
 
           <div className="pt-6 border-t border-slate-800 flex justify-end">
