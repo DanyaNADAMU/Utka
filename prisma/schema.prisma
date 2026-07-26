@@ -52,3 +52,12 @@ model Node {
   updatedAt     DateTime       @updatedAt
   subscriptions Subscription[]
 }
+
+model ExpiringUuid {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  xrayUuid       String
+  xrayEmail      String       // The email string used in Xray (e.g. subId_xrayUuid)
+  nodeId         String       // We need to know which node to remove it from
+  expiresAt      DateTime
+}

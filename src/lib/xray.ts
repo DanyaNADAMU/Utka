@@ -92,13 +92,45 @@ export async function addVlessUser(inboundTag: string, email: string, uuid: stri
 }
 
 /**
+ * Remove a VLESS user from an existing inbound
+ */
+export async function removeVlessUser(inboundTag: string, email: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    try {
+      const RemoveUserOperation = root.lookupType("xray.app.proxyman.command.RemoveUserOperation");
+      const opMsg = RemoveUserOperation.create({
+        email: email
+      });
+      const opBytes = RemoveUserOperation.encode(opMsg).finish();
+
+      handlerClient.alterInbound({
+        tag: inboundTag,
+        operation: {
+          type: "xray.app.proxyman.command.RemoveUserOperation",
+          value: opBytes
+        }
+      }, (err: Error, res: any) => {
+        if (err) {
+          console.error("[Xray API] RemoveUser Error:", err);
+          return resolve(false);
+        }
+        resolve(true);
+      });
+    } catch (e) {
+      console.error("[Xray API] RemoveUser Exception:", e);
+      resolve(false);
+    }
+  });
+}
+
+/**
  * Query traffic stats for a specific user email
  * Returns { up: number, down: number } (in bytes)
  */
-export async function queryUserStats(email: string): Promise<{ up: bigint, down: bigint }> {
+export async function queryUserStats(emailPrefix: string): Promise<{ up: bigint, down: bigint }> {
   return new Promise((resolve) => {
     statsClient.queryStats({
-      pattern: `user>>>${email}>>>traffic>>>`,
+      pattern: `user>>>${emailPrefix}_`,
       reset: false // Set to true if you want Xray to reset counters after query
     }, (err: Error, res: any) => {
       if (err || !res || !res.stat) {
