@@ -67,9 +67,15 @@ jobs:
           script: |
             cd /opt/stacks/nadamudash
             
-            # Copy xray only if it doesn't exist
-            if [ ! -d xray ]; then
-              mv tmp_compose/xray xray
+            # Fix permissions if xray is owned by root (created by docker)
+            if [ -d xray ]; then
+              sudo chown -R $USER:$USER xray || true
+            fi
+            
+            # Copy xray contents if they don't exist
+            if [ -d tmp_compose/xray ]; then
+              mkdir -p xray
+              cp -n tmp_compose/xray/* xray/ 2>/dev/null || true
             fi
             
             # Copy compose only if it doesn't exist, to prevent overwriting server config
