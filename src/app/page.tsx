@@ -29,8 +29,8 @@ export default async function Dashboard() {
   
   // Format bytes helper
   const formatBytes = (bytes: bigint) => {
-    if (bytes === 0n) return '0 B';
-    const k = 1024n;
+    if (bytes === BigInt(0)) return '0 B';
+    const k = BigInt(1024);
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(Number(bytes)) / Math.log(Number(k)));
     return parseFloat((Number(bytes) / Math.pow(Number(k), i)).toFixed(2)) + ' ' + sizes[i];
