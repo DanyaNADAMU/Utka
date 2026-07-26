@@ -37,6 +37,8 @@ RUN npm install -g prisma@6.19.3
 COPY --from=builder /app/public ./public
 # Copy Prisma schema
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Copy Xray gRPC proto files
+COPY --from=builder --chown=nextjs:nodejs /app/src/proto ./src/proto
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
