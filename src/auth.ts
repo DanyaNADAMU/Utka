@@ -14,16 +14,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       if (profile?.sub && user.email) {
+        const userCount = await db.user.count();
+        let role = "USER";
+        if (userCount === 0) {
+          role = "ADMIN";
+        }
+
         // Find or create the user in our database
-        const dbUser = await db.user.upsert({
+        let dbUser = await db.user.upsert({
           where: { authentikId: profile.sub },
           update: { email: user.email, name: user.name || null },
           create: {
             authentikId: profile.sub,
             email: user.email,
             name: user.name || null,
+            role: role
           }
         });
+
+        // Upgrade existing sole user to ADMIN for convenience during early setup
+        if (userCount === 1 && dbUser.role === 'USER') {
+          dbUser = await db.user.update({
+            where: { id: dbUser.id },
+            data: { role: "ADMIN" }
+          });
+        }
 
         // Ensure user has an Xray UUID (via a default Subscription)
         let defaultSub = await db.subscription.findFirst({
@@ -67,6 +82,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        
+        // Fetch role from DB
+        const dbUser = await db.user.findUnique({
+          where: { authentikId: session.user.id },
+          select: { role: true }
+        });
+        
+        if (dbUser) {
+          (session.user as any).role = dbUser.role;
+        }
       }
       return session;
     },

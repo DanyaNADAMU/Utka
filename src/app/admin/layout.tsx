@@ -5,12 +5,14 @@ import Link from 'next/link';
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated or not admin
   if (!session?.user) {
     redirect('/api/auth/signin');
   }
 
-  // TODO: Add role check (e.g. session.user.role !== 'ADMIN')
+  if ((session.user as any).role !== 'ADMIN') {
+    redirect('/'); // Redirect non-admins to the user dashboard
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 flex">

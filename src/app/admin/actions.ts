@@ -7,9 +7,7 @@ import { revalidatePath } from 'next/cache';
 export async function saveSettings(formData: FormData) {
   const session = await auth();
   
-  // We assume any authenticated user visiting admin route is admin
-  // (In a real app, verify session.user.role === 'ADMIN')
-  if (!session?.user) {
+  if (!session?.user || (session.user as any).role !== 'ADMIN') {
     throw new Error('Unauthorized');
   }
 
