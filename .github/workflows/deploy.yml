@@ -67,15 +67,10 @@ jobs:
           script: |
             cd /opt/stacks/nadamudash
             
-            # Fix permissions if xray is owned by root (created by docker)
-            if [ -d xray ]; then
-              sudo chown -R $USER:$USER xray || true
-            fi
-            
-            # Copy xray contents if they don't exist
+            # Use a temporary docker container to copy files to the root-owned xray directory
+            # This bypasses the need for sudo if the user doesn't have passwordless sudo
             if [ -d tmp_compose/xray ]; then
-              mkdir -p xray
-              cp -n tmp_compose/xray/* xray/ 2>/dev/null || true
+              docker run --rm -v $(pwd):/workspace alpine sh -c "mkdir -p /workspace/xray && cp -n /workspace/tmp_compose/xray/* /workspace/xray/ 2>/dev/null || true"
             fi
             
             # Copy compose only if it doesn't exist, to prevent overwriting server config
