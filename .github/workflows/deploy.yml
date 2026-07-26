@@ -78,10 +78,8 @@ jobs:
               docker run --rm -v $(pwd):/workspace alpine sh -c "mkdir -p /workspace/xray && cp -n /workspace/tmp_compose/xray/* /workspace/xray/ 2>/dev/null || true"
             fi
             
-            # Copy compose only if it doesn't exist, to prevent overwriting server config
-            if [ ! -f compose.yml ]; then
-              mv tmp_compose/compose.yml compose.yml
-            fi
+            # Always overwrite compose.yml to keep it updated with repo changes
+            mv tmp_compose/compose.yml compose.yml
             rm -rf tmp_compose
             
             # Ensure .env exists to prevent docker compose errors
