@@ -29,7 +29,7 @@
   "inbounds": [
     {
       "listen": "0.0.0.0",
-      "port": 7999,
+      "port": 8080,
       "protocol": "dokodemo-door",
       "settings": {
         "address": "127.0.0.1"

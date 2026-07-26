@@ -34,5 +34,4 @@ services:
     volumes:
       - ./xray:/etc/xray
     ports:
-      - "443:40443" # VLESS Reality Inbound
-      - "80:40080"  # HTTP Fallback
+      - "${HOST_XRAY_PORT:-127.0.0.1:8002}:40443" # VLESS Reality Inbound (for HAProxy)
