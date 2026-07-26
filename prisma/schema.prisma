@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  authentikId   String         @unique
+  email         String?
+  name          String?
+  role          String         @default("USER")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id          String      @id @default(uuid())
+  token       String      @unique @default(uuid()) // URL token (e.g., /api/sub/<token>)
+  xrayUuid    String      @unique @default(uuid()) // VLESS UUID
+  name        String?     // E.g., "iPhone"
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodeId      String
+  node        Node        @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  lastFetched DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  traffic     TrafficLog?
+}
+
+model TrafficLog {
+  id             String       @id @default(uuid())
+  subscriptionId String       @unique
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  up             BigInt       @default(0)
+  down           BigInt       @default(0)
+  lastUpdate     DateTime     @default(now())
+}
+
+model Node {
+  id            String         @id @default(uuid())
+  name          String
+  address       String         // IP or Domain of the node for VLESS config
+  port          Int
+  apiHost       String         // gRPC API host, e.g., "xray:7999"
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+}

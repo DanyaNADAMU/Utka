@@ -9,3 +9,30 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: nadamudash-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nadamu} -d ${POSTGRES_DB:-nadamu_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  xray:
+    image: ghcr.io/xtls/xray-core:latest
+    container_name: nadamudash-xray
+    restart: unless-stopped
+    volumes:
+      - ./xray:/etc/xray
+    ports:
+      - "443:40443" # VLESS Reality Inbound
+      - "80:40080"  # HTTP Fallback
