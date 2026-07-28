@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Setup logging
+mkdir -p .logs
+exec > >(tee -a .logs/deploy.log) 2>&1
+
+
 # Load .env if exists
 if [ -f .env ]; then
   export $(cat .env | grep -v '^#' | xargs)
@@ -21,6 +26,10 @@ if [ -n "$(git status --porcelain)" ]; then
   fi
   git add .
   git commit -m "$1"
+  
+  echo "🔄 Pulling latest changes from GitHub..."
+  git pull origin main --rebase || true
+  
   git push origin main
   echo "✅ Code pushed to GitHub."
 else

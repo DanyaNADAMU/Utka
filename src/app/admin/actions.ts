@@ -3,6 +3,8 @@
 import { auth } from '@/auth';
 import { setSetting, SettingKey, getSettings } from '@/lib/settings';
 import { revalidatePath } from 'next/cache';
+import fs from 'fs/promises';
+import path from 'path';
 
 export async function saveSettings(formData: FormData) {
   const session = await auth();
@@ -23,4 +25,20 @@ export async function saveSettings(formData: FormData) {
 
   revalidatePath('/admin/settings');
   revalidatePath('/'); // Revalidate dashboard to update the sub link
+}
+
+export async function getXrayConfig() {
+  const session = await auth();
+  
+  if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  try {
+    const configPath = path.join(process.cwd(), 'xray', 'config.json');
+    const data = await fs.readFile(configPath, 'utf-8');
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }

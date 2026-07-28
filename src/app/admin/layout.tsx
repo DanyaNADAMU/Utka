@@ -32,6 +32,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/users" className="block px-4 py-2 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
             Пользователи
           </Link>
+          <Link href="/admin/xray" className="block px-4 py-2 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+            Конфиг Xray
+          </Link>
           <Link href="/admin/settings" className="block px-4 py-2 text-slate-300 bg-slate-800/50 hover:bg-slate-800 text-white rounded-lg transition-colors border border-slate-700/50">
             Настройки
           </Link>
