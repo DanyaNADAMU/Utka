@@ -44,6 +44,19 @@
       "total_subs": "Total Subscriptions",
       "traffic_sync_note": "Traffic statistics are synchronized by the server in the background. The table updates every 5 seconds without additional load on the database or Xray core."
     },
+    "dash": {
+      "title": "System Overview",
+      "subtitle": "Key metrics and server status.",
+      "total_users": "Users",
+      "total_subs": "Active Subs",
+      "total_nodes": "Nodes",
+      "live_traffic": "Global Traffic (Live)",
+      "server_status": "Server Status",
+      "cpu": "CPU",
+      "ram": "RAM",
+      "history": "Traffic History (14 days)",
+      "history_empty": "No data for selected period"
+    },
     "settings": {
       "title": "Panel Settings",
       "description": "Manage base system configurations and Xray integration.",
