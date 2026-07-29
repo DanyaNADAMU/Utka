@@ -2,10 +2,18 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 
 export const proxy = auth((req) => {
+  let res = NextResponse.next();
   if (!req.auth) {
     // Auto-redirect unauthenticated users to default sign-in
-    return NextResponse.redirect(new URL("/api/auth/signin", req.url))
+    res = NextResponse.redirect(new URL("/api/auth/signin", req.url))
   }
+  
+  let locale = req.cookies.get('NEXT_LOCALE')?.value;
+  if (!locale) {
+    res.cookies.set('NEXT_LOCALE', 'ru');
+  }
+  
+  return res;
 })
 
 export const config = {
