@@ -37,38 +37,50 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    let isFetching = false;
+    
     const fetchTraffic = async () => {
+      if (isFetching) return;
+      isFetching = true;
       try {
         const res = await fetch('/api/admin/traffic');
         const data = await res.json();
         setTraffic(data);
-        setProgress(0); // Reset timer
       } catch (err) {
         console.error('Failed to fetch traffic', err);
+      } finally {
+        isFetching = false;
       }
     };
 
-    fetchTraffic();
-    const interval = setInterval(fetchTraffic, 5000);
-    
-    // Progress bar animation (60fps update)
-    let animationFrame: number;
-    let startTime = Date.now();
-    
-    const animate = () => {
+    const scheduleNextFetch = () => {
       const now = Date.now();
-      const elapsed = now - startTime;
-      if (elapsed > 5000) {
-        startTime = now; // Will be reset closely by fetchTraffic anyway
-      } else {
-        setProgress((elapsed / 5000) * 100);
-      }
+      // Вычисляем задержку до следующих 00, 05, 10 секунд плюс 200мс,
+      // чтобы дать серверному демону гарантированно записать данные в кэш.
+      const delay = 5000 - (now % 5000) + 200;
+      
+      timeoutId = setTimeout(() => {
+        fetchTraffic();
+        scheduleNextFetch();
+      }, delay);
+    };
+
+    // Первичный запрос и запуск расписания
+    fetchTraffic();
+    scheduleNextFetch();
+    
+    // Анимация таймера, жестко привязанная к часам системы
+    let animationFrame: number;
+    const animate = () => {
+      const msInCycle = Date.now() % 5000;
+      setProgress((msInCycle / 5000) * 100);
       animationFrame = requestAnimationFrame(animate);
     };
     animationFrame = requestAnimationFrame(animate);
 
     return () => {
-      clearInterval(interval);
+      clearTimeout(timeoutId);
       cancelAnimationFrame(animationFrame);
     };
   }, []);
