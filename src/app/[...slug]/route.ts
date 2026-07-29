@@ -58,7 +58,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       });
       
       if (subRes.ok) {
-        const subText = await subRes.text();
+        let subText = await subRes.text();
+        
+        // Fix random fingerprint to chrome
+        subText = subText.replace(/client-fingerprint: random/g, 'client-fingerprint: chrome');
+        
+        // Clean up default Chinese rules from subconverter if we are serving YAML
+        if (subText.includes('rules:')) {
+          const rulesIndex = subText.indexOf('rules:');
+          const beforeRules = subText.substring(0, rulesIndex);
+          const cleanRules = `rules:
+  - MATCH,🔰 节点选择`;
+          subText = beforeRules + cleanRules;
+        }
+
         const contentType = subRes.headers.get('content-type') || 'text/plain; charset=utf-8';
         const disposition = subRes.headers.get('content-disposition');
         
