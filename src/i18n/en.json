@@ -1,0 +1,63 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "copied": "Copied",
+    "downloaded": "Downloaded (Down)",
+    "uploaded": "Uploaded (Up)"
+  },
+  "dashboard": {
+    "title": "My Connections",
+    "init_error": "Account is initializing or subscription not found. Please refresh the page in a few seconds.",
+    "traffic_usage": "Traffic Usage",
+    "total": "Total: {total}",
+    "scan_qr": "Scan this code in V2Ray, Shadowrocket, or similar app.",
+    "copy_link": "Copy Link",
+    "auto_config": "Universal Link",
+    "auto_config_desc": "Copy this link and add it to your VPN app (Subscription section) to get all available connections at once."
+  },
+  "admin": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "settings": "Settings",
+      "xray_config": "Xray Config"
+    },
+    "users": {
+      "title": "User Management",
+      "table": {
+        "user": "User",
+        "token": "Token (Subscription)",
+        "downloaded": "Downloaded",
+        "uploaded": "Uploaded",
+        "traffic_hour": "Traffic (1h)",
+        "speed": "Speed",
+        "last_5s": "5 sec",
+        "last_1m": "1 min",
+        "last_1h": "1 hour",
+        "last_1mo": "1 month",
+        "sum": "Sum"
+      },
+      "total_subs": "Total Subscriptions",
+      "traffic_sync_note": "Traffic statistics are synchronized by the server in the background. The table updates every 5 seconds without additional load on the database or Xray core."
+    },
+    "settings": {
+      "title": "Panel Settings",
+      "description": "Manage base system configurations and Xray integration.",
+      "routing_xray": "Routing and Xray",
+      "sub_path": "Subscription Link Path",
+      "sub_path_desc": "URL template for generating links. Use `[token]` as a placeholder. Example: `/[token]` or `/sub/[token]`.",
+      "old_uuid_expire": "Old Keys Expiration (minutes)",
+      "old_uuid_expire_desc": "How many minutes an old UUID will work after the client requests a new one.",
+      "save_button": "Save Settings"
+    },
+    "xray": {
+      "title": "Current Xray Config",
+      "description": "Configuration loaded from xray/config.json",
+      "file_not_found": "Config file not found or inaccessible"
+    }
+  }
+}

@@ -3,16 +3,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from '@/i18n/LanguageProvider';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function AdminSidebar({ userEmail }: { userEmail: string }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const dict = useTranslation();
 
   const links = [
-    { href: '/admin', label: 'Дашборд', icon: '📊' },
-    { href: '/admin/users', label: 'Пользователи', icon: '👥' },
-    { href: '/admin/xray', label: 'Конфиг Xray', icon: '⚙️' },
-    { href: '/admin/settings', label: 'Настройки', icon: '🛠️' },
+    { href: '/admin', label: dict.admin.sidebar.dashboard, icon: '📊' },
+    { href: '/admin/users', label: dict.admin.sidebar.users, icon: '👥' },
+    { href: '/admin/xray', label: dict.admin.sidebar.xray_config, icon: '⚙️' },
+    { href: '/admin/settings', label: dict.admin.sidebar.settings, icon: '🛠️' },
   ];
 
   return (
@@ -54,7 +57,8 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         })}
       </nav>
       
-      <div className={`p-4 border-t border-slate-800 flex items-center ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`p-4 border-t border-slate-800 flex flex-col items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+        {!collapsed && <LanguageSwitcher />}
         {!collapsed ? (
           <div className="text-xs font-medium text-slate-500 truncate bg-slate-950 px-3 py-2.5 rounded-lg border border-slate-800/50 w-full text-center">
             {userEmail}

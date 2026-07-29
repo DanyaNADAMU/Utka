@@ -1,6 +1,5 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '@/i18n/LanguageProvider';
 import CopyButton from './CopyButton';
 
 const formatBytes = (bytes: string | number) => {
@@ -34,7 +33,7 @@ interface TrafficState {
 export default function AdminUsersTable({ subscriptions }: { subscriptions: any[] }) {
   const [traffic, setTraffic] = useState<Record<string, TrafficState>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [progress, setProgress] = useState(0);
+  const dict = useTranslation();
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -111,11 +110,11 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-950/50 text-slate-400 uppercase text-xs tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-medium border-b border-slate-800">Пользователь</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800">Токен</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">Скорость ↓</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">Скорость ↑</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-purple-400">Трафик за час</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.user}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.token}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">{dict.common.downloaded}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">{dict.common.uploaded}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-purple-400">{dict.admin.users.table.traffic_hour}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
@@ -149,7 +148,7 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
                             {sub.token.slice(0, 4)}...{sub.token.slice(-4)}
                           </code>
                           <div onClick={(e) => e.stopPropagation()}>
-                            <CopyButton text={sub.subLink} iconOnly={true} label="Копировать" />
+                            <CopyButton text={sub.subLink} iconOnly={true} label={dict.common.copied} />
                           </div>
                         </div>
                       </td>
@@ -172,16 +171,16 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
                               <thead className="text-slate-500 uppercase font-medium border-b border-slate-800/50">
                                 <tr>
                                   <th className="pb-3 text-left w-24">Метрика</th>
-                                  <th className="pb-3">Скорость</th>
-                                  <th className="pb-3">5 сек</th>
-                                  <th className="pb-3">1 мин</th>
-                                  <th className="pb-3">1 час</th>
-                                  <th className="pb-3">1 месяц</th>
+                                  <th className="pb-3">{dict.admin.users.table.speed}</th>
+                                  <th className="pb-3">{dict.admin.users.table.last_5s}</th>
+                                  <th className="pb-3">{dict.admin.users.table.last_1m}</th>
+                                  <th className="pb-3">{dict.admin.users.table.last_1h}</th>
+                                  <th className="pb-3">{dict.admin.users.table.last_1mo}</th>
                                 </tr>
                               </thead>
                               <tbody className="font-mono text-slate-300">
                                 <tr className="border-b border-slate-800/30">
-                                  <td className="py-3 text-left text-emerald-400 font-sans font-medium">Скачано ↓</td>
+                                  <td className="py-3 text-left text-emerald-400 font-sans font-medium">{dict.admin.users.table.downloaded} ↓</td>
                                   <td className="py-3 text-emerald-400/80">{formatSpeed(stat.speedDown)}</td>
                                   <td className="py-3 text-slate-400">{formatBytes(stat.last5sDown)}</td>
                                   <td className="py-3 text-slate-400">{formatBytes(stat.last1mDown)}</td>
@@ -189,7 +188,7 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
                                   <td className="py-3 text-slate-400">{formatBytes(stat.last1moDown)}</td>
                                 </tr>
                                 <tr className="border-b border-slate-800/30">
-                                  <td className="py-3 text-left text-cyan-400 font-sans font-medium">Отдано ↑</td>
+                                  <td className="py-3 text-left text-cyan-400 font-sans font-medium">{dict.admin.users.table.uploaded} ↑</td>
                                   <td className="py-3 text-cyan-400/80">{formatSpeed(stat.speedUp)}</td>
                                   <td className="py-3 text-slate-400">{formatBytes(stat.last5sUp)}</td>
                                   <td className="py-3 text-slate-400">{formatBytes(stat.last1mUp)}</td>
@@ -197,7 +196,7 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
                                   <td className="py-3 text-slate-400">{formatBytes(stat.last1moUp)}</td>
                                 </tr>
                                 <tr className="font-medium bg-slate-900/30">
-                                  <td className="py-3 text-left text-purple-400 font-sans">Сумма</td>
+                                  <td className="py-3 text-left text-purple-400 font-sans">{dict.admin.users.table.sum}</td>
                                   <td className="py-3 text-purple-400/80">{formatSpeed(Number(stat.speedDown) + Number(stat.speedUp))}</td>
                                   <td className="py-3 text-slate-300">{formatBytes(Number(stat.last5sDown) + Number(stat.last5sUp))}</td>
                                   <td className="py-3 text-slate-300">{formatBytes(Number(stat.last1mDown) + Number(stat.last1mUp))}</td>

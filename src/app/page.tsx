@@ -2,6 +2,8 @@ import { auth } from "@/auth"
 import db from "@/lib/db"
 import { getSettings } from "@/lib/settings";
 import { trafficState } from "@/lib/trafficDaemon";
+import { getDictionary } from "@/i18n/dictionaries";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { QRCodeSVG } from 'qrcode.react'
 
 export default async function Dashboard() {
@@ -13,11 +15,13 @@ export default async function Dashboard() {
     include: { subscriptions: { include: { node: true, inbounds: true, traffic: true } } }
   });
 
+  const dict = await getDictionary();
+
   if (!dbUser || dbUser.subscriptions.length === 0) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
         <div className="p-6 bg-slate-900 rounded-xl border border-slate-800">
-          Аккаунт инициализируется или подписка не найдена. Обновите страницу через пару секунд.
+          {dict.dashboard.init_error}
         </div>
       </div>
     );
@@ -64,6 +68,7 @@ export default async function Dashboard() {
             NadamuDash
           </h1>
           <div className="flex items-center gap-6">
+            <LanguageSwitcher />
             <span className="text-sm font-medium text-slate-400">{session.user.email}</span>
             <a href="/api/auth/signout" className="px-5 py-2 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700">
               Выйти
@@ -77,13 +82,13 @@ export default async function Dashboard() {
             <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
               
-              <h2 className="text-xl font-semibold mb-8 text-slate-200">Трафик в реальном времени</h2>
+              <h2 className="text-xl font-semibold mb-8 text-slate-200">{dict.dashboard.traffic_usage}</h2>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-950/80 border border-slate-800/50">
                   <div className="flex items-center gap-4">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
-                    <span className="text-slate-400 font-medium">Скачано</span>
+                    <span className="text-slate-400 font-medium">{dict.common.downloaded}</span>
                   </div>
                   <span className="font-mono text-lg text-emerald-400 tracking-tight">{formatBytes(totalDown)}</span>
                 </div>
@@ -91,7 +96,7 @@ export default async function Dashboard() {
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-950/80 border border-slate-800/50">
                   <div className="flex items-center gap-4">
                     <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
-                    <span className="text-slate-400 font-medium">Отправлено</span>
+                    <span className="text-slate-400 font-medium">{dict.common.uploaded}</span>
                   </div>
                   <span className="font-mono text-lg text-cyan-400 tracking-tight">{formatBytes(totalUp)}</span>
                 </div>
@@ -99,9 +104,9 @@ export default async function Dashboard() {
             </div>
             
             <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl">
-              <h2 className="text-xl font-semibold mb-6 text-slate-200">Ваша подписка</h2>
+              <h2 className="text-xl font-semibold mb-6 text-slate-200">{dict.dashboard.auto_config}</h2>
               <p className="text-sm text-slate-400 mb-4 leading-relaxed">
-                Используйте эту ссылку в приложениях вроде V2Ray, Shadowrocket или Streisand. Она всегда возвращает самые актуальные узлы.
+                {dict.dashboard.auto_config_desc}
               </p>
               <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 overflow-x-auto">
                 <code className="text-xs text-emerald-400 font-mono whitespace-nowrap select-all">{subLink}</code>
@@ -113,11 +118,11 @@ export default async function Dashboard() {
           <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col items-center relative overflow-hidden">
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
             
-            <h2 className="text-xl font-semibold mb-2 text-slate-200 self-start">Прямые подключения</h2>
+            <h2 className="text-xl font-semibold mb-2 text-slate-200 self-start">{dict.dashboard.title}</h2>
             <p className="text-sm text-slate-400 mb-8 self-start">
               {vlessLinks.length > 0 
-                ? "Отсканируйте QR-код нужного подключения для мгновенной настройки."
-                : "Подключения еще не сгенерированы. Скопируйте ссылку на подписку и вставьте её в ваше приложение (например, v2rayNG или Shadowrocket), чтобы сгенерировать конфигурации."}
+                ? dict.dashboard.scan_qr
+                : dict.dashboard.init_error}
             </p>
             
             {vlessLinks.length > 0 && (

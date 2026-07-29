@@ -1,14 +1,16 @@
 import { getXrayConfig } from '../actions';
+import { getDictionary } from '@/i18n/dictionaries';
 
 export default async function XrayConfigPage() {
+  const dict = await getDictionary();
   const { success, data, error } = await getXrayConfig();
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-3xl font-bold text-slate-100">Конфигурация Xray</h1>
+        <h1 className="text-3xl font-bold text-slate-100">{dict.admin.xray.title}</h1>
         <p className="text-slate-400 mt-2">
-          Текущий файл `xray/config.json`. Доступно только для чтения.
+          {dict.admin.xray.description}
         </p>
       </div>
 
@@ -20,7 +22,7 @@ export default async function XrayConfigPage() {
         <div className="p-6">
           {!success ? (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400">
-              Ошибка при чтении файла: {error}
+              {dict.admin.xray.file_not_found}: {error}
             </div>
           ) : (
             <pre className="bg-slate-950 p-4 rounded-lg overflow-x-auto text-sm text-emerald-400 border border-slate-800">
