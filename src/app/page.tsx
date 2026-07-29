@@ -10,7 +10,7 @@ export default async function Dashboard() {
 
   const dbUser = await db.user.findUnique({
     where: { authentikId: session.user.id },
-    include: { subscriptions: { include: { node: true } } }
+    include: { subscriptions: { include: { node: true, inbounds: true } } }
   });
 
   if (!dbUser || dbUser.subscriptions.length === 0) {
@@ -41,7 +41,11 @@ export default async function Dashboard() {
   const sid = process.env.XRAY_SHORT_ID || "YOUR_SHORT_ID";
   const sni = process.env.XRAY_SNI || "biz.mail.ru";
   
-  const vlessLink = `vless://${sub.xrayUuid}@${sub.node.address}:${sub.node.port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#${encodeURIComponent(sub.name || "NadamuDash")}`;
+  const inbounds = sub.inbounds || [];
+  const vlessLinks = inbounds.map((inbound: any) => ({
+    tag: inbound.inboundTag,
+    link: `vless://${inbound.xrayUuid}@${sub.node.address}:${sub.node.port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#${encodeURIComponent(sub.name || "NadamuDash")} - ${inbound.inboundTag}`
+  }));
   
   const settings = await getSettings();
   const subPath = settings.SUB_PATH.replace('[token]', sub.token);
@@ -103,22 +107,34 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          {/* Right Column: QR Code */}
-          <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
+          {/* Right Column: QR Codes */}
+          <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col items-center relative overflow-hidden">
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
             
-            <h2 className="text-xl font-semibold mb-2 text-slate-200 self-start">Прямое подключение</h2>
-            <p className="text-sm text-slate-400 mb-8 self-start">Отсканируйте QR-код для мгновенной настройки.</p>
+            <h2 className="text-xl font-semibold mb-2 text-slate-200 self-start">Прямые подключения</h2>
+            <p className="text-sm text-slate-400 mb-8 self-start">
+              {vlessLinks.length > 0 
+                ? "Отсканируйте QR-код нужного подключения для мгновенной настройки."
+                : "Подключения еще не сгенерированы. Скопируйте ссылку на подписку и вставьте её в ваше приложение (например, v2rayNG или Shadowrocket), чтобы сгенерировать конфигурации."}
+            </p>
             
-            <div className="bg-white p-6 rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)] transition-transform hover:scale-105 duration-300">
-              <QRCodeSVG value={vlessLink} size={240} className="rounded-lg" />
-            </div>
-            
-            <div className="mt-8 w-full p-4 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-              <code className="text-xs text-slate-500 font-mono break-all line-clamp-2 select-all hover:line-clamp-none transition-all cursor-pointer">
-                {vlessLink}
-              </code>
-            </div>
+            {vlessLinks.length > 0 && (
+              <div className="w-full space-y-8 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {vlessLinks.map((v: any, i: number) => (
+                  <div key={i} className="flex flex-col items-center space-y-4 bg-slate-950/50 p-6 rounded-2xl border border-slate-800">
+                    <span className="text-sm font-semibold text-emerald-400 bg-emerald-400/10 px-4 py-1 rounded-full">{v.tag}</span>
+                    <div className="bg-white p-4 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-transform hover:scale-105 duration-300">
+                      <QRCodeSVG value={v.link} size={180} className="rounded-lg" />
+                    </div>
+                    <div className="w-full p-4 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden mt-4">
+                      <code className="text-xs text-slate-400 font-mono break-all line-clamp-2 select-all hover:line-clamp-none transition-all cursor-pointer">
+                        {v.link}
+                      </code>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </main>
       </div>
