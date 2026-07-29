@@ -20,6 +20,7 @@ export default async function AdminUsersPage() {
   const subscriptions = await db.subscription.findMany({
     include: {
       user: true,
+      traffic: true,
     },
     orderBy: {
       createdAt: 'desc'
@@ -29,7 +30,11 @@ export default async function AdminUsersPage() {
   // Fetch real-time traffic from Xray for each subscription concurrently
   const subsWithStats = await Promise.all(
     subscriptions.map(async (sub) => {
-      const stats = await queryUserStats(sub.id);
+      const liveStats = await queryUserStats(sub.id);
+      const dbTraffic = sub.traffic || { up: BigInt(0), down: BigInt(0) };
+      
+      const totalDown = BigInt(dbTraffic.down) + liveStats.down;
+      const totalUp = BigInt(dbTraffic.up) + liveStats.up;
       
       const subPath = settings.SUB_PATH.replace('[token]', sub.token);
       const safeSubPath = subPath.startsWith('/') ? subPath : `/${subPath}`;
@@ -37,7 +42,7 @@ export default async function AdminUsersPage() {
 
       return { 
         ...sub, 
-        stats,
+        stats: { up: totalUp, down: totalDown },
         subLink
       };
     })
@@ -110,7 +115,7 @@ export default async function AdminUsersPage() {
       
       <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
         <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <p>Статистика трафика берется напрямую из ядра Xray в реальном времени. В случае перезапуска службы Xray (например, при деплое) счетчики будут обнулены, так как они пока не сохраняются в базу данных.</p>
+        <p>Статистика трафика синхронизируется с базой данных в фоновом режиме каждую минуту. Отображаемые здесь значения учитывают как сохраненный в БД трафик, так и накопленный Xray в реальном времени.</p>
       </div>
     </div>
   );

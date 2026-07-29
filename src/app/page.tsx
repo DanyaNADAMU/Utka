@@ -10,7 +10,7 @@ export default async function Dashboard() {
 
   const dbUser = await db.user.findUnique({
     where: { authentikId: session.user.id },
-    include: { subscriptions: { include: { node: true, inbounds: true } } }
+    include: { subscriptions: { include: { node: true, inbounds: true, traffic: true } } }
   });
 
   if (!dbUser || dbUser.subscriptions.length === 0) {
@@ -25,8 +25,12 @@ export default async function Dashboard() {
 
   const sub = dbUser.subscriptions[0];
   
-  // Fetch real-time traffic from Xray
+  // Fetch real-time traffic from Xray and add to DB traffic
   const liveStats = await queryUserStats(sub.id);
+  const dbTraffic = sub.traffic || { up: BigInt(0), down: BigInt(0) };
+  
+  const totalDown = BigInt(dbTraffic.down) + liveStats.down;
+  const totalUp = BigInt(dbTraffic.up) + liveStats.up;
   
   // Format bytes helper
   const formatBytes = (bytes: bigint) => {
@@ -83,7 +87,7 @@ export default async function Dashboard() {
                     <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
                     <span className="text-slate-400 font-medium">Скачано</span>
                   </div>
-                  <span className="font-mono text-lg text-emerald-400 tracking-tight">{formatBytes(liveStats.down)}</span>
+                  <span className="font-mono text-lg text-emerald-400 tracking-tight">{formatBytes(totalDown)}</span>
                 </div>
                 
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-950/80 border border-slate-800/50">
@@ -91,7 +95,7 @@ export default async function Dashboard() {
                     <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
                     <span className="text-slate-400 font-medium">Отправлено</span>
                   </div>
-                  <span className="font-mono text-lg text-cyan-400 tracking-tight">{formatBytes(liveStats.up)}</span>
+                  <span className="font-mono text-lg text-cyan-400 tracking-tight">{formatBytes(totalUp)}</span>
                 </div>
               </div>
             </div>

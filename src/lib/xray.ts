@@ -127,11 +127,11 @@ export async function removeVlessUser(inboundTag: string, email: string): Promis
  * Query traffic stats for a specific user email
  * Returns { up: number, down: number } (in bytes)
  */
-export async function queryUserStats(emailPrefix: string): Promise<{ up: bigint, down: bigint }> {
+export async function queryUserStats(emailPrefix: string, reset: boolean = false): Promise<{ up: bigint, down: bigint }> {
   return new Promise((resolve) => {
     statsClient.queryStats({
       pattern: `user>>>${emailPrefix}_`,
-      reset: false // Set to true if you want Xray to reset counters after query
+      reset: reset
     }, (err: Error, res: any) => {
       if (err || !res || !res.stat) {
         return resolve({ up: BigInt(0), down: BigInt(0) });
