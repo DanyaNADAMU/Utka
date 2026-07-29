@@ -26,7 +26,7 @@ export default async function Dashboard() {
   const sub = dbUser.subscriptions[0];
   
   // Fetch real-time traffic from Xray
-  const liveStats = await queryUserStats(session.user.email as string);
+  const liveStats = await queryUserStats(sub.id);
   
   // Format bytes helper
   const formatBytes = (bytes: bigint) => {
