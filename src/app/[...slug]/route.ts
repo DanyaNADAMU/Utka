@@ -44,8 +44,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const userAgent = request.headers.get('user-agent') || 'unknown';
-  console.log(`[VALID SUB REQUEST] Client IP: ${request.headers.get('x-forwarded-for') || 'unknown'} | User-Agent: ${userAgent}`);
+  const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
+  console.log(`[VALID SUB REQUEST] Client IP: ${clientIp} | User-Agent: ${userAgent}`);
 
   const lowerUa = userAgent.toLowerCase();
   if (lowerUa.includes('clash') || lowerUa.includes('meta') || lowerUa.includes('mihomo')) {
