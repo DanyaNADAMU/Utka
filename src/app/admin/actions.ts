@@ -13,12 +13,16 @@ export async function saveSettings(formData: FormData) {
     throw new Error('Unauthorized');
   }
 
-  const subPath = formData.get('SUB_PATH') as string;
-  const expireMinutes = formData.get('OLD_UUID_EXPIRE_MINUTES') as string;
-
-  if (subPath) await setSetting('SUB_PATH', subPath);
-  if (expireMinutes && !isNaN(Number(expireMinutes))) {
-    await setSetting('OLD_UUID_EXPIRE_MINUTES', expireMinutes);
+  for (const [key, value] of formData.entries()) {
+    if (typeof value === 'string' && !key.startsWith('$ACTION_ID_')) {
+      if (key === 'OLD_UUID_EXPIRE_MINUTES') {
+        if (!isNaN(Number(value)) && value.trim() !== '') {
+          await setSetting(key, value);
+        }
+      } else {
+        await setSetting(key, value);
+      }
+    }
   }
 
   revalidatePath('/admin/settings');

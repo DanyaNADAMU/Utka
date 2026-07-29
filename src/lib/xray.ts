@@ -2,6 +2,8 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import protobuf from 'protobufjs';
 import path from 'path';
+import db from './db';
+import { getSettings } from './settings';
 
 // Define paths to proto files
 const PROXYMAN_PROTO = path.join(process.cwd(), 'src/proto/app/proxyman/command/command.proto');
@@ -211,16 +213,22 @@ export async function buildClientLink(
   nodePort: number
 ): Promise<string> {
   const conf = await getInboundConfig(inboundTag);
+  const settings = await getSettings();
   const name = encodeURIComponent(`${nodeName || "NadamuDash"} - ${inboundTag}`);
+  
+  // Apply per-inbound settings
+  const customPort = settings[`INBOUND_${inboundTag}_PORT`];
+  const customFlow = settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
+  
+  // We MUST use the external nodePort (exposed by haproxy) or the custom port
+  // rather than the internal Xray listen port (conf.port)
+  const port = customPort ? parseInt(customPort) : nodePort;
   
   if (!conf) {
     // Fallback if not found
-    return `vless://${xrayUuid}@${nodeAddress}:${nodePort}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=biz.mail.ru&fp=chrome&type=tcp&headerType=none#${name}`;
+    return `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none&flow=${customFlow}&security=reality&sni=biz.mail.ru&fp=chrome&type=tcp&headerType=none#${name}`;
   }
 
-  // We MUST use the external nodePort (exposed by haproxy) 
-  // rather than the internal Xray listen port (conf.port)
-  const port = nodePort;
   const protocol = conf.protocol || "vless";
   
   // Extract reality settings
@@ -258,7 +266,7 @@ export async function buildClientLink(
     }
     
     if (security === "reality") {
-      link += `&pbk=${pbk}&sid=${sid}&flow=xtls-rprx-vision`;
+      link += `&pbk=${pbk}&sid=${sid}&flow=${customFlow}`;
     }
     
     return `${link}#${name}`;

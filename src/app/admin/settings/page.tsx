@@ -1,10 +1,12 @@
 import { getSettings } from '@/lib/settings';
 import { saveSettings } from '../actions';
 import { getDictionary } from '@/i18n/dictionaries';
+import { getClientInboundTags } from '@/lib/xray';
 
 export default async function SettingsPage() {
   const dict = await getDictionary();
   const settings = await getSettings();
+  const inbounds = await getClientInboundTags();
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -56,6 +58,46 @@ export default async function SettingsPage() {
               />
             </div>
           </div>
+
+          {inbounds.length > 0 && (
+            <div className="pt-6 border-t border-slate-800 space-y-6">
+              <h3 className="text-md font-semibold text-slate-200">Inbound Settings (Per-Tag)</h3>
+              
+              {inbounds.map((tag) => (
+                <div key={tag} className="space-y-4 p-4 border border-slate-800 bg-slate-900/30 rounded-xl">
+                  <h4 className="text-sm font-medium text-emerald-400">Tag: {tag}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor={`INBOUND_${tag}_PORT`} className="block text-sm font-medium text-slate-300 mb-1">
+                        Client Port
+                      </label>
+                      <input 
+                        type="number" 
+                        id={`INBOUND_${tag}_PORT`}
+                        name={`INBOUND_${tag}_PORT`}
+                        defaultValue={settings[`INBOUND_${tag}_PORT`] || ""}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                        placeholder="Leave empty to use node port"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`INBOUND_${tag}_FLOW`} className="block text-sm font-medium text-slate-300 mb-1">
+                        Default Flow
+                      </label>
+                      <input 
+                        type="text" 
+                        id={`INBOUND_${tag}_FLOW`}
+                        name={`INBOUND_${tag}_FLOW`}
+                        defaultValue={settings[`INBOUND_${tag}_FLOW`] || "xtls-rprx-vision"}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                        placeholder="e.g. xtls-rprx-vision"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="pt-6 border-t border-slate-800 flex justify-end">
             <button 

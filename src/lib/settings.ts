@@ -5,14 +5,14 @@ export const DEFAULT_SETTINGS = {
   OLD_UUID_EXPIRE_MINUTES: '2031',
 } as const;
 
-export type SettingKey = keyof typeof DEFAULT_SETTINGS;
+export type SettingKey = keyof typeof DEFAULT_SETTINGS | string;
 
 export async function getSetting(key: SettingKey): Promise<string> {
   const setting = await db.setting.findUnique({ where: { key } });
-  return setting?.value ?? DEFAULT_SETTINGS[key];
+  return setting?.value ?? (DEFAULT_SETTINGS as any)[key] ?? '';
 }
 
-export async function getSettings(): Promise<Record<SettingKey, string>> {
+export async function getSettings(): Promise<Record<string, string>> {
   const settings = await db.setting.findMany();
   const settingsMap = settings.reduce((acc, curr) => {
     acc[curr.key] = curr.value;
@@ -20,8 +20,8 @@ export async function getSettings(): Promise<Record<SettingKey, string>> {
   }, {} as Record<string, string>);
 
   return {
-    SUB_PATH: settingsMap.SUB_PATH ?? DEFAULT_SETTINGS.SUB_PATH,
-    OLD_UUID_EXPIRE_MINUTES: settingsMap.OLD_UUID_EXPIRE_MINUTES ?? DEFAULT_SETTINGS.OLD_UUID_EXPIRE_MINUTES,
+    ...DEFAULT_SETTINGS,
+    ...settingsMap,
   };
 }
 
