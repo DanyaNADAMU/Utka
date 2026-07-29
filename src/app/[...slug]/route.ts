@@ -41,14 +41,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
 
   // Detect if this request is from our own subconverter container
-  const isSubconverterRequest = userAgent.toLowerCase().includes('subconverter');
+  const reqUrl = new URL(request.url);
+  const isRawRequest = reqUrl.searchParams.get('raw') === 'true';
   
-  if (!isSubconverterRequest) {
+  if (!isRawRequest) {
     // If the client explicitly requested .yaml/.yml, force clash target, otherwise let subconverter auto-detect
     const forceClash = url.includes('.yaml') || url.includes('.yml');
     const target = forceClash ? 'clash' : 'auto';
 
-    const internalUrl = `http://nadamudash:3000/${slug.join('/')}`;
+    const internalUrl = `http://nadamudash:3000/${slug.join('/')}?raw=true`;
     const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}`;
     
     try {
