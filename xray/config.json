@@ -28,8 +28,8 @@
   },
   "inbounds": [
     {
-      "listen": "/etc/xray/api.sock",
-      "port": 0,
+      "listen": "127.0.0.1",
+      "port": 8080,
       "protocol": "dokodemo-door",
       "settings": {
         "address": "127.0.0.1"

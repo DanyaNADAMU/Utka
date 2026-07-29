@@ -24,11 +24,8 @@ const statsDef = protoLoader.loadSync(STATS_PROTO, loadOptions);
 const xrayProxyman = (grpc.loadPackageDefinition(proxymanDef) as any).xray.app.proxyman.command;
 const xrayStats = (grpc.loadPackageDefinition(statsDef) as any).xray.app.stats.command;
 
-let XRAY_API_URL = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
-// Auto-migrate legacy tcp configurations to unix socket
-if (XRAY_API_URL.includes('xray:8080') || XRAY_API_URL.includes('xray:7999')) {
-  XRAY_API_URL = 'unix:///app/xray/api.sock';
-}
+let XRAY_API_URL = process.env.XRAY_API_URL || '127.0.0.1:8080';
+// Legacy migrations removed since we are in host mode
 
 // Initialize clients
 const handlerClient = new xrayProxyman.HandlerService(XRAY_API_URL, grpc.credentials.createInsecure());
