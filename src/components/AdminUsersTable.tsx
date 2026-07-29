@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import CopyButton from './CopyButton';
 
@@ -34,9 +35,9 @@ interface TrafficState {
 
 export default function AdminUsersTable({ subscriptions }: { subscriptions: any[] }) {
   const [traffic, setTraffic] = useState<Record<string, TrafficState>>({});
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [progress, setProgress] = useState(0);
   const dict = useTranslation();
+  const router = useRouter();
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -87,10 +88,6 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
     };
   }, []);
 
-  const toggleExpand = (id: string) => {
-    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-3 mb-2">
@@ -115,9 +112,9 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
               <tr>
                 <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.user}</th>
                 <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.token}</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">{dict.common.downloaded}</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">{dict.common.uploaded}</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-purple-400">{dict.admin.users.table.traffic_hour}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">Суммарная скорость</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">Трафик за час</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-purple-400">Трафик за все время</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
@@ -132,11 +129,13 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
                 };
                 
                 const hourTotal = Number(stat.last1hDown) + Number(stat.last1hUp);
+                const allTimeTotal = Number(stat.totalDown) + Number(stat.totalUp);
+                const speedTotal = Number(stat.speedDown) + Number(stat.speedUp);
 
                 return (
                   <React.Fragment key={sub.id}>
                     <tr 
-                      onClick={() => toggleExpand(sub.id)}
+                      onClick={() => router.push(`/admin/users/${sub.id}`)}
                       className="hover:bg-slate-800/30 transition-colors cursor-pointer"
                     >
                       <td className="px-6 py-4">
@@ -156,62 +155,15 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right font-mono text-emerald-400/90 font-medium">
-                        {formatSpeed(stat.speedDown)}
+                        {formatSpeed(speedTotal)}
                       </td>
                       <td className="px-6 py-4 text-right font-mono text-cyan-400/90 font-medium">
-                        {formatSpeed(stat.speedUp)}
-                      </td>
-                      <td className="px-6 py-4 text-right font-mono text-purple-400/90 font-medium">
                         {formatBytes(hourTotal)}
                       </td>
+                      <td className="px-6 py-4 text-right font-mono text-purple-400/90 font-medium">
+                        {formatBytes(allTimeTotal)}
+                      </td>
                     </tr>
-                    
-                    {expanded[sub.id] && (
-                      <tr className="bg-slate-950/30">
-                        <td colSpan={5} className="px-6 py-6 border-b border-slate-800/50">
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-right text-xs">
-                              <thead className="text-slate-500 uppercase font-medium border-b border-slate-800/50">
-                                <tr>
-                                  <th className="pb-3 text-left w-24">Метрика</th>
-                                  <th className="pb-3">{dict.admin.users.table.speed}</th>
-                                  <th className="pb-3">{dict.admin.users.table.last_5s}</th>
-                                  <th className="pb-3">{dict.admin.users.table.last_1m}</th>
-                                  <th className="pb-3">{dict.admin.users.table.last_1h}</th>
-                                  <th className="pb-3">{dict.admin.users.table.last_1mo}</th>
-                                </tr>
-                              </thead>
-                              <tbody className="font-mono text-slate-300">
-                                <tr className="border-b border-slate-800/30">
-                                  <td className="py-3 text-left text-emerald-400 font-sans font-medium">{dict.admin.users.table.downloaded} ↓</td>
-                                  <td className="py-3 text-emerald-400/80">{formatSpeed(stat.speedDown)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last5sDown)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last1mDown)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last1hDown)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last1moDown)}</td>
-                                </tr>
-                                <tr className="border-b border-slate-800/30">
-                                  <td className="py-3 text-left text-cyan-400 font-sans font-medium">{dict.admin.users.table.uploaded} ↑</td>
-                                  <td className="py-3 text-cyan-400/80">{formatSpeed(stat.speedUp)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last5sUp)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last1mUp)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last1hUp)}</td>
-                                  <td className="py-3 text-slate-400">{formatBytes(stat.last1moUp)}</td>
-                                </tr>
-                                <tr className="font-medium bg-slate-900/30">
-                                  <td className="py-3 text-left text-purple-400 font-sans">{dict.admin.users.table.sum}</td>
-                                  <td className="py-3 text-purple-400/80">{formatSpeed(Number(stat.speedDown) + Number(stat.speedUp))}</td>
-                                  <td className="py-3 text-slate-300">{formatBytes(Number(stat.last5sDown) + Number(stat.last5sUp))}</td>
-                                  <td className="py-3 text-slate-300">{formatBytes(Number(stat.last1mDown) + Number(stat.last1mUp))}</td>
-                                  <td className="py-3 text-slate-300">{formatBytes(Number(stat.last1hDown) + Number(stat.last1hUp))}</td>
-                                  <td className="py-3 text-slate-300">{formatBytes(Number(stat.last1moDown) + Number(stat.last1moUp))}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
                   </React.Fragment>
                 );
               })}
