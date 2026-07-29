@@ -66,8 +66,8 @@ ssh $SSH_TARGET "cd /opt/stacks/nadamudash && \
   mv tmp_compose/compose.yml compose.yml && \
   rm -rf tmp_compose && \
   touch .env && \
-  docker compose pull && \
-  docker compose up -d"
+  docker compose pull nadamudash && \
+  docker compose up -d nadamudash"
 
 echo ""
 echo "==========================================="
