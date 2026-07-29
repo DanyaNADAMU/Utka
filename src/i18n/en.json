@@ -55,7 +55,8 @@
       "cpu": "CPU",
       "ram": "RAM",
       "history": "Traffic History (14 days)",
-      "history_empty": "No data for selected period"
+      "history_empty": "No data for selected period",
+      "global_traffic_table": "Global Traffic Statistics"
     },
     "settings": {
       "title": "Panel Settings",

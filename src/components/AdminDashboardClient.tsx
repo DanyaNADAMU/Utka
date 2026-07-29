@@ -11,6 +11,21 @@ interface SystemStats {
   history: { date: string; up: string; down: string }[];
 }
 
+interface GlobalTrafficStats {
+  speedUp: number;
+  speedDown: number;
+  last5sUp: number;
+  last5sDown: number;
+  last1mUp: number;
+  last1mDown: number;
+  last1hUp: number;
+  last1hDown: number;
+  last1moUp: number;
+  last1moDown: number;
+  totalUp: number;
+  totalDown: number;
+}
+
 export default function AdminDashboardClient({ 
   totalUsers, 
   totalSubs, 
@@ -22,7 +37,14 @@ export default function AdminDashboardClient({
 }) {
   const dict = useTranslation();
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
-  const [globalTraffic, setGlobalTraffic] = useState({ up: 0, down: 0 });
+  const [globalTraffic, setGlobalTraffic] = useState<GlobalTrafficStats>({ 
+    speedUp: 0, speedDown: 0, 
+    last5sUp: 0, last5sDown: 0, 
+    last1mUp: 0, last1mDown: 0, 
+    last1hUp: 0, last1hDown: 0, 
+    last1moUp: 0, last1moDown: 0, 
+    totalUp: 0, totalDown: 0 
+  });
 
   useEffect(() => {
     // Fetch static system stats (history) and initial cpu/ram
@@ -44,13 +66,29 @@ export default function AdminDashboardClient({
         const trafficRes = await fetch('/api/admin/traffic');
         if (trafficRes.ok) {
           const trafficData = await trafficRes.json();
-          let up = 0;
-          let down = 0;
+          let gt = {
+            speedUp: 0, speedDown: 0, 
+            last5sUp: 0, last5sDown: 0, 
+            last1mUp: 0, last1mDown: 0, 
+            last1hUp: 0, last1hDown: 0, 
+            last1moUp: 0, last1moDown: 0, 
+            totalUp: 0, totalDown: 0 
+          };
           Object.values(trafficData).forEach((t: any) => {
-            up += Number(t.up || 0);
-            down += Number(t.down || 0);
+            gt.speedUp += Number(t.speedUp || 0);
+            gt.speedDown += Number(t.speedDown || 0);
+            gt.last5sUp += Number(t.last5sUp || 0);
+            gt.last5sDown += Number(t.last5sDown || 0);
+            gt.last1mUp += Number(t.last1mUp || 0);
+            gt.last1mDown += Number(t.last1mDown || 0);
+            gt.last1hUp += Number(t.last1hUp || 0);
+            gt.last1hDown += Number(t.last1hDown || 0);
+            gt.last1moUp += Number(t.last1moUp || 0);
+            gt.last1moDown += Number(t.last1moDown || 0);
+            gt.totalUp += Number(t.totalUp || 0);
+            gt.totalDown += Number(t.totalDown || 0);
           });
-          setGlobalTraffic({ up, down });
+          setGlobalTraffic(gt);
         }
         
         // Also refresh CPU/RAM occasionally (every 5s is fine)
@@ -79,7 +117,8 @@ export default function AdminDashboardClient({
   const chartData = systemStats?.history?.map(d => ({
     name: new Date(d.date).toLocaleDateString(),
     Up: Number(BigInt(d.up) / BigInt(1024 * 1024)), // MB
-    Down: Number(BigInt(d.down) / BigInt(1024 * 1024)) // MB
+    Down: Number(BigInt(d.down) / BigInt(1024 * 1024)), // MB
+    Sum: Number((BigInt(d.up) + BigInt(d.down)) / BigInt(1024 * 1024)) // MB
   })) || [];
 
   return (
@@ -115,11 +154,11 @@ export default function AdminDashboardClient({
             <div className="flex items-center space-x-4 mt-2">
               <div className="flex items-center text-emerald-400 font-bold text-lg">
                 <ArrowDown className="w-4 h-4 mr-1" />
-                {formatBytes(globalTraffic.down)}/s
+                {formatBytes(globalTraffic.speedDown)}/s
               </div>
               <div className="flex items-center text-blue-400 font-bold text-lg">
                 <ArrowUp className="w-4 h-4 mr-1" />
-                {formatBytes(globalTraffic.up)}/s
+                {formatBytes(globalTraffic.speedUp)}/s
               </div>
             </div>
           </div>
@@ -172,6 +211,7 @@ export default function AdminDashboardClient({
                   <Legend iconType="circle" />
                   <Bar dataKey="Down" fill="#34d399" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Up" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Sum" fill="#c084fc" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -182,6 +222,61 @@ export default function AdminDashboardClient({
           </div>
         </div>
 
+      </div>
+
+      {/* Global Traffic Table */}
+      <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <h2 className="text-lg font-semibold text-slate-200 mb-6 flex items-center">
+          <Network className="w-5 h-5 mr-2 text-blue-400" />
+          {dict.admin.dash.global_traffic_table || 'Серверная статистика трафика'}
+        </h2>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-400 text-sm">
+                <th className="pb-3 px-4 font-medium">Направление</th>
+                <th className="pb-3 px-4 font-medium">Скорость</th>
+                <th className="pb-3 px-4 font-medium">5 сек</th>
+                <th className="pb-3 px-4 font-medium">1 мин</th>
+                <th className="pb-3 px-4 font-medium">1 час</th>
+                <th className="pb-3 px-4 font-medium">1 мес</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm text-slate-300">
+              <tr className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                <td className="py-4 px-4 font-medium text-emerald-400 flex items-center">
+                  <ArrowDown className="w-4 h-4 mr-1" /> {dict.common.downloaded || 'Download'}
+                </td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.speedDown)}/s</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last5sDown)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1mDown)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1hDown)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1moDown)}</td>
+              </tr>
+              <tr className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                <td className="py-4 px-4 font-medium text-blue-400 flex items-center">
+                  <ArrowUp className="w-4 h-4 mr-1" /> {dict.common.uploaded || 'Upload'}
+                </td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.speedUp)}/s</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last5sUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1mUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1hUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1moUp)}</td>
+              </tr>
+              <tr className="hover:bg-slate-800/30 transition-colors font-semibold">
+                <td className="py-4 px-4 text-purple-400 flex items-center">
+                  <Activity className="w-4 h-4 mr-1" /> Sum
+                </td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.speedDown + globalTraffic.speedUp)}/s</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last5sDown + globalTraffic.last5sUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1mDown + globalTraffic.last1mUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1hDown + globalTraffic.last1hUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.last1moDown + globalTraffic.last1moUp)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
