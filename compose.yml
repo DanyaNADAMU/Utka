@@ -9,6 +9,8 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+    volumes:
+      - ./xray:/app/xray
     depends_on:
       postgres:
         condition: service_healthy
