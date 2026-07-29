@@ -58,8 +58,6 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     chown nextjs:nodejs /app/start.sh && \
     chmod +x /app/start.sh
 
-USER nextjs
-
 EXPOSE 3000
 
 ENV PORT=3000
