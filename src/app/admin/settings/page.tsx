@@ -61,7 +61,7 @@ export default async function SettingsPage() {
 
           {inbounds.length > 0 && (
             <div className="pt-6 border-t border-slate-800 space-y-6">
-              <h3 className="text-md font-semibold text-slate-200">Inbound Settings (Per-Tag)</h3>
+              <h3 className="text-lg font-semibold text-slate-200">Inbound Settings (Per-Tag)</h3>
               
               {inbounds.map((tag) => (
                 <div key={tag} className="space-y-4 p-4 border border-slate-800 bg-slate-900/30 rounded-xl">
@@ -84,14 +84,16 @@ export default async function SettingsPage() {
                       <label htmlFor={`INBOUND_${tag}_FLOW`} className="block text-sm font-medium text-slate-300 mb-1">
                         Default Flow
                       </label>
-                      <input 
-                        type="text" 
+                      <select 
                         id={`INBOUND_${tag}_FLOW`}
                         name={`INBOUND_${tag}_FLOW`}
                         defaultValue={settings[`INBOUND_${tag}_FLOW`] || "xtls-rprx-vision"}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
-                        placeholder="e.g. xtls-rprx-vision"
-                      />
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all appearance-none"
+                      >
+                        <option value="xtls-rprx-vision">xtls-rprx-vision (Recommended)</option>
+                        <option value="xtls-rprx-vision-udp443">xtls-rprx-vision-udp443</option>
+                        <option value="">None (Empty)</option>
+                      </select>
                     </div>
                   </div>
                 </div>

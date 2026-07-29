@@ -56,19 +56,7 @@ echo ""
 echo "==========================================="
 echo "🔄 4. Deploy to server ($SSH_TARGET)"
 echo "==========================================="
-ssh $SSH_TARGET "mkdir -p /opt/stacks/nadamudash/tmp_compose"
-scp -r compose.yml xray $SSH_TARGET:/opt/stacks/nadamudash/tmp_compose/
-
-ssh $SSH_TARGET "cd /opt/stacks/nadamudash && \
-  if [ -d tmp_compose/xray ]; then \
-    docker run --rm -v \$(pwd):/workspace alpine sh -c 'mkdir -p /workspace/xray && cp -n /workspace/tmp_compose/xray/* /workspace/xray/ 2>/dev/null || true'; \
-  fi && \
-  mv tmp_compose/compose.yml compose.yml && \
-  rm -rf tmp_compose && \
-  touch .env && \
-  sed -i 's/@127.0.0.1:5432/@postgres:5432/g' .env && \
-  docker compose pull && \
-  docker compose up -d"
+ssh $SSH_TARGET "sudo /opt/stacks/nadamudash/deploy.sh"
 
 echo ""
 echo "==========================================="
