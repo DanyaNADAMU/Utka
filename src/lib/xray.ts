@@ -218,7 +218,9 @@ export async function buildClientLink(
     return `vless://${xrayUuid}@${nodeAddress}:${nodePort}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=biz.mail.ru&fp=chrome&type=tcp&headerType=none#${name}`;
   }
 
-  const port = conf.port || nodePort;
+  // We MUST use the external nodePort (exposed by haproxy) 
+  // rather than the internal Xray listen port (conf.port)
+  const port = nodePort;
   const protocol = conf.protocol || "vless";
   
   // Extract reality settings
