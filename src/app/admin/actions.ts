@@ -14,11 +14,9 @@ export async function saveSettings(formData: FormData) {
   }
 
   const subPath = formData.get('SUB_PATH') as string;
-  const inboundTag = formData.get('XRAY_INBOUND_TAG') as string;
   const expireMinutes = formData.get('OLD_UUID_EXPIRE_MINUTES') as string;
 
   if (subPath) await setSetting('SUB_PATH', subPath);
-  if (inboundTag) await setSetting('XRAY_INBOUND_TAG', inboundTag);
   if (expireMinutes && !isNaN(Number(expireMinutes))) {
     await setSetting('OLD_UUID_EXPIRE_MINUTES', expireMinutes);
   }

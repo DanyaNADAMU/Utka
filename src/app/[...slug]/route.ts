@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { addVlessUser, removeVlessUser } from '@/lib/xray';
+import { addVlessUser, removeVlessUser, getClientInboundTags } from '@/lib/xray';
 import crypto from 'crypto';
 import { getSettings } from '@/lib/settings';
 
@@ -30,7 +30,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const inboundTag = settings.XRAY_INBOUND_TAG;
+  const activeInboundTags = await getClientInboundTags();
 
   // Cleanup expired UUIDs across all subscriptions (lazy cleanup)
   try {
@@ -39,7 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     });
 
     for (const exp of expiredUuids) {
-      const success = await removeVlessUser(inboundTag, exp.xrayEmail);
+      const success = await removeVlessUser(exp.inboundTag, exp.xrayEmail);
       if (success || !success) { 
         await db.expiringUuid.delete({ where: { id: exp.id } });
       }
@@ -50,55 +50,88 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const sub = await db.subscription.findUnique({
     where: { token },
-    include: { node: true }
+    include: { node: true, inbounds: true }
   });
 
   if (!sub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Generate new UUID
-  const newUuid = crypto.randomUUID();
-  const oldUuid = sub.xrayUuid;
-  const newXrayEmail = `${sub.id}_${newUuid}`;
-  const oldXrayEmail = `${sub.id}_${oldUuid}`;
+  // Sync inbounds (add missing ones since by default all are allowed for now)
+  const currentInboundTags = sub.inbounds.map((i: any) => i.inboundTag);
+  const inboundsToCreate = activeInboundTags.filter(t => !currentInboundTags.includes(t));
+  
+  if (inboundsToCreate.length > 0) {
+    await db.subscriptionInbound.createMany({
+      data: inboundsToCreate.map(tag => ({
+        subscriptionId: sub.id,
+        inboundTag: tag,
+        xrayUuid: crypto.randomUUID()
+      }))
+    });
+  }
 
-  const expireMinutes = Number(settings.OLD_UUID_EXPIRE_MINUTES) || 2031;
-
-  // Add old UUID to ExpiringUuid
-  const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
-  await db.expiringUuid.create({
-    data: {
-      subscriptionId: sub.id,
-      xrayUuid: oldUuid,
-      xrayEmail: oldXrayEmail,
-      nodeId: sub.nodeId,
-      expiresAt: expiresAt
-    }
+  // Refetch to get the latest inbounds with UUIDs
+  const updatedSub = await db.subscription.findUnique({
+    where: { id: sub.id },
+    include: { node: true, inbounds: true }
   });
+  
+  if (!updatedSub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Update subscription in DB
+  const links: string[] = [];
+  const expireMinutes = Number(settings.OLD_UUID_EXPIRE_MINUTES) || 2031;
+  const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
+
+  for (const inbound of updatedSub.inbounds) {
+    // Only process active inbounds
+    if (!activeInboundTags.includes(inbound.inboundTag)) continue;
+
+    const newUuid = crypto.randomUUID();
+    const oldUuid = inbound.xrayUuid;
+    const newXrayEmail = `${sub.id}_${inbound.inboundTag}_${newUuid}`;
+    const oldXrayEmail = `${sub.id}_${inbound.inboundTag}_${oldUuid}`;
+
+    // Add old UUID to ExpiringUuid
+    await db.expiringUuid.create({
+      data: {
+        subscriptionId: sub.id,
+        xrayUuid: oldUuid,
+        xrayEmail: oldXrayEmail,
+        inboundTag: inbound.inboundTag,
+        nodeId: sub.nodeId,
+        expiresAt: expiresAt
+      }
+    });
+
+    // Update new UUID in SubscriptionInbound
+    await db.subscriptionInbound.update({
+      where: { id: inbound.id },
+      data: { xrayUuid: newUuid }
+    });
+
+    // Add new UUID to Xray
+    await addVlessUser(inbound.inboundTag, newXrayEmail, newUuid);
+
+    // Generate vless link
+    const address = sub.node.address;
+    const port = sub.node.port;
+    const name = encodeURIComponent(`${sub.name || "NadamuDash"} - ${inbound.inboundTag}`);
+    
+    const pbk = process.env.XRAY_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
+    const sid = process.env.XRAY_SHORT_ID || "YOUR_SHORT_ID";
+    const sni = process.env.XRAY_SNI || "biz.mail.ru";
+
+    // Standard VLESS Reality link format. You can parse config to get correct type/security per inbound later.
+    const vlessLink = `vless://${newUuid}@${address}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#${name}`;
+    links.push(vlessLink);
+  }
+
+  // Update subscription fetch time
   await db.subscription.update({
     where: { id: sub.id },
-    data: { 
-      xrayUuid: newUuid,
-      lastFetched: new Date() 
-    }
+    data: { lastFetched: new Date() }
   });
 
-  // Add new UUID to Xray
-  await addVlessUser(inboundTag, newXrayEmail, newUuid);
-
-  // Generate vless link
-  const address = sub.node.address;
-  const port = sub.node.port;
-  const name = encodeURIComponent(sub.name || "NadamuDash");
-  
-  const pbk = process.env.XRAY_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
-  const sid = process.env.XRAY_SHORT_ID || "YOUR_SHORT_ID";
-  const sni = process.env.XRAY_SNI || "biz.mail.ru";
-
-  const vlessLink = `vless://${newUuid}@${address}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#${name}`;
-  
-  const base64Link = Buffer.from(vlessLink).toString('base64');
+  const base64Link = Buffer.from(links.join('\n')).toString('base64');
   
   return new NextResponse(base64Link, {
     headers: {

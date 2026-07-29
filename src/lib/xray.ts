@@ -152,3 +152,26 @@ export async function queryUserStats(emailPrefix: string): Promise<{ up: bigint,
     });
   });
 }
+
+/**
+ * Parses config.json and returns all inbound tags except 'api' (dokodemo-door)
+ */
+import fs from 'fs/promises';
+
+export async function getClientInboundTags(): Promise<string[]> {
+  try {
+    const configPath = path.join(process.cwd(), 'xray', 'config.json');
+    const data = await fs.readFile(configPath, 'utf-8');
+    const config = JSON.parse(data);
+    if (!config.inbounds || !Array.isArray(config.inbounds)) return [];
+    
+    // Filter out API inbound (usually dokodemo-door with tag 'api')
+    return config.inbounds
+      .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
+      .map((i: any) => i.tag);
+  } catch (e) {
+    console.error("Failed to read client inbound tags:", e);
+    return [];
+  }
+}
+

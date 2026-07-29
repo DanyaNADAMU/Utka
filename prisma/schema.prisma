@@ -21,7 +21,6 @@ model User {
 model Subscription {
   id          String      @id @default(uuid())
   token       String      @unique @default(uuid()) // URL token (e.g., /api/sub/<token>)
-  xrayUuid    String      @unique @default(uuid()) // VLESS UUID
   name        String?     // E.g., "iPhone"
   userId      String
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -31,6 +30,17 @@ model Subscription {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   traffic     TrafficLog?
+  inbounds    SubscriptionInbound[]
+}
+
+model SubscriptionInbound {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  inboundTag     String
+  xrayUuid       String       @unique @default(uuid())
+  
+  @@unique([subscriptionId, inboundTag])
 }
 
 model TrafficLog {
@@ -58,6 +68,7 @@ model ExpiringUuid {
   subscriptionId String
   xrayUuid       String
   xrayEmail      String       // The email string used in Xray (e.g. subId_xrayUuid)
+  inboundTag     String
   nodeId         String       // We need to know which node to remove it from
   expiresAt      DateTime
 }
