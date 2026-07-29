@@ -1,8 +1,8 @@
 import { auth } from "@/auth"
 import db from "@/lib/db"
-import { queryUserStats } from "@/lib/xray"
+import { getSettings } from "@/lib/settings";
+import { trafficState } from "@/lib/trafficDaemon";
 import { QRCodeSVG } from 'qrcode.react'
-import { getSettings } from "@/lib/settings"
 
 export default async function Dashboard() {
   const session = await auth();
@@ -25,12 +25,11 @@ export default async function Dashboard() {
 
   const sub = dbUser.subscriptions[0];
   
-  // Fetch real-time traffic from Xray and add to DB traffic
-  const liveStats = await queryUserStats(sub.id);
-  const dbTraffic = sub.traffic || { up: BigInt(0), down: BigInt(0) };
-  
-  const totalDown = BigInt(dbTraffic.down) + liveStats.down;
-  const totalUp = BigInt(dbTraffic.up) + liveStats.up;
+  // Fetch total traffic from daemon state or fallback to DB
+  const stat = trafficState[sub.id];
+  const totalUp = stat ? stat.totalUp : (sub.traffic?.up || BigInt(0));
+  const totalDown = stat ? stat.totalDown : (sub.traffic?.down || BigInt(0));
+  const totalDown = stat ? stat.totalDown : (sub.traffic?.down || BigInt(0));
   
   // Format bytes helper
   const formatBytes = (bytes: bigint) => {

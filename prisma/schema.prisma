@@ -30,6 +30,7 @@ model Subscription {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   traffic     TrafficLog?
+  history     TrafficHistory[]
   inbounds    SubscriptionInbound[]
 }
 
@@ -50,6 +51,16 @@ model TrafficLog {
   up             BigInt       @default(0)
   down           BigInt       @default(0)
   lastUpdate     DateTime     @default(now())
+}
+
+model TrafficHistory {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  up             BigInt
+  down           BigInt
+  timestamp      DateTime     @default(now())
+  isCompressed   Boolean      @default(false)
 }
 
 model Node {
