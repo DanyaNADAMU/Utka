@@ -1,7 +1,8 @@
 import NextAuth from "next-auth"
 import AuthentikProvider from "next-auth/providers/authentik"
 import db from "@/lib/db"
-import { addVlessUser } from "@/lib/xray"
+import { addVlessUser, getClientInboundTags } from "@/lib/xray"
+import crypto from "crypto"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -67,8 +68,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           });
 
-          // Push new user to Xray!
-          await addVlessUser("vless-in", user.email, defaultSub.xrayUuid);
+          // Push new user to all Xray inbounds!
+          const activeInboundTags = await getClientInboundTags();
+          for (const tag of activeInboundTags) {
+            const newUuid = crypto.randomUUID();
+            await db.subscriptionInbound.create({
+              data: {
+                subscriptionId: defaultSub.id,
+                inboundTag: tag,
+                xrayUuid: newUuid
+              }
+            });
+            await addVlessUser(tag, `${defaultSub.id}_${tag}_${newUuid}`, newUuid);
+          }
         }
       }
       return true;
