@@ -191,7 +191,7 @@ function StatCard({ title, value, icon }: { title: string, value: number, icon: 
   return (
     <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl flex items-center shadow-xl relative overflow-hidden group">
       <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-300">
-        {React.cloneElement(icon as React.ReactElement, { className: "w-32 h-32" })}
+        {React.cloneElement(icon as React.ReactElement<any>, { className: "w-32 h-32" })}
       </div>
       <div className="relative z-10 flex items-center w-full">
         <div className="w-12 h-12 rounded-xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mr-4">
