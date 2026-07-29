@@ -25,17 +25,22 @@ export interface TrafficState {
   totalDown: bigint;
 }
 
-const uncommittedTraffic: Record<string, { up: bigint, down: bigint }> = {};
-const cachedAggregates: Record<string, { h1: {up: bigint, down: bigint}, d1: {up: bigint, down: bigint}, mo1: {up: bigint, down: bigint}, total: {up: bigint, down: bigint} }> = {};
+const uncommittedTraffic: Record<string, { up: bigint, down: bigint }> = (globalThis as any).uncommittedTraffic || {};
+const cachedAggregates: Record<string, { h1: {up: bigint, down: bigint}, d1: {up: bigint, down: bigint}, mo1: {up: bigint, down: bigint}, total: {up: bigint, down: bigint} }> = (globalThis as any).cachedAggregates || {};
 
-export const trafficState: Record<string, TrafficState> = {};
+export const trafficState: Record<string, TrafficState> = (globalThis as any).trafficState || {};
 
-let isRunning = false;
-let dbSyncRunning = false;
+(globalThis as any).uncommittedTraffic = uncommittedTraffic;
+(globalThis as any).cachedAggregates = cachedAggregates;
+(globalThis as any).trafficState = trafficState;
+
+let isRunning = (globalThis as any).isRunning || false;
+let dbSyncRunning = (globalThis as any).dbSyncRunning || false;
 
 export function startDaemon() {
   if (isRunning) return;
   isRunning = true;
+  (globalThis as any).isRunning = true;
   console.log("[Daemon] Starting traffic daemon...");
   
   // Align to next 5s boundary
@@ -97,7 +102,11 @@ async function tick() {
     // Every minute (at 00s), flush to DB
     if (seconds < 5 && !dbSyncRunning) {
       dbSyncRunning = true;
-      syncToDbAndAggregate().finally(() => { dbSyncRunning = false; });
+      (globalThis as any).dbSyncRunning = true;
+      syncToDbAndAggregate().finally(() => { 
+        dbSyncRunning = false; 
+        (globalThis as any).dbSyncRunning = false;
+      });
     }
     
   } catch (err) {
