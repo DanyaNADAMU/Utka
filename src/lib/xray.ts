@@ -157,6 +157,110 @@ export async function queryUserStats(emailPrefix: string, reset: boolean = false
  * Parses config.json and returns all inbound tags except 'api' (dokodemo-door)
  */
 import fs from 'fs/promises';
+import crypto from 'crypto';
+
+export function getX25519PublicKey(privateKeyBase64url: string): string | null {
+  try {
+    const privBytes = Buffer.from(privateKeyBase64url, 'base64url');
+    if (privBytes.length !== 32) return null;
+    
+    // PKCS#8 ASN.1 prefix for X25519 private key
+    const privPrefix = Buffer.from('302e020100300506032b656e04220420', 'hex');
+    const privDer = Buffer.concat([privPrefix, privBytes]);
+    
+    const privKey = crypto.createPrivateKey({
+      key: privDer,
+      format: 'der',
+      type: 'pkcs8'
+    });
+    
+    const pubKey = crypto.createPublicKey(privKey);
+    const pubDer = pubKey.export({ format: 'der', type: 'spki' });
+    
+    // SPKI ASN.1 prefix for X25519 public key is 12 bytes
+    const pubBytes = pubDer.slice(12);
+    return pubBytes.toString('base64url');
+  } catch (e) {
+    console.error("Failed to derive public key:", e);
+    return null;
+  }
+}
+
+export async function getInboundConfig(tag: string): Promise<any | null> {
+  try {
+    const configPath = path.join(process.cwd(), 'xray', 'config.json');
+    const data = await fs.readFile(configPath, 'utf-8');
+    const config = JSON.parse(data);
+    if (!config.inbounds || !Array.isArray(config.inbounds)) return null;
+    
+    return config.inbounds.find((i: any) => i.tag === tag) || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function buildClientLink(
+  inboundTag: string, 
+  xrayUuid: string, 
+  nodeName: string, 
+  nodeAddress: string, 
+  nodePort: number
+): Promise<string> {
+  const conf = await getInboundConfig(inboundTag);
+  const name = encodeURIComponent(`${nodeName || "NadamuDash"} - ${inboundTag}`);
+  
+  if (!conf) {
+    // Fallback if not found
+    return `vless://${xrayUuid}@${nodeAddress}:${nodePort}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=biz.mail.ru&fp=chrome&type=tcp&headerType=none#${name}`;
+  }
+
+  const port = conf.port || nodePort;
+  const protocol = conf.protocol || "vless";
+  
+  // Extract reality settings
+  let pbk = process.env.XRAY_PUBLIC_KEY || "";
+  let sid = process.env.XRAY_SHORT_ID || "";
+  let sni = process.env.XRAY_SNI || "biz.mail.ru";
+  
+  const stream = conf.streamSettings || {};
+  const network = stream.network || "tcp";
+  const security = stream.security || "none";
+  
+  if (security === "reality" && stream.realitySettings) {
+    const rs = stream.realitySettings;
+    if (rs.serverNames && rs.serverNames.length > 0) sni = rs.serverNames[0];
+    if (rs.shortIds && rs.shortIds.length > 0) sid = rs.shortIds[0];
+    if (rs.privateKey) {
+      const derivedPbk = getX25519PublicKey(rs.privateKey);
+      if (derivedPbk) pbk = derivedPbk;
+    }
+  } else if (security === "tls" && stream.tlsSettings) {
+    const ts = stream.tlsSettings;
+    if (ts.serverName) sni = ts.serverName;
+  }
+
+  if (protocol === "vless") {
+    let link = `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none`;
+    if (network === "tcp") link += `&type=tcp`;
+    if (network === "ws") link += `&type=ws`;
+    if (network === "grpc") link += `&type=grpc`;
+    
+    link += `&security=${security}`;
+    
+    if (security === "reality" || security === "tls") {
+      link += `&sni=${sni}&fp=chrome`;
+    }
+    
+    if (security === "reality") {
+      link += `&pbk=${pbk}&sid=${sid}&flow=xtls-rprx-vision`;
+    }
+    
+    return `${link}#${name}`;
+  }
+  
+  // Basic fallback
+  return `${protocol}://${xrayUuid}@${nodeAddress}:${port}#${name}`;
+}
 
 export async function getClientInboundTags(): Promise<string[]> {
   try {

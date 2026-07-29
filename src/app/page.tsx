@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import db from "@/lib/db"
+import { buildClientLink } from "@/lib/xray";
 import { getSettings } from "@/lib/settings";
 import { trafficState } from "@/lib/trafficDaemon";
 import { getDictionary } from "@/i18n/dictionaries";
@@ -43,14 +44,16 @@ export default async function Dashboard() {
     return parseFloat((Number(bytes) / Math.pow(Number(k), i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const pbk = process.env.XRAY_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
-  const sid = process.env.XRAY_SHORT_ID || "YOUR_SHORT_ID";
-  const sni = process.env.XRAY_SNI || "biz.mail.ru";
-  
   const inbounds = sub.inbounds || [];
-  const vlessLinks = inbounds.map((inbound: any) => ({
-    tag: inbound.inboundTag,
-    link: `vless://${inbound.xrayUuid}@${sub.node.address}:${sub.node.port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#${encodeURIComponent(sub.name || "NadamuDash")} - ${inbound.inboundTag}`
+  const vlessLinks = await Promise.all(inbounds.map(async (inbound: any) => {
+    const link = await buildClientLink(
+      inbound.inboundTag,
+      inbound.xrayUuid,
+      sub.name || "",
+      sub.node.address,
+      sub.node.port
+    );
+    return { tag: inbound.inboundTag, link };
   }));
   
   const settings = await getSettings();

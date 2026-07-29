@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { addVlessUser, removeVlessUser, getClientInboundTags } from '@/lib/xray';
+import { addVlessUser, removeVlessUser, getClientInboundTags, buildClientLink } from '@/lib/xray';
 import crypto from 'crypto';
 import { getSettings } from '@/lib/settings';
 
@@ -111,17 +111,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     // Add new UUID to Xray
     await addVlessUser(inbound.inboundTag, newXrayEmail, newUuid);
 
-    // Generate vless link
-    const address = sub.node.address;
-    const port = sub.node.port;
-    const name = encodeURIComponent(`${sub.name || "NadamuDash"} - ${inbound.inboundTag}`);
-    
-    const pbk = process.env.XRAY_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
-    const sid = process.env.XRAY_SHORT_ID || "YOUR_SHORT_ID";
-    const sni = process.env.XRAY_SNI || "biz.mail.ru";
-
-    // Standard VLESS Reality link format. You can parse config to get correct type/security per inbound later.
-    const vlessLink = `vless://${newUuid}@${address}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${sni}&fp=chrome&pbk=${pbk}&sid=${sid}&type=tcp&headerType=none#${name}`;
+    const vlessLink = await buildClientLink(
+      inbound.inboundTag,
+      newUuid,
+      sub.name || "",
+      sub.node.address,
+      sub.node.port
+    );
     links.push(vlessLink);
   }
 
