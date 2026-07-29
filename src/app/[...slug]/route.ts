@@ -8,9 +8,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const slug = (await params).slug;
   if (!slug || slug.length === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const userAgent = request.headers.get('user-agent') || 'unknown';
-  console.log(`[SUB REQUEST] User-Agent: ${userAgent}`);
-
   // 1. Fetch dynamic settings
   const settings = await getSettings();
   const subPathParts = settings.SUB_PATH.split('/').filter(Boolean);
@@ -32,6 +29,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   if (!token) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+  console.log(`[VALID SUB REQUEST] Client IP: ${request.headers.get('x-forwarded-for') || 'unknown'} | User-Agent: ${userAgent}`);
 
   const activeInboundTags = await getClientInboundTags();
 
