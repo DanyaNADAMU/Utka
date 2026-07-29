@@ -165,12 +165,13 @@ async function calculateAggregations() {
 async function compressHistory() {
   console.log("[Daemon] Compressing old traffic history...");
   const now = new Date();
-  const dayOfWeek = now.getDay() || 7;
-  const startOfThisWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 1);
-  const startOfLastWeek = new Date(startOfThisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  // Оставляем ровно 14 дней подробной (минутной) истории. 
+  // Всё, что старше 14 дней, будет сжиматься по дням.
+  const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
   
   const oldRecords = await db.trafficHistory.findMany({
-    where: { timestamp: { lt: startOfLastWeek }, isCompressed: false },
+    where: { timestamp: { lt: cutoff }, isCompressed: false },
     orderBy: { timestamp: 'asc' }
   });
   
