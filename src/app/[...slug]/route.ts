@@ -6,7 +6,11 @@ import yaml from 'yaml';
 import { getSettings } from '@/lib/settings';
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+  const url = request.url;
   const slug = (await params).slug;
+  console.log(`[DEBUG ROUTE] URL: ${url} | Slug: ${JSON.stringify(slug)} | User-Agent: ${userAgent}`);
+
   if (!slug || slug.length === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // 1. Fetch dynamic settings
