@@ -44,7 +44,7 @@ export default function UserTrafficViewer({ subId }: { subId: string }) {
       if (isFetching) return;
       isFetching = true;
       try {
-        const res = await fetch('/api/admin/traffic');
+        const res = await fetch('/api/admin/traffic?t=' + Date.now(), { cache: 'no-store' });
         const data = await res.json();
         setTraffic(data);
       } catch (err) {

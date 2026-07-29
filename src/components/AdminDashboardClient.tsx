@@ -63,7 +63,7 @@ export default function AdminDashboardClient({
     // Fetch live traffic and cpu/ram updates
     const fetchLiveStats = async () => {
       try {
-        const trafficRes = await fetch('/api/admin/traffic');
+        const trafficRes = await fetch('/api/admin/traffic?t=' + Date.now(), { cache: 'no-store' });
         if (trafficRes.ok) {
           const trafficData = await trafficRes.json();
           let gt = {
@@ -92,7 +92,7 @@ export default function AdminDashboardClient({
         }
         
         // Also refresh CPU/RAM occasionally (every 5s is fine)
-        const sysRes = await fetch('/api/admin/system');
+        const sysRes = await fetch('/api/admin/system?t=' + Date.now(), { cache: 'no-store' });
         if (sysRes.ok) {
           setSystemStats(await sysRes.json());
         }
@@ -223,6 +223,7 @@ export default function AdminDashboardClient({
                 <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1m}</th>
                 <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1h}</th>
                 <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1mo}</th>
+                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.all_time}</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-300">
@@ -235,6 +236,7 @@ export default function AdminDashboardClient({
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1mDown)}</td>
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1hDown)}</td>
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1moDown)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.totalDown)}</td>
               </tr>
               <tr className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                 <td className="py-4 px-4 font-medium text-blue-400 flex items-center">
@@ -245,6 +247,7 @@ export default function AdminDashboardClient({
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1mUp)}</td>
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1hUp)}</td>
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1moUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.totalUp)}</td>
               </tr>
               <tr className="hover:bg-slate-800/30 transition-colors font-semibold">
                 <td className="py-4 px-4 text-purple-400 flex items-center">
@@ -255,6 +258,7 @@ export default function AdminDashboardClient({
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1mDown + globalTraffic.last1mUp)}</td>
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1hDown + globalTraffic.last1hUp)}</td>
                 <td className="py-4 px-4">{formatBytes(globalTraffic.last1moDown + globalTraffic.last1moUp)}</td>
+                <td className="py-4 px-4">{formatBytes(globalTraffic.totalDown + globalTraffic.totalUp)}</td>
               </tr>
             </tbody>
           </table>
