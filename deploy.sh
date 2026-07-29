@@ -66,6 +66,7 @@ ssh $SSH_TARGET "cd /opt/stacks/nadamudash && \
   mv tmp_compose/compose.yml compose.yml && \
   rm -rf tmp_compose && \
   touch .env && \
+  chmod 777 xray && \
   docker compose pull nadamudash && \
   docker compose up -d nadamudash"
 
