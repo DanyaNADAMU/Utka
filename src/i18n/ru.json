@@ -18,7 +18,7 @@
     "copy_success": "✅ Скопировано!",
     "copy_error": "❌ Ошибка",
     "login": "Войти",
-    "dashboard": "В панель VPN"
+    "dashboard": "Личный кабинет"
   },
   "common": {
     "loading": "Загрузка...",

@@ -18,7 +18,7 @@
     "copy_success": "✅ Copied!",
     "copy_error": "❌ Error",
     "login": "Sign In",
-    "dashboard": "VPN Dashboard"
+    "dashboard": "Dashboard"
   },
   "common": {
     "loading": "Loading...",
