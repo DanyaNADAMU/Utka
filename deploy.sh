@@ -66,7 +66,7 @@ ssh $SSH_TARGET "cd /opt/stacks/nadamudash && \
   mv tmp_compose/compose.yml compose.yml && \
   rm -rf tmp_compose && \
   touch .env && \
-  sed -i 's/@postgres:5432/@127.0.0.1:5432/g' .env && \
+  sed -i 's/@127.0.0.1:5432/@postgres:5432/g' .env && \
   docker compose pull && \
   docker compose up -d"
 

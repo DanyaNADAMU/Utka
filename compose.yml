@@ -3,12 +3,12 @@ services:
     image: ghcr.io/danyanadamu/nadamudash:latest
     container_name: nadamudash
     restart: unless-stopped
-    network_mode: "host"
+    ports:
+      - "${HOST_PORT:-127.0.0.1:3000}:3000"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      - PORT=${HOST_PORT:-3000}
     volumes:
       - ./xray:/app/xray
     depends_on:
@@ -19,8 +19,6 @@ services:
     image: postgres:16-alpine
     container_name: nadamudash-db
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:5432:5432"
     env_file:
       - .env
     environment:
