@@ -35,6 +35,7 @@ interface TrafficState {
 export default function AdminUsersTable({ subscriptions }: { subscriptions: any[] }) {
   const [traffic, setTraffic] = useState<Record<string, TrafficState>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [progress, setProgress] = useState(0);
   const dict = useTranslation();
 
   useEffect(() => {
