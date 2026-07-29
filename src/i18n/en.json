@@ -1,4 +1,25 @@
 {
+  "landing": {
+    "subtitle": "Private infrastructure and secure communication services",
+    "desc_jitsi": "Infrastructure for secure video conferences, webinars, and online meetings with end-to-end encryption (E2EE) support.",
+    "desc_rocket": "Private corporate messenger for secure communication, file sharing, and task coordination.",
+    "desc_seafile": "High-performance cloud storage for file synchronization, backups, and team collaboration.",
+    "desc_vault": "Self-hosted password manager. Secure storage for credentials, notes, and robust key generation.",
+    "desc_yopass": "Cryptographic service for secure one-time sharing of secrets and tokens with automatic destruction.",
+    "desc_poste": "Comprehensive mail server with integrated anti-spam filters, antivirus, and database encryption.",
+    "desc_mc": "Private game server for cooperative survival, building, and mod testing.",
+    "desc_mumble": "Low-latency voice communication server with high audio quality for team coordination.",
+    "footer": "© 2026 nada.mu Infrastructure. Private node. Access restricted to authorized users.",
+    "status_loading": "Loading status...",
+    "status_up": "All systems operational (Status ↗)",
+    "status_down": "Some services are degraded (Status ↗)",
+    "status_error": "Monitoring server unavailable (Status ↗)",
+    "status_empty": "Status page is empty (Status ↗)",
+    "copy_success": "✅ Copied!",
+    "copy_error": "❌ Error",
+    "login": "Sign In",
+    "dashboard": "VPN Dashboard"
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
