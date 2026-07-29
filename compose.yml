@@ -44,6 +44,6 @@ services:
       - ./xray:/etc/xray
 
   subconverter:
-    image: tindy2013/subconverter:latest
+    image: metacubex/subconverter:latest
     container_name: nadamudash-subconverter
     restart: unless-stopped
