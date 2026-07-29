@@ -6,13 +6,14 @@ import Link from "next/link";
 import UserTrafficViewer from "@/components/UserTrafficViewer";
 import CopyButton from "@/components/CopyButton";
 
-export default async function UserDetailPage({ params }: { params: { id: string } }) {
+export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const dict = await getDictionary();
   const settings = await getSettings();
   const authUrl = process.env.AUTH_URL || 'https://nada.mu';
+  const { id } = await params;
 
   const sub = await db.subscription.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { user: true }
   });
 
