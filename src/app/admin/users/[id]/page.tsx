@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import { getSettings } from "@/lib/settings";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getDictionary, getLocale } from "@/i18n/dictionaries";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import UserTrafficViewer from "@/components/UserTrafficViewer";
@@ -8,6 +8,7 @@ import CopyButton from "@/components/CopyButton";
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const dict = await getDictionary();
+  const locale = await getLocale();
   const settings = await getSettings();
   const authUrl = process.env.AUTH_URL || 'https://nada.mu';
   const { id } = await params;
@@ -73,11 +74,11 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
             </div>
             <div>
               <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.created}</p>
-              <p className="font-medium text-slate-200">{sub.createdAt.toLocaleString()}</p>
+              <p className="font-medium text-slate-200">{sub.createdAt.toLocaleString(locale)}</p>
             </div>
             <div>
               <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.updated}</p>
-              <p className="font-medium text-slate-200">{sub.updatedAt.toLocaleString()}</p>
+              <p className="font-medium text-slate-200">{sub.updatedAt.toLocaleString(locale)}</p>
             </div>
           </div>
         </div>
