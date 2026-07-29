@@ -42,3 +42,8 @@ services:
     command: ["run", "-c", "/etc/xray/config.json"]
     volumes:
       - ./xray:/etc/xray
+
+  subconverter:
+    image: tindy2013/subconverter:latest
+    container_name: nadamudash-subconverter
+    restart: unless-stopped

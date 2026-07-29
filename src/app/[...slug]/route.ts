@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { addVlessUser, removeVlessUser, getClientInboundTags, buildClientLink, buildClashProxyObject } from '@/lib/xray';
+import { addVlessUser, removeVlessUser, getClientInboundTags, buildClientLink } from '@/lib/xray';
 import crypto from 'crypto';
-import yaml from 'yaml';
 import { getSettings } from '@/lib/settings';
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
@@ -23,17 +22,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
 
   let token = null;
-  let isYamlFormat = false;
 
   for (let i = 0; i < subPathParts.length; i++) {
     if (subPathParts[i] === '[token]') {
       token = slug[i];
       if (token.endsWith('.yaml')) {
         token = token.slice(0, -5);
-        isYamlFormat = true;
       } else if (token.endsWith('.yml')) {
         token = token.slice(0, -4);
-        isYamlFormat = true;
       }
     } else if (subPathParts[i] !== slug[i]) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -44,13 +40,43 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // Detect if this request is from our own subconverter container
+  const isSubconverterRequest = userAgent.toLowerCase().includes('subconverter');
+  
+  if (!isSubconverterRequest) {
+    // If the client explicitly requested .yaml/.yml, force clash target, otherwise let subconverter auto-detect
+    const forceClash = url.includes('.yaml') || url.includes('.yml');
+    const target = forceClash ? 'clash' : 'auto';
+
+    const internalUrl = `http://nadamudash:3000/${slug.join('/')}`;
+    const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}`;
+    
+    try {
+      const subRes = await fetch(subUrl, {
+        headers: { 'User-Agent': userAgent }
+      });
+      
+      if (subRes.ok) {
+        const subText = await subRes.text();
+        const contentType = subRes.headers.get('content-type') || 'text/plain; charset=utf-8';
+        const disposition = subRes.headers.get('content-disposition');
+        
+        const headers = new Headers();
+        headers.set('Content-Type', contentType);
+        if (disposition) headers.set('Content-Disposition', disposition);
+        
+        return new NextResponse(subText, { headers, status: 200 });
+      }
+    } catch (e) {
+      console.error("[SUBCONVERTER ERROR]", e);
+      // Fallback to generating raw base64 below
+    }
+  }
+
+  // --- Generate Raw Base64 Subscription ---
+
   const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
   console.log(`[VALID SUB REQUEST] Client IP: ${clientIp} | User-Agent: ${userAgent}`);
-
-  const lowerUa = userAgent.toLowerCase();
-  if (lowerUa.includes('clash') || lowerUa.includes('meta') || lowerUa.includes('mihomo')) {
-    isYamlFormat = true;
-  }
 
   const activeInboundTags = await getClientInboundTags();
 
@@ -100,7 +126,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   if (!updatedSub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const links: string[] = [];
-  const clashProxies: any[] = [];
   const expireMinutes = Number(settings.OLD_UUID_EXPIRE_MINUTES) || 2031;
   const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
 
@@ -142,19 +167,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       sub.node.port
     );
     links.push(vlessLink);
-
-    if (isYamlFormat) {
-      const proxyObj = await buildClashProxyObject(
-        inbound.inboundTag,
-        newUuid,
-        sub.name || "",
-        sub.node.address,
-        sub.node.port
-      );
-      if (proxyObj) {
-        clashProxies.push(proxyObj);
-      }
-    }
   }
 
   // Update subscription fetch time
@@ -162,26 +174,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     where: { id: sub.id },
     data: { lastFetched: new Date() }
   });
-
-  if (isYamlFormat && clashProxies.length > 0) {
-    const yamlConfig = {
-      proxies: clashProxies,
-      "proxy-groups": [
-        {
-          name: "PROXY",
-          type: "select",
-          proxies: clashProxies.map(p => p.name)
-        }
-      ]
-    };
-    
-    return new NextResponse(yaml.stringify(yamlConfig), {
-      headers: {
-        'Content-Type': 'application/x-yaml; charset=utf-8',
-        'Content-Disposition': `attachment; filename="nadamu_${token.slice(0, 6)}.yaml"`
-      }
-    });
-  }
 
   const base64Link = Buffer.from(links.join('\n')).toString('base64');
   
