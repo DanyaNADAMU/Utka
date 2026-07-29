@@ -263,7 +263,73 @@ export async function buildClientLink(
   }
   
   // Basic fallback
-  return `${protocol}://${xrayUuid}@${nodeAddress}:${port}#${name}`;
+  return `vless://${xrayUuid}@${nodeAddress}:${port}`;
+}
+
+export async function buildClashProxyObject(
+  inboundTag: string, 
+  xrayUuid: string, 
+  nodeName: string, 
+  nodeAddress: string, 
+  nodePort: number
+): Promise<any> {
+  const conf = await getInboundConfig(inboundTag);
+  const name = `${nodeName || "NadamuDash"} - ${inboundTag}`;
+  
+  if (!conf) {
+    return null;
+  }
+
+  const port = conf.port || nodePort;
+  const protocol = conf.protocol || "vless";
+  if (protocol !== "vless") return null;
+  
+  let pbk = process.env.XRAY_PUBLIC_KEY || "";
+  let sid = process.env.XRAY_SHORT_ID || "";
+  let sni = process.env.XRAY_SNI || "biz.mail.ru";
+  
+  const stream = conf.streamSettings || {};
+  const network = stream.network || "tcp";
+  const security = stream.security || "none";
+  
+  if (security === "reality" && stream.realitySettings) {
+    const rs = stream.realitySettings;
+    if (rs.serverNames && rs.serverNames.length > 0) sni = rs.serverNames[0];
+    if (rs.shortIds && rs.shortIds.length > 0) sid = rs.shortIds[0];
+    if (rs.privateKey) {
+      const derivedPbk = getX25519PublicKey(rs.privateKey);
+      if (derivedPbk) pbk = derivedPbk;
+    }
+  } else if (security === "tls" && stream.tlsSettings) {
+    const ts = stream.tlsSettings;
+    if (ts.serverName) sni = ts.serverName;
+  }
+
+  const proxy: any = {
+    name,
+    type: "vless",
+    server: nodeAddress,
+    port,
+    uuid: xrayUuid,
+    network,
+    tls: security === "tls" || security === "reality",
+    udp: true,
+  };
+
+  if (security === "reality" || security === "tls") {
+    proxy.servername = sni;
+    proxy["client-fingerprint"] = "chrome";
+  }
+
+  if (security === "reality") {
+    proxy.flow = "xtls-rprx-vision";
+    proxy["reality-opts"] = {
+      "public-key": pbk,
+      "short-id": sid
+    };
+  }
+
+  return proxy;
 }
 
 export async function getClientInboundTags(): Promise<string[]> {
