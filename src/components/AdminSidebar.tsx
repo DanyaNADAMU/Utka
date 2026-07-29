@@ -17,21 +17,23 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
 
   return (
     <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300 relative shrink-0`}>
-      {/* Toggle button */}
-      <button 
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-8 bg-slate-800 border border-slate-700 text-slate-300 rounded-full w-6 h-6 flex items-center justify-center hover:bg-slate-700 hover:text-white transition-colors z-10 shadow-lg text-xs"
-        title={collapsed ? "Развернуть меню" : "Свернуть меню"}
-      >
-        {collapsed ? '▶' : '◀'}
-      </button>
-
-      <div className={`h-20 border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'px-6'}`}>
-        <Link href="/">
-          <h1 className={`font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent truncate transition-all duration-300 ${collapsed ? 'text-lg tracking-tighter' : 'text-xl'}`}>
-            {collapsed ? 'ND' : 'NadamuDash'}
-          </h1>
-        </Link>
+      <div className={`h-20 border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'}`}>
+        {!collapsed && (
+          <Link href="/">
+            <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent truncate transition-all duration-300 text-xl">
+              NadamuDash
+            </h1>
+          </Link>
+        )}
+        <button 
+          onClick={() => setCollapsed(!collapsed)}
+          className="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors flex-shrink-0"
+          title="Меню"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
       </div>
       
       <nav className="flex-1 p-4 space-y-2 overflow-x-hidden custom-scrollbar">
