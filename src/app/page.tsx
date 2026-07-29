@@ -29,7 +29,6 @@ export default async function Dashboard() {
   const stat = trafficState[sub.id];
   const totalUp = stat ? stat.totalUp : (sub.traffic?.up || BigInt(0));
   const totalDown = stat ? stat.totalDown : (sub.traffic?.down || BigInt(0));
-  const totalDown = stat ? stat.totalDown : (sub.traffic?.down || BigInt(0));
   
   // Format bytes helper
   const formatBytes = (bytes: bigint) => {
