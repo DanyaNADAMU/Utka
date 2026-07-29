@@ -93,9 +93,9 @@ export default function UserTrafficViewer({ subId }: { subId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-slate-200">Детальная статистика</h2>
+        <h2 className="text-lg font-bold text-slate-200">{dict.admin.users.profile.detailed_stats}</h2>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-400">Автообновление</span>
+          <span className="text-sm font-medium text-slate-400">{dict.admin.users.profile.auto_update}</span>
           <div className="relative w-6 h-6">
             <svg className="w-6 h-6 -rotate-90 transform" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-800" />
@@ -115,13 +115,13 @@ export default function UserTrafficViewer({ subId }: { subId: string }) {
           <table className="w-full text-right text-sm whitespace-nowrap">
             <thead className="bg-slate-950/50 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800/50">
               <tr>
-                <th className="px-6 py-4 text-left">Метрика</th>
+                <th className="px-6 py-4 text-left">{dict.admin.dash.direction}</th>
                 <th className="px-6 py-4">{dict.admin.users.table.speed}</th>
                 <th className="px-6 py-4">{dict.admin.users.table.last_5s}</th>
                 <th className="px-6 py-4">{dict.admin.users.table.last_1m}</th>
                 <th className="px-6 py-4">{dict.admin.users.table.last_1h}</th>
                 <th className="px-6 py-4">{dict.admin.users.table.last_1mo}</th>
-                <th className="px-6 py-4 text-amber-400">За все время</th>
+                <th className="px-6 py-4">{dict.admin.users.table.all_time}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50 font-mono text-slate-300">
@@ -132,7 +132,7 @@ export default function UserTrafficViewer({ subId }: { subId: string }) {
                 <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1mDown)}</td>
                 <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1hDown)}</td>
                 <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1moDown)}</td>
-                <td className="px-6 py-4 text-amber-400/80">{formatBytes(stat.totalDown)}</td>
+                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.totalDown)}</td>
               </tr>
               <tr className="hover:bg-slate-800/30 transition-colors">
                 <td className="px-6 py-4 text-left text-cyan-400 font-sans font-medium">{dict.admin.users.table.uploaded} ↑</td>
@@ -141,7 +141,7 @@ export default function UserTrafficViewer({ subId }: { subId: string }) {
                 <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1mUp)}</td>
                 <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1hUp)}</td>
                 <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1moUp)}</td>
-                <td className="px-6 py-4 text-amber-400/80">{formatBytes(stat.totalUp)}</td>
+                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.totalUp)}</td>
               </tr>
               <tr className="hover:bg-slate-800/30 transition-colors font-medium bg-slate-900/30">
                 <td className="px-6 py-4 text-left text-purple-400 font-sans">{dict.admin.users.table.sum}</td>
@@ -150,7 +150,7 @@ export default function UserTrafficViewer({ subId }: { subId: string }) {
                 <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.last1mDown) + Number(stat.last1mUp))}</td>
                 <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.last1hDown) + Number(stat.last1hUp))}</td>
                 <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.last1moDown) + Number(stat.last1moUp))}</td>
-                <td className="px-6 py-4 text-amber-400">{formatBytes(Number(stat.totalDown) + Number(stat.totalUp))}</td>
+                <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.totalDown) + Number(stat.totalUp))}</td>
               </tr>
             </tbody>
           </table>

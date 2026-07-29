@@ -91,7 +91,7 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-3 mb-2">
-        <span className="text-sm font-medium text-slate-400">Автообновление</span>
+        <span className="text-sm font-medium text-slate-400">{dict.admin.users.profile.auto_update}</span>
         <div className="relative w-6 h-6">
           <svg className="w-6 h-6 -rotate-90 transform" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-800" />
@@ -112,9 +112,9 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
               <tr>
                 <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.user}</th>
                 <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.token}</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">Суммарная скорость</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">Трафик за час</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-purple-400">Трафик за все время</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">{dict.admin.users.table.total_speed}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">{dict.admin.users.table.traffic_hour}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-purple-400">{dict.admin.users.table.traffic_all_time}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
@@ -140,8 +140,8 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
                     >
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-medium text-slate-200">{sub.user?.email || 'Неизвестно'}</span>
-                          <span className="text-xs text-slate-500 font-mono mt-1">{sub.name || 'Default'}</span>
+                          <span className="font-medium text-slate-200">{sub.user?.email || dict.admin.users.profile.unknown}</span>
+                          <span className="text-xs text-slate-500 font-mono mt-1">{sub.name || dict.admin.users.profile.sub_default}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

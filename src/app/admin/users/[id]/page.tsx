@@ -33,25 +33,25 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </Link>
-        <h1 className="text-2xl font-bold text-white">Пользователь: {sub.user?.email || 'Неизвестно'}</h1>
+        <h1 className="text-2xl font-bold text-white">{dict.admin.users.profile.title}: {sub.user?.email || dict.admin.users.profile.unknown}</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-lg font-bold text-slate-200 mb-4">Информация</h2>
+          <h2 className="text-lg font-bold text-slate-200 mb-4">{dict.admin.users.profile.info}</h2>
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-slate-400 mb-1">Имя подписки</p>
-              <p className="font-medium text-slate-200">{sub.name || 'Default'}</p>
+              <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.sub_name}</p>
+              <p className="font-medium text-slate-200">{sub.name || dict.admin.users.profile.sub_default}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400 mb-1">Токен</p>
+              <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.token}</p>
               <code className="text-sm text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">
                 {sub.token}
               </code>
             </div>
             <div>
-              <p className="text-sm text-slate-400 mb-1">Ссылка на подписку</p>
+              <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.sub_link}</p>
               <div className="flex items-center gap-2">
                 <code className="text-sm text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800 truncate max-w-[200px] md:max-w-xs">
                   {subLink}
@@ -63,20 +63,20 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-lg font-bold text-slate-200 mb-4">Системные данные</h2>
+          <h2 className="text-lg font-bold text-slate-200 mb-4">{dict.admin.users.profile.system_data}</h2>
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-slate-400 mb-1">ID Подписки</p>
+              <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.sub_id}</p>
               <code className="text-sm text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">
                 {sub.id}
               </code>
             </div>
             <div>
-              <p className="text-sm text-slate-400 mb-1">Создано</p>
+              <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.created}</p>
               <p className="font-medium text-slate-200">{sub.createdAt.toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400 mb-1">Обновлено</p>
+              <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.updated}</p>
               <p className="font-medium text-slate-200">{sub.updatedAt.toLocaleString()}</p>
             </div>
           </div>

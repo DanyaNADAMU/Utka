@@ -39,7 +39,25 @@
         "last_1m": "1 min",
         "last_1h": "1 hour",
         "last_1mo": "1 month",
-        "sum": "Sum"
+        "sum": "Sum",
+        "all_time": "All time",
+        "total_speed": "Total Speed",
+        "traffic_all_time": "Total Traffic (All Time)"
+      },
+      "profile": {
+        "title": "User",
+        "unknown": "Unknown",
+        "info": "Information",
+        "sub_name": "Subscription Name",
+        "sub_default": "Default",
+        "token": "Token",
+        "sub_link": "Subscription Link",
+        "system_data": "System Data",
+        "sub_id": "Subscription ID",
+        "created": "Created",
+        "updated": "Updated",
+        "detailed_stats": "Detailed Traffic Stats (Live)",
+        "auto_update": "Auto-update (every 5s)"
       },
       "total_subs": "Total Subscriptions",
       "traffic_sync_note": "Traffic statistics are synchronized by the server in the background. The table updates every 5 seconds without additional load on the database or Xray core."
