@@ -3,7 +3,10 @@ import { NextResponse } from "next/server"
 
 export const proxy = auth((req) => {
   let res = NextResponse.next();
-  if (!req.auth) {
+  
+  const isProtected = req.nextUrl.pathname === '/' || req.nextUrl.pathname.startsWith('/admin');
+
+  if (!req.auth && isProtected) {
     // Auto-redirect unauthenticated users to default sign-in
     res = NextResponse.redirect(new URL("/api/auth/signin", req.url))
   }
