@@ -6,8 +6,8 @@
     "saved": "Saved",
     "cancel": "Cancel",
     "copied": "Copied",
-    "downloaded": "Downloaded (Down)",
-    "uploaded": "Uploaded (Up)"
+    "downloaded": "Downloaded",
+    "uploaded": "Uploaded"
   },
   "dashboard": {
     "title": "My Connections",

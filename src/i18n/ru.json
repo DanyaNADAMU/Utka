@@ -6,8 +6,8 @@
     "saved": "Сохранено",
     "cancel": "Отмена",
     "copied": "Скопировано",
-    "downloaded": "Скачано (Download)",
-    "uploaded": "Загружено (Upload)"
+    "downloaded": "Скачано",
+    "uploaded": "Загружено"
   },
   "dashboard": {
     "title": "Мои подключения",
