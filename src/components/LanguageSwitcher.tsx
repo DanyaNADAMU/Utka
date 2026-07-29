@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/LanguageProvider';
-import { getCookie } from '@/lib/cookies'; // We'll implement a simple client cookie helper
 
 export default function LanguageSwitcher() {
   const router = useRouter();
