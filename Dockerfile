@@ -28,8 +28,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 65532 nodejs
+RUN adduser --system --uid 65532 nextjs
 
 # Install Prisma CLI globally to run db push on startup
 RUN npm install -g prisma@6.19.3
@@ -52,11 +52,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Create start script
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "Syncing database..."' >> /app/start.sh && \
-    echo 'prisma db push --accept-data-loss' >> /app/start.sh && \
+    echo 'prisma db push --accept-data-loss --skip-generate' >> /app/start.sh && \
     echo 'echo "Starting NadamuDash..."' >> /app/start.sh && \
     echo 'exec node server.js' >> /app/start.sh && \
     chown nextjs:nodejs /app/start.sh && \
     chmod +x /app/start.sh
+
+USER nextjs
 
 EXPOSE 3000
 
