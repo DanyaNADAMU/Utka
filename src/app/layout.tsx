@@ -7,8 +7,8 @@ import { LanguageProvider } from "@/i18n/LanguageProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NadamuDash - VPN Panel",
-  description: "Secure Xray Access",
+  title: "Dashboard",
+  description: "Personal Dashboard",
 };
 
 export default async function RootLayout({

@@ -6,10 +6,11 @@ import { trafficState } from "@/lib/trafficDaemon";
 import { getDictionary } from "@/i18n/dictionaries";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { QRCodeSVG } from 'qrcode.react'
+import { notFound } from "next/navigation"
 
 export default async function Dashboard() {
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id) return notFound();
 
   const dbUser = await db.user.findUnique({
     where: { authentikId: session.user.id },
