@@ -129,7 +129,7 @@ export default function AdminDashboardClient({
       </div>
 
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
         <StatCard 
           icon={<Users className="w-6 h-6 text-blue-400" />}
           title={dict.admin.dash.total_users}
@@ -145,24 +145,6 @@ export default function AdminDashboardClient({
           title={dict.admin.dash.total_nodes}
           value={totalNodes}
         />
-        <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col justify-between shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Activity className="w-24 h-24" />
-          </div>
-          <div className="relative z-10">
-            <h3 className="text-slate-400 font-medium mb-1">{dict.admin.dash.live_traffic}</h3>
-            <div className="flex items-center space-x-4 mt-2">
-              <div className="flex items-center text-emerald-400 font-bold text-lg">
-                <ArrowDown className="w-4 h-4 mr-1" />
-                {formatBytes(globalTraffic.speedDown)}/s
-              </div>
-              <div className="flex items-center text-blue-400 font-bold text-lg">
-                <ArrowUp className="w-4 h-4 mr-1" />
-                {formatBytes(globalTraffic.speedUp)}/s
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Middle Row: Server Status & History */}
@@ -235,12 +217,12 @@ export default function AdminDashboardClient({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 text-sm">
-                <th className="pb-3 px-4 font-medium">Направление</th>
-                <th className="pb-3 px-4 font-medium">Скорость</th>
-                <th className="pb-3 px-4 font-medium">5 сек</th>
-                <th className="pb-3 px-4 font-medium">1 мин</th>
-                <th className="pb-3 px-4 font-medium">1 час</th>
-                <th className="pb-3 px-4 font-medium">1 мес</th>
+                <th className="pb-3 px-4 font-medium">{dict.admin.dash.direction}</th>
+                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.speed}</th>
+                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_5s}</th>
+                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1m}</th>
+                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1h}</th>
+                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1mo}</th>
               </tr>
             </thead>
             <tbody className="text-sm text-slate-300">
