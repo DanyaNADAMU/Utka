@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import CopyButton from './CopyButton';
