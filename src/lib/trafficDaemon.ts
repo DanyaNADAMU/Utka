@@ -72,13 +72,13 @@ async function tick() {
       uncommittedTraffic[subId].down += live.down;
       
       if (!cachedAggregates[subId]) {
-         cachedAggregates[subId] = { h1: {up: 0n, down: 0n}, d1: {up: 0n, down: 0n}, mo1: {up: 0n, down: 0n}, total: {up: 0n, down: 0n} };
+         cachedAggregates[subId] = { h1: {up: BigInt(0), down: BigInt(0)}, d1: {up: BigInt(0), down: BigInt(0)}, mo1: {up: BigInt(0), down: BigInt(0)}, total: {up: BigInt(0), down: BigInt(0)} };
       }
       const agg = cachedAggregates[subId];
       
       trafficState[subId] = {
-        speedUp: live.up / 5n,
-        speedDown: live.down / 5n,
+        speedUp: live.up / BigInt(5),
+        speedDown: live.down / BigInt(5),
         last5sUp: live.up,
         last5sDown: live.down,
         last1mUp: uncommittedTraffic[subId].up,
@@ -109,11 +109,11 @@ async function syncToDbAndAggregate() {
   const subs = Object.keys(uncommittedTraffic);
   for (const subId of subs) {
     const data = uncommittedTraffic[subId];
-    if (data.up === 0n && data.down === 0n) continue;
+    if (data.up === BigInt(0) && data.down === BigInt(0)) continue;
     
     // Create copy for writing and reset uncommitted
     const writeData = { up: data.up, down: data.down };
-    uncommittedTraffic[subId] = { up: 0n, down: 0n };
+    uncommittedTraffic[subId] = { up: BigInt(0), down: BigInt(0) };
     
     await db.$transaction([
       db.trafficLog.upsert({
@@ -157,7 +157,7 @@ async function calculateAggregations() {
       h1: await getSum(h1),
       d1: await getSum(d1),
       mo1: await getSum(mo1),
-      total: { up: sub.traffic?.up || 0n, down: sub.traffic?.down || 0n }
+      total: { up: sub.traffic?.up || BigInt(0), down: sub.traffic?.down || BigInt(0) }
     };
   }
 }
@@ -181,7 +181,7 @@ async function compressHistory() {
   for (const record of oldRecords) {
     const day = record.timestamp.toISOString().split('T')[0];
     const key = `${record.subscriptionId}_${day}`;
-    if (!grouped[key]) grouped[key] = { up: 0n, down: 0n, ids: [] };
+    if (!grouped[key]) grouped[key] = { up: BigInt(0), down: BigInt(0), ids: [] };
     
     grouped[key].up += record.up;
     grouped[key].down += record.down;
