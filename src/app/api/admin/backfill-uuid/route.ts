@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import prisma from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
@@ -8,14 +8,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const inbounds = await db.subscriptionInbound.findMany();
+    const inbounds = await prisma.subscriptionInbound.findMany();
     let count = 0;
     for (const inbound of inbounds) {
-      const exists = await db.uuidHistory.findFirst({
+      const exists = await prisma.uuidHistory.findFirst({
         where: { xrayUuid: inbound.xrayUuid }
       });
       if (!exists) {
-        await db.uuidHistory.create({
+        await prisma.uuidHistory.create({
           data: {
             subscriptionId: inbound.subscriptionId,
             inboundTag: inbound.inboundTag,
@@ -26,13 +26,13 @@ export async function GET(request: Request) {
       }
     }
 
-    const expUuids = await db.expiringUuid.findMany();
+    const expUuids = await prisma.expiringUuid.findMany();
     for (const exp of expUuids) {
-      const exists = await db.uuidHistory.findFirst({
+      const exists = await prisma.uuidHistory.findFirst({
         where: { xrayUuid: exp.xrayUuid }
       });
       if (!exists) {
-        await db.uuidHistory.create({
+        await prisma.uuidHistory.create({
           data: {
             subscriptionId: exp.subscriptionId,
             inboundTag: exp.inboundTag,
