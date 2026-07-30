@@ -16,7 +16,7 @@ SSH_TARGET=${SSH_TARGET:-"moscow-nadamudash"}
 IMAGE_NAME="ghcr.io/danyanadamu/nadamudash:latest"
 
 echo "==========================================="
-echo "📦 1. Push code to GitHub"
+echo "📦 1. Push code to GitHub & Sync to Server"
 echo "==========================================="
 if [ -n "$(git status --porcelain)" ]; then
   if [ -z "$1" ]; then
@@ -38,23 +38,13 @@ fi
 
 echo ""
 echo "==========================================="
-echo "🚀 2. Build local Docker image"
+echo "🚀 2. Syncing source code to server ($SSH_TARGET)"
 echo "==========================================="
-DOCKER_BUILDKIT=1 docker build -t $IMAGE_NAME .
+rsync -avz --exclude 'node_modules' --exclude '.next' --exclude '.git' --exclude '.logs' . $SSH_TARGET:/opt/stacks/nadamudash/src/
 
 echo ""
 echo "==========================================="
-echo "📤 3. Push to GHCR"
-echo "==========================================="
-if ! docker system info | grep -q "ghcr.io"; then
-  echo "⚠️ Not logged into ghcr.io."
-  echo "Run: docker login ghcr.io -u YOUR_GITHUB_USERNAME"
-fi
-docker push $IMAGE_NAME
-
-echo ""
-echo "==========================================="
-echo "🔄 4. Deploy to server ($SSH_TARGET)"
+echo "🔄 3. Build & Deploy on server ($SSH_TARGET)"
 echo "==========================================="
 ssh $SSH_TARGET "sudo /opt/stacks/nadamudash/deploy.sh"
 
