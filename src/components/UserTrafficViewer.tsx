@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/i18n/LanguageProvider';
+import TrafficTableUI from '@/components/TrafficTableUI';
 
 const formatBytes = (bytes: string | number) => {
   const b = Number(bytes);
@@ -82,80 +83,35 @@ export default function UserTrafficViewer({ subId }: { subId: string }) {
   }, []);
 
   const stat = traffic[subId] || {
-    speedUp: '0', speedDown: '0',
-    last5sUp: '0', last5sDown: '0',
-    last1mUp: '0', last1mDown: '0',
-    last1hUp: '0', last1hDown: '0',
-    last1moUp: '0', last1moDown: '0',
-    totalUp: '0', totalDown: '0',
+    speedUp: 0, speedDown: 0,
+    last5sUp: 0, last5sDown: 0,
+    last1mUp: 0, last1mDown: 0,
+    last1hUp: 0, last1hDown: 0,
+    last1moUp: 0, last1moDown: 0,
+    totalUp: 0, totalDown: 0,
+  };
+
+  // Convert string values to numbers for TrafficTableUI
+  const formattedStat = {
+    speedUp: Number(stat.speedUp),
+    speedDown: Number(stat.speedDown),
+    last5sUp: Number(stat.last5sUp),
+    last5sDown: Number(stat.last5sDown),
+    last1mUp: Number(stat.last1mUp),
+    last1mDown: Number(stat.last1mDown),
+    last1hUp: Number(stat.last1hUp),
+    last1hDown: Number(stat.last1hDown),
+    last1moUp: Number(stat.last1moUp),
+    last1moDown: Number(stat.last1moDown),
+    totalUp: Number(stat.totalUp),
+    totalDown: Number(stat.totalDown),
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-slate-200">{dict.admin.users.profile.detailed_stats}</h2>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-400">{dict.admin.users.profile.auto_update}</span>
-          <div className="relative w-6 h-6">
-            <svg className="w-6 h-6 -rotate-90 transform" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-800" />
-              <circle 
-                cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="transparent" 
-                className="text-emerald-400 transition-all duration-75"
-                strokeDasharray={2 * Math.PI * 10}
-                strokeDashoffset={2 * Math.PI * 10 * (1 - progress / 100)}
-              />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm whitespace-nowrap">
-            <thead className="bg-slate-950/50 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800/50">
-              <tr>
-                <th className="px-6 py-4 text-left">{dict.admin.dash.direction}</th>
-                <th className="px-6 py-4">{dict.admin.users.table.speed}</th>
-                <th className="px-6 py-4">{dict.admin.users.table.last_5s}</th>
-                <th className="px-6 py-4">{dict.admin.users.table.last_1m}</th>
-                <th className="px-6 py-4">{dict.admin.users.table.last_1h}</th>
-                <th className="px-6 py-4">{dict.admin.users.table.last_1mo}</th>
-                <th className="px-6 py-4">{dict.admin.users.table.all_time}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50 font-mono text-slate-300">
-              <tr className="hover:bg-slate-800/30 transition-colors">
-                <td className="px-6 py-4 text-left text-emerald-400 font-sans font-medium">{dict.admin.users.table.downloaded} ↓</td>
-                <td className="px-6 py-4 text-emerald-400/80">{formatSpeed(stat.speedDown)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last5sDown)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1mDown)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1hDown)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1moDown)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.totalDown)}</td>
-              </tr>
-              <tr className="hover:bg-slate-800/30 transition-colors">
-                <td className="px-6 py-4 text-left text-cyan-400 font-sans font-medium">{dict.admin.users.table.uploaded} ↑</td>
-                <td className="px-6 py-4 text-cyan-400/80">{formatSpeed(stat.speedUp)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last5sUp)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1mUp)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1hUp)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.last1moUp)}</td>
-                <td className="px-6 py-4 text-slate-400">{formatBytes(stat.totalUp)}</td>
-              </tr>
-              <tr className="hover:bg-slate-800/30 transition-colors font-medium bg-slate-900/30">
-                <td className="px-6 py-4 text-left text-purple-400 font-sans">{dict.admin.users.table.sum}</td>
-                <td className="px-6 py-4 text-purple-400/80">{formatSpeed(Number(stat.speedDown) + Number(stat.speedUp))}</td>
-                <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.last5sDown) + Number(stat.last5sUp))}</td>
-                <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.last1mDown) + Number(stat.last1mUp))}</td>
-                <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.last1hDown) + Number(stat.last1hUp))}</td>
-                <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.last1moDown) + Number(stat.last1moUp))}</td>
-                <td className="px-6 py-4 text-slate-300">{formatBytes(Number(stat.totalDown) + Number(stat.totalUp))}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <TrafficTableUI 
+      title={dict.admin.users.profile.detailed_stats} 
+      traffic={formattedStat} 
+      progress={progress} 
+    />
   );
 }

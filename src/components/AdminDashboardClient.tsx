@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Activity, Server, Users, Network, HardDrive, Cpu, ArrowDown, ArrowUp } from 'lucide-react';
+import { Activity, Server, Users, Network, HardDrive, Cpu } from 'lucide-react';
+import TrafficTableUI from '@/components/TrafficTableUI';
+import { formatDateTime } from '@/lib/formatDate';
 
 interface SystemStats {
   cpu: number;
@@ -45,6 +47,7 @@ export default function AdminDashboardClient({
     last1moUp: 0, last1moDown: 0, 
     totalUp: 0, totalDown: 0 
   });
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // Fetch static system stats (history) and initial cpu/ram
@@ -103,7 +106,19 @@ export default function AdminDashboardClient({
 
     fetchLiveStats();
     const interval = setInterval(fetchLiveStats, 5000);
-    return () => clearInterval(interval);
+    
+    let animationFrame: number;
+    const animate = () => {
+      const msInCycle = Date.now() % 5000;
+      setProgress((msInCycle / 5000) * 100);
+      animationFrame = requestAnimationFrame(animate);
+    };
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      clearInterval(interval);
+      cancelAnimationFrame(animationFrame);
+    };
   }, []);
 
   const formatBytes = (bytes: number) => {
@@ -115,7 +130,7 @@ export default function AdminDashboardClient({
   };
 
   const chartData = systemStats?.history?.map(d => ({
-    name: new Date(d.date).toLocaleDateString(),
+    name: formatDateTime(d.date).split(' ')[0],
     Up: Number(BigInt(d.up) / BigInt(1024 * 1024)), // MB
     Down: Number(BigInt(d.down) / BigInt(1024 * 1024)), // MB
     Sum: Number((BigInt(d.up) + BigInt(d.down)) / BigInt(1024 * 1024)) // MB
@@ -207,63 +222,11 @@ export default function AdminDashboardClient({
       </div>
 
       {/* Global Traffic Table */}
-      <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <h2 className="text-lg font-semibold text-slate-200 mb-6 flex items-center">
-          <Network className="w-5 h-5 mr-2 text-blue-400" />
-          {dict.admin.dash.global_traffic_table || 'Серверная статистика трафика'}
-        </h2>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400 text-sm">
-                <th className="pb-3 px-4 font-medium">{dict.admin.dash.direction}</th>
-                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.speed}</th>
-                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_5s}</th>
-                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1m}</th>
-                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1h}</th>
-                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.last_1mo}</th>
-                <th className="pb-3 px-4 font-medium">{dict.admin.users.table.all_time}</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm text-slate-300">
-              <tr className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                <td className="py-4 px-4 font-medium text-emerald-400 flex items-center">
-                  <ArrowDown className="w-4 h-4 mr-1" /> {dict.common.downloaded || 'Download'}
-                </td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.speedDown)}/s</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last5sDown)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1mDown)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1hDown)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1moDown)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.totalDown)}</td>
-              </tr>
-              <tr className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                <td className="py-4 px-4 font-medium text-blue-400 flex items-center">
-                  <ArrowUp className="w-4 h-4 mr-1" /> {dict.common.uploaded || 'Upload'}
-                </td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.speedUp)}/s</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last5sUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1mUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1hUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1moUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.totalUp)}</td>
-              </tr>
-              <tr className="hover:bg-slate-800/30 transition-colors font-semibold">
-                <td className="py-4 px-4 text-purple-400 flex items-center">
-                  <Activity className="w-4 h-4 mr-1" /> Sum
-                </td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.speedDown + globalTraffic.speedUp)}/s</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last5sDown + globalTraffic.last5sUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1mDown + globalTraffic.last1mUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1hDown + globalTraffic.last1hUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.last1moDown + globalTraffic.last1moUp)}</td>
-                <td className="py-4 px-4">{formatBytes(globalTraffic.totalDown + globalTraffic.totalUp)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <TrafficTableUI 
+        title={dict.admin.dash.global_traffic_table || 'Серверная статистика трафика'} 
+        traffic={globalTraffic} 
+        progress={progress} 
+      />
     </div>
   );
 }

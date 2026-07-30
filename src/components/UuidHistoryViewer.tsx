@@ -1,5 +1,6 @@
 import React from 'react';
 import { getDictionary, getLocale } from "@/i18n/dictionaries";
+import { formatDateTime } from '@/lib/formatDate';
 import CopyButton from "./CopyButton";
 
 interface UuidHistoryItem {
@@ -35,7 +36,7 @@ export default async function UuidHistoryViewer({ history }: { history: UuidHist
               <tbody className="divide-y divide-slate-800/50 font-mono text-slate-300">
                 {history.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 text-slate-400 font-sans">{item.createdAt.toLocaleString(locale)}</td>
+                    <td className="px-6 py-4 text-slate-400 font-sans">{formatDateTime(item.createdAt)}</td>
                     <td className="px-6 py-4">
                       <span className="bg-slate-800 text-emerald-400 px-2 py-1 rounded text-xs">
                         {item.inboundTag}

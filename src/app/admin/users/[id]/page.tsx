@@ -1,3 +1,4 @@
+import { formatDateTime } from "@/lib/formatDate";
 import db from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { getDictionary, getLocale } from "@/i18n/dictionaries";
@@ -78,11 +79,11 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
             </div>
             <div>
               <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.created}</p>
-              <p className="font-medium text-slate-200">{sub.createdAt.toLocaleString(locale)}</p>
+              <p className="font-medium text-slate-200">{formatDateTime(sub.createdAt)}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.updated}</p>
-              <p className="font-medium text-slate-200">{sub.updatedAt.toLocaleString(locale)}</p>
+              <p className="text-slate-400 text-sm mb-1">{dict.admin.users.profile.updated}</p>
+              <p className="font-medium text-slate-200">{formatDateTime(sub.updatedAt)}</p>
             </div>
           </div>
         </div>
