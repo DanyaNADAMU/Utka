@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <main className="flex-1 p-8 overflow-y-auto custom-scrollbar relative">
         {/* Subtle background glow for main content */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="w-full max-w-[2560px] mx-auto relative z-10">
           {children}
         </div>
       </main>
