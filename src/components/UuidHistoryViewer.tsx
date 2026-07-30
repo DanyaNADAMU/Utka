@@ -8,6 +8,8 @@ interface UuidHistoryItem {
   inboundTag: string;
   xrayUuid: string;
   createdAt: Date;
+  status?: 'ACTIVE' | 'EXPIRING' | 'EXPIRED';
+  expiresAt?: Date | null;
 }
 
 export default async function UuidHistoryViewer({ history }: { history: UuidHistoryItem[] }) {
@@ -31,6 +33,8 @@ export default async function UuidHistoryViewer({ history }: { history: UuidHist
                   <th className="px-6 py-4">{dict.admin.users.profile.created}</th>
                   <th className="px-6 py-4">{dict.admin.users.profile.inbound_tag}</th>
                   <th className="px-6 py-4">{dict.admin.users.profile.uuid}</th>
+                  <th className="px-6 py-4">{dict.admin.users.profile.status || 'Status'}</th>
+                  <th className="px-6 py-4">{dict.admin.users.profile.expires_at || 'Expires At'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50 font-mono text-slate-300">
@@ -49,6 +53,33 @@ export default async function UuidHistoryViewer({ history }: { history: UuidHist
                         </code>
                         <CopyButton text={item.xrayUuid} iconOnly={true} label={dict.common.copied} />
                       </div>
+                    </td>
+                    <td className="px-6 py-4 font-sans">
+                      {item.status === 'ACTIVE' && (
+                        <span className="bg-emerald-400/20 text-emerald-400 border border-emerald-400/30 px-2 py-1 rounded text-xs">
+                          {dict.admin.users.profile.active || 'Active'}
+                        </span>
+                      )}
+                      {item.status === 'EXPIRING' && (
+                        <span className="bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 px-2 py-1 rounded text-xs">
+                          {dict.admin.users.profile.expiring || 'Expiring'}
+                        </span>
+                      )}
+                      {item.status === 'EXPIRED' && (
+                        <span className="bg-slate-800 text-slate-400 border border-slate-700 px-2 py-1 rounded text-xs">
+                          {dict.admin.users.profile.expired || 'Expired'}
+                        </span>
+                      )}
+                      {!item.status && <span className="text-slate-500">-</span>}
+                    </td>
+                    <td className="px-6 py-4 text-slate-400 font-sans">
+                      {item.status === 'ACTIVE' ? (
+                        <span className="text-slate-500">-</span>
+                      ) : item.expiresAt ? (
+                        formatDateTime(item.expiresAt)
+                      ) : (
+                        <span className="text-slate-500">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}

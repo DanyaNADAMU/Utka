@@ -82,6 +82,12 @@
         "uuid_history_title": "UUID History",
         "inbound_tag": "Inbound Tag",
         "uuid": "UUID",
+        "status": "Status",
+        "expires_at": "Expires At",
+        "active": "Active",
+        "expiring": "Expiring",
+        "expired": "Expired",
+        "active_uuids": "Active UUIDs",
         "uuid_history_empty": "No UUID history found."
       },
       "total_subs": "Total Subscriptions",

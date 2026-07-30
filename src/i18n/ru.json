@@ -82,6 +82,12 @@
         "uuid_history_title": "История UUID",
         "inbound_tag": "Входящий тег",
         "uuid": "UUID",
+        "status": "Статус",
+        "expires_at": "Истекает",
+        "active": "Активен",
+        "expiring": "Истекает",
+        "expired": "Истек",
+        "active_uuids": "Активные UUID",
         "uuid_history_empty": "История UUID пуста."
       },
       "total_subs": "Всего подписок",

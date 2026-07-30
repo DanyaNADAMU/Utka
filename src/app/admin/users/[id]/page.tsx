@@ -19,8 +19,13 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     where: { id },
     include: { 
       user: true,
-      uuidHistory: { orderBy: { createdAt: 'desc' } }
+      uuidHistory: { orderBy: { createdAt: 'desc' } },
+      inbounds: true
     }
+  });
+
+  const expiringUuids = await db.expiringUuid.findMany({
+    where: { subscriptionId: id }
   });
 
   if (!sub) {
@@ -30,6 +35,34 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   const subPath = settings.SUB_PATH.replace('[token]', sub.token);
   const safeSubPath = subPath.startsWith('/') ? subPath : `/${subPath}`;
   const subLink = `${authUrl}${safeSubPath}`;
+
+  const activeExpiringCount = expiringUuids.filter(e => e.expiresAt > new Date()).length;
+  const activeUuidsCount = sub.inbounds.length + activeExpiringCount;
+
+  const enrichedHistory = sub.uuidHistory.map(h => {
+    const isActive = sub.inbounds.some(i => i.xrayUuid === h.xrayUuid);
+    const expiring = expiringUuids.find(e => e.xrayUuid === h.xrayUuid);
+    
+    let status: 'ACTIVE' | 'EXPIRING' | 'EXPIRED' = 'EXPIRED';
+    let expiresAt: Date | null = null;
+    
+    if (isActive) {
+      status = 'ACTIVE';
+    } else if (expiring) {
+      if (expiring.expiresAt > new Date()) {
+        status = 'EXPIRING';
+      } else {
+        status = 'EXPIRED';
+      }
+      expiresAt = expiring.expiresAt;
+    }
+    
+    return {
+      ...h,
+      status,
+      expiresAt
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -85,12 +118,16 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
               <p className="text-slate-400 text-sm mb-1">{dict.admin.users.profile.updated}</p>
               <p className="font-medium text-slate-200">{formatDateTime(sub.updatedAt)}</p>
             </div>
+            <div>
+              <p className="text-slate-400 text-sm mb-1">{dict.admin.users.profile.active_uuids || 'Active UUIDs'}</p>
+              <p className="font-medium text-emerald-400">{activeUuidsCount}</p>
+            </div>
           </div>
         </div>
       </div>
 
       <UserTrafficViewer subId={sub.id} />
-      <UuidHistoryViewer history={sub.uuidHistory} />
+      <UuidHistoryViewer history={enrichedHistory} />
     </div>
   );
 }
