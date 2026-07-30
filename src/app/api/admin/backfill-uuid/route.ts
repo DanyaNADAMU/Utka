@@ -1,0 +1,51 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    if (searchParams.get('secret') !== 'backfill123') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const inbounds = await db.subscriptionInbound.findMany();
+    let count = 0;
+    for (const inbound of inbounds) {
+      const exists = await db.uuidHistory.findFirst({
+        where: { xrayUuid: inbound.xrayUuid }
+      });
+      if (!exists) {
+        await db.uuidHistory.create({
+          data: {
+            subscriptionId: inbound.subscriptionId,
+            inboundTag: inbound.inboundTag,
+            xrayUuid: inbound.xrayUuid
+          }
+        });
+        count++;
+      }
+    }
+
+    const expUuids = await db.expiringUuid.findMany();
+    for (const exp of expUuids) {
+      const exists = await db.uuidHistory.findFirst({
+        where: { xrayUuid: exp.xrayUuid }
+      });
+      if (!exists) {
+        await db.uuidHistory.create({
+          data: {
+            subscriptionId: exp.subscriptionId,
+            inboundTag: exp.inboundTag,
+            xrayUuid: exp.xrayUuid
+          }
+        });
+        count++;
+      }
+    }
+
+    return NextResponse.json({ success: true, inserted: count });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
