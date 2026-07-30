@@ -78,7 +78,11 @@
         "created": "Created",
         "updated": "Updated",
         "detailed_stats": "Detailed Traffic Stats (Live)",
-        "auto_update": "Auto-update (every 5s)"
+        "auto_update": "Auto-update (every 5s)",
+        "uuid_history_title": "UUID History",
+        "inbound_tag": "Inbound Tag",
+        "uuid": "UUID",
+        "uuid_history_empty": "No UUID history found."
       },
       "total_subs": "Total Subscriptions",
       "traffic_sync_note": "Traffic statistics are synchronized by the server in the background. The table updates every 5 seconds without additional load on the database or Xray core."

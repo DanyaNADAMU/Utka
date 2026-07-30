@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import UserTrafficViewer from "@/components/UserTrafficViewer";
 import CopyButton from "@/components/CopyButton";
+import UuidHistoryViewer from "@/components/UuidHistoryViewer";
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const dict = await getDictionary();
@@ -15,7 +16,10 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 
   const sub = await db.subscription.findUnique({
     where: { id },
-    include: { user: true }
+    include: { 
+      user: true,
+      uuidHistory: { orderBy: { createdAt: 'desc' } }
+    }
   });
 
   if (!sub) {
@@ -85,6 +89,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       <UserTrafficViewer subId={sub.id} />
+      <UuidHistoryViewer history={sub.uuidHistory} />
     </div>
   );
 }

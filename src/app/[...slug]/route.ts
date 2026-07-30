@@ -164,6 +164,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       }
     });
 
+    // Add new UUID to UuidHistory
+    await db.uuidHistory.create({
+      data: {
+        subscriptionId: sub.id,
+        inboundTag: inbound.inboundTag,
+        xrayUuid: newUuid
+      }
+    });
+
     // Update new UUID in SubscriptionInbound
     await db.subscriptionInbound.update({
       where: { id: inbound.id },

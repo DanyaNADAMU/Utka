@@ -79,6 +79,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 xrayUuid: newUuid
               }
             });
+            await db.uuidHistory.create({
+              data: {
+                subscriptionId: defaultSub.id,
+                inboundTag: tag,
+                xrayUuid: newUuid
+              }
+            });
             await addVlessUser(tag, `${defaultSub.id}_${tag}_${newUuid}`, newUuid);
           }
         }

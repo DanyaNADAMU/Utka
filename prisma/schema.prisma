@@ -32,6 +32,7 @@ model Subscription {
   traffic     TrafficLog?
   history     TrafficHistory[]
   inbounds    SubscriptionInbound[]
+  uuidHistory UuidHistory[]
 }
 
 model SubscriptionInbound {
@@ -61,6 +62,15 @@ model TrafficHistory {
   down           BigInt
   timestamp      DateTime     @default(now())
   isCompressed   Boolean      @default(false)
+}
+
+model UuidHistory {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  inboundTag     String
+  xrayUuid       String
+  createdAt      DateTime     @default(now())
 }
 
 model Node {
