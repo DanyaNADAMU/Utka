@@ -1,16 +1,17 @@
 services:
   nadamudash:
     image: ghcr.io/danyanadamu/nadamudash:latest
+    build: .
     container_name: nadamudash
     restart: unless-stopped
     ports:
       - "${HOST_PORT:-127.0.0.1:3000}:3000"
     env_file:
-      - .env
+      - ../.env
     environment:
       - NODE_ENV=production
     volumes:
-      - ./xray:/app/xray
+      - ../xray:/app/xray
     depends_on:
       postgres:
         condition: service_healthy
@@ -20,13 +21,13 @@ services:
     container_name: nadamudash-db
     restart: unless-stopped
     env_file:
-      - .env
+      - ../.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-nadamu}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nadamu_secure_password}
       POSTGRES_DB: ${POSTGRES_DB:-nadamu_db}
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - ../postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nadamu} -d ${POSTGRES_DB:-nadamu_db}"]
       interval: 2s
@@ -41,7 +42,7 @@ services:
     network_mode: "host"
     command: ["run", "-c", "/etc/xray/config.json"]
     volumes:
-      - ./xray:/etc/xray
+      - ../xray:/etc/xray
 
   subconverter:
     image: metacubex/subconverter:latest
