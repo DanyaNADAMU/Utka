@@ -1,3 +1,4 @@
+name: nadamudash
 services:
   nadamudash:
     image: ghcr.io/danyanadamu/nadamudash:latest
