@@ -16,7 +16,7 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
     port: '',
     apiHost: '',
     adminUuid: '',
-    apiToken: '',
+    realityServerName: 'biz.mail.ru',
     realityPubKey: '',
     realityShortId: '',
     isActive: true,
@@ -31,7 +31,7 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
         port: node.port.toString(),
         apiHost: node.apiHost,
         adminUuid: node.adminUuid || '',
-        apiToken: node.apiToken || '',
+        realityServerName: node.realityServerName || 'biz.mail.ru',
         realityPubKey: node.realityPubKey || '',
         realityShortId: node.realityShortId || '',
         isActive: node.isActive,
@@ -44,7 +44,7 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
         port: '',
         apiHost: '',
         adminUuid: '',
-        apiToken: '',
+        realityServerName: 'biz.mail.ru',
         realityPubKey: '',
         realityShortId: '',
         isActive: true,
@@ -68,7 +68,7 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
           port: parseInt(formData.port),
           apiHost: formData.apiHost,
           adminUuid: formData.adminUuid,
-          apiToken: formData.apiToken,
+          realityServerName: formData.realityServerName,
           realityPubKey: formData.realityPubKey,
           realityShortId: formData.realityShortId,
           isActive: formData.isActive,
@@ -244,13 +244,14 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">{dict.admin.nodes.form.apiToken}</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{dict.admin.nodes.form.realityServerName}</label>
                   <input
                     type="text"
-                    value={formData.apiToken}
-                    onChange={(e) => setFormData({ ...formData, apiToken: e.target.value })}
+                    value={formData.realityServerName}
+                    onChange={(e) => setFormData({ ...formData, realityServerName: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                    placeholder="Leave empty for auto-generate"
+                    placeholder="e.g. biz.mail.ru"
+                    required
                   />
                 </div>
 
@@ -262,7 +263,8 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
                       value={formData.realityPubKey}
                       onChange={(e) => setFormData({ ...formData, realityPubKey: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                      placeholder="Optional"
+                      placeholder="Required for REALITY"
+                      required
                     />
                   </div>
                   <div>
@@ -272,7 +274,8 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
                       value={formData.realityShortId}
                       onChange={(e) => setFormData({ ...formData, realityShortId: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                      placeholder="Optional"
+                      placeholder="Required for REALITY"
+                      required
                     />
                   </div>
                 </div>

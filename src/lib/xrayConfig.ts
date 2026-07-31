@@ -99,7 +99,7 @@ export async function regenerateMasterXrayConfig() {
         network: "tcp",
         security: "reality",
         realitySettings: {
-          serverName: "biz.mail.ru",
+          serverName: (node as any).realityServerName || "biz.mail.ru",
           fingerprint: "chrome",
           show: false,
           publicKey: (node as any).realityPubKey || "", 

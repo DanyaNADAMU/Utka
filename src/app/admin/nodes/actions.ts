@@ -11,7 +11,7 @@ const nodeSchema = z.object({
   port: z.coerce.number().int().positive(),
   apiHost: z.string().min(1),
   adminUuid: z.string().optional(),
-  apiToken: z.string().optional(),
+  realityServerName: z.string().optional(),
   realityPubKey: z.string().optional(),
   realityShortId: z.string().optional(),
   isActive: z.boolean().default(true),
@@ -26,7 +26,7 @@ export async function createNode(data: z.infer<typeof nodeSchema>) {
       port: parsed.port,
       apiHost: parsed.apiHost,
       adminUuid: parsed.adminUuid || undefined,
-      apiToken: parsed.apiToken || undefined,
+      realityServerName: parsed.realityServerName || 'biz.mail.ru',
       realityPubKey: parsed.realityPubKey || undefined,
       realityShortId: parsed.realityShortId || undefined,
       isActive: parsed.isActive,
@@ -41,7 +41,7 @@ export async function updateNode(id: string, data: Partial<z.infer<typeof nodeSc
   const parsed = nodeSchema.partial().parse(data);
   const updateData = { ...parsed };
   if (updateData.adminUuid === '') updateData.adminUuid = undefined;
-  if (updateData.apiToken === '') updateData.apiToken = undefined;
+  if (updateData.realityServerName === '') updateData.realityServerName = 'biz.mail.ru';
   if (updateData.realityPubKey === '') updateData.realityPubKey = undefined;
   if (updateData.realityShortId === '') updateData.realityShortId = undefined;
   

@@ -145,7 +145,7 @@
         "port": "Reality Port",
         "apiHost": "API Host (e.g. 127.0.0.1:9090)",
         "adminUuid": "Admin UUID",
-        "apiToken": "API Token",
+        "realityServerName": "REALITY ServerName (SNI)",
         "realityPubKey": "REALITY Public Key",
         "realityShortId": "REALITY Short ID",
         "isActive": "Is Active"

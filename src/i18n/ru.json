@@ -145,7 +145,7 @@
         "port": "Порт Reality",
         "apiHost": "API Хост (напр. 127.0.0.1:9090)",
         "adminUuid": "Admin UUID",
-        "apiToken": "API Токен",
+        "realityServerName": "REALITY Домен (SNI)",
         "realityPubKey": "REALITY Public Key",
         "realityShortId": "REALITY Short ID",
         "isActive": "Активен"

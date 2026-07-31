@@ -117,7 +117,7 @@ model Node {
   port          Int            // Public port for REALITY (e.g. 443)
   apiHost       String         // Local Agent API Host, e.g., "127.0.0.1:9090"
   adminUuid     String         @default(uuid()) // UUID used for REALITY tunnel
-  apiToken      String         @default(uuid()) // Bearer token for NadamuNode Agent
+  realityServerName String     @default("biz.mail.ru") // SNI for REALITY masking
   realityPubKey String?        // Public key for REALITY tunnel
   realityShortId String?       // ShortId for REALITY tunnel
   isActive      Boolean        @default(true)
