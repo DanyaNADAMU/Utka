@@ -112,9 +112,9 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
               <tr>
                 <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.user}</th>
                 <th className="px-6 py-4 font-medium border-b border-slate-800">{dict.admin.users.table.token}</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">{dict.admin.users.table.total_speed}</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">{dict.admin.users.table.traffic_hour}</th>
-                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-slate-300">{dict.admin.users.table.traffic_all_time}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-emerald-400">{dict.admin.users.table.speed || 'Speed'}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-cyan-400">{dict.admin.users.table.last_1h || '1 Hour Traffic'}</th>
+                <th className="px-6 py-4 font-medium border-b border-slate-800 text-right text-slate-300">{dict.admin.users.table.all_time || 'All Time Traffic'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
