@@ -77,7 +77,7 @@ export default function AdminDashboardClient({
             last1moUp: 0, last1moDown: 0, 
             totalUp: 0, totalDown: 0 
           };
-          Object.values(trafficData).forEach((t: any) => {
+          Object.values(trafficData.subscriptions || {}).forEach((t: any) => {
             gt.speedUp += Number(t.speedUp || 0);
             gt.speedDown += Number(t.speedDown || 0);
             gt.last5sUp += Number(t.last5sUp || 0);

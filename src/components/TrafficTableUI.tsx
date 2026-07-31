@@ -104,7 +104,7 @@ export default function TrafficTableUI({
             </tr>
             <tr className="hover:bg-slate-800/30 transition-colors font-semibold">
               <td className="py-4 px-4 text-purple-400 flex items-center">
-                <Activity className="w-4 h-4 mr-1" /> {dict.admin.users.table.sum || 'Sum'}
+                <Activity className="w-4 h-4 mr-1" /> {dict.admin.users.table.total || 'Total'}
               </td>
               <td className="py-4 px-4">{formatSpeed(Number(traffic.speedDown) + Number(traffic.speedUp))}</td>
               <td className="py-4 px-4">{formatBytes(Number(traffic.last5sDown) + Number(traffic.last5sUp))}</td>

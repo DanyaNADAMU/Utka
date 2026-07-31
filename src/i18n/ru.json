@@ -60,7 +60,7 @@
         "last_1m": "1 мин",
         "last_1h": "1 час",
         "last_1mo": "1 месяц",
-        "sum": "Сумма",
+        "total": "Сумма",
         "all_time": "За все время",
         "total_speed": "Суммарная скорость",
         "traffic_all_time": "Трафик за все время"
@@ -77,7 +77,7 @@
         "sub_id": "ID Подписки",
         "created": "Создано",
         "updated": "Обновлено",
-        "detailed_stats": "Детальная статистика трафика (Live)",
+        "detailed_stats": "Детальная статистика трафика",
         "auto_update": "Автообновление (каждые 5 сек)",
         "uuid_history_title": "История UUID",
         "inbound_tag": "Входящий тег",

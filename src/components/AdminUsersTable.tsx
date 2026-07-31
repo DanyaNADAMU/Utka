@@ -49,7 +49,7 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
       try {
         const res = await fetch('/api/admin/traffic?t=' + Date.now(), { cache: 'no-store' });
         const data = await res.json();
-        setTraffic(data);
+        setTraffic(data.subscriptions || {});
       } catch (err) {
         console.error('Failed to fetch traffic', err);
       } finally {

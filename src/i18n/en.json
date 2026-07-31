@@ -60,7 +60,7 @@
         "last_1m": "1 min",
         "last_1h": "1 hour",
         "last_1mo": "1 month",
-        "sum": "Sum",
+        "total": "Total",
         "all_time": "All time",
         "total_speed": "Total Speed",
         "traffic_all_time": "Total Traffic (All Time)"
@@ -77,7 +77,7 @@
         "sub_id": "Subscription ID",
         "created": "Created",
         "updated": "Updated",
-        "detailed_stats": "Detailed Traffic Stats (Live)",
+        "detailed_stats": "Detailed Traffic Stats",
         "auto_update": "Auto-update (every 5s)",
         "uuid_history_title": "UUID History",
         "inbound_tag": "Inbound Tag",

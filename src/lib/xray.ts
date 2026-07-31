@@ -160,6 +160,46 @@ export async function queryUserStats(emailPrefix: string, reset: boolean = false
 }
 
 /**
+ * Query traffic stats for all users
+ * Returns a dictionary of email to { up, down }
+ */
+export async function queryAllUserStats(reset: boolean = false): Promise<Record<string, { up: bigint, down: bigint }>> {
+  return new Promise((resolve) => {
+    statsClient.queryStats({
+      pattern: `user>>>`,
+      reset: reset
+    }, (err: Error, res: any) => {
+      if (err || !res || !res.stat) {
+        return resolve({});
+      }
+
+      const results: Record<string, { up: bigint, down: bigint }> = {};
+
+      res.stat.forEach((statObj: any) => {
+        // name looks like: "user>>>danya_vless_uuid>>>traffic>>>downlink"
+        const parts = statObj.name.split('>>>');
+        if (parts.length >= 4) {
+          const email = parts[1];
+          const direction = parts[3]; // uplink or downlink
+          
+          if (!results[email]) {
+            results[email] = { up: BigInt(0), down: BigInt(0) };
+          }
+          
+          if (direction === "downlink") {
+            results[email].down += BigInt(statObj.value);
+          } else if (direction === "uplink") {
+            results[email].up += BigInt(statObj.value);
+          }
+        }
+      });
+
+      resolve(results);
+    });
+  });
+}
+
+/**
  * Parses config.json and returns all inbound tags except 'api' (dokodemo-door)
  */
 import fs from 'fs/promises';
