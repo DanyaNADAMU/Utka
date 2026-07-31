@@ -68,25 +68,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           });
 
-          // Push new user to all Xray inbounds!
+          // Push new user to all Xray inbounds on ALL active nodes!
           const activeInboundTags = await getClientInboundTags();
-          for (const tag of activeInboundTags) {
-            const newUuid = crypto.randomUUID();
-            await db.subscriptionInbound.create({
-              data: {
-                subscriptionId: defaultSub.id,
-                inboundTag: tag,
-                xrayUuid: newUuid
-              }
-            });
-            await db.uuidHistory.create({
-              data: {
-                subscriptionId: defaultSub.id,
-                inboundTag: tag,
-                xrayUuid: newUuid
-              }
-            });
-            await addVlessUser(tag, `${defaultSub.id}_${tag}_${newUuid}`, newUuid);
+          const activeNodes = await db.node.findMany({ where: { isActive: true } });
+          
+          for (const node of activeNodes) {
+            for (const tag of activeInboundTags) {
+              const newUuid = crypto.randomUUID();
+              await db.subscriptionInbound.create({
+                data: {
+                  subscriptionId: defaultSub.id,
+                  nodeId: node.id,
+                  inboundTag: tag,
+                  xrayUuid: newUuid
+                }
+              });
+              await db.uuidHistory.create({
+                data: {
+                  subscriptionId: defaultSub.id,
+                  nodeId: node.id,
+                  inboundTag: tag,
+                  xrayUuid: newUuid
+                }
+              });
+              await addVlessUser(node.apiHost, tag, `${defaultSub.id}_${tag}_${newUuid}`, newUuid);
+            }
           }
         }
       }

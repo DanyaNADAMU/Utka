@@ -97,11 +97,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   // Cleanup expired UUIDs across all subscriptions (lazy cleanup)
   try {
     const expiredUuids = await db.expiringUuid.findMany({
-      where: { expiresAt: { lte: new Date() } }
+      where: { expiresAt: { lte: new Date() } },
+      include: { node: true }
     });
 
     for (const exp of expiredUuids) {
-      const success = await removeVlessUser(exp.inboundTag, exp.xrayEmail);
+      const success = await removeVlessUser(exp.node.apiHost, exp.inboundTag, exp.xrayEmail);
       if (success || !success) { 
         await db.expiringUuid.delete({ where: { id: exp.id } });
       }
@@ -112,29 +113,39 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const sub = await db.subscription.findUnique({
     where: { token },
-    include: { node: true, inbounds: true }
+    include: { inbounds: { include: { node: true } } }
   });
 
   if (!sub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Sync inbounds (add missing ones since by default all are allowed for now)
-  const currentInboundTags = sub.inbounds.map((i: any) => i.inboundTag);
-  const inboundsToCreate = activeInboundTags.filter(t => !currentInboundTags.includes(t));
+  // Sync inbounds for all nodes
+  const activeNodes = await db.node.findMany({ where: { isActive: true } });
+  const inboundsToCreate = [];
+  
+  for (const node of activeNodes) {
+    for (const tag of activeInboundTags) {
+      const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
+      if (!exists) {
+        inboundsToCreate.push({
+          subscriptionId: sub.id,
+          nodeId: node.id,
+          inboundTag: tag,
+          xrayUuid: crypto.randomUUID()
+        });
+      }
+    }
+  }
   
   if (inboundsToCreate.length > 0) {
     await db.subscriptionInbound.createMany({
-      data: inboundsToCreate.map(tag => ({
-        subscriptionId: sub.id,
-        inboundTag: tag,
-        xrayUuid: crypto.randomUUID()
-      }))
+      data: inboundsToCreate
     });
   }
 
   // Refetch to get the latest inbounds with UUIDs
   const updatedSub = await db.subscription.findUnique({
     where: { id: sub.id },
-    include: { node: true, inbounds: true }
+    include: { inbounds: { include: { node: true } } }
   });
   
   if (!updatedSub) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -144,8 +155,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
 
   for (const inbound of updatedSub.inbounds) {
-    // Only process active inbounds
+    // Only process active inbounds and active nodes
     if (!activeInboundTags.includes(inbound.inboundTag)) continue;
+    if (!inbound.node || !inbound.node.isActive) continue;
 
     const newUuid = crypto.randomUUID();
     const oldUuid = inbound.xrayUuid;
@@ -159,7 +171,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         xrayUuid: oldUuid,
         xrayEmail: oldXrayEmail,
         inboundTag: inbound.inboundTag,
-        nodeId: sub.nodeId,
+        nodeId: inbound.nodeId,
         expiresAt: expiresAt
       }
     });
@@ -169,7 +181,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       data: {
         subscriptionId: sub.id,
         inboundTag: inbound.inboundTag,
-        xrayUuid: newUuid
+        xrayUuid: newUuid,
+        nodeId: inbound.nodeId
       }
     });
 
@@ -179,15 +192,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       data: { xrayUuid: newUuid }
     });
 
-    // Add new UUID to Xray
-    await addVlessUser(inbound.inboundTag, newXrayEmail, newUuid);
+    // Add new UUID to Xray (on the specific node)
+    await addVlessUser(inbound.node.apiHost, inbound.inboundTag, newXrayEmail, newUuid);
 
     const vlessLink = await buildClientLink(
       inbound.inboundTag,
       newUuid,
-      sub.name || "",
-      sub.node.address,
-      sub.node.port
+      `${sub.name || "NadamuDash"} - ${inbound.node.name}`,
+      inbound.node.address,
+      inbound.node.port
     );
     links.push(vlessLink);
   }

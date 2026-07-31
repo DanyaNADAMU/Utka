@@ -14,6 +14,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
   const links = [
     { href: '/admin', label: dict.admin.sidebar.dashboard, icon: '📊' },
     { href: '/admin/users', label: dict.admin.sidebar.users, icon: '👥' },
+    { href: '/admin/nodes', label: dict.admin.sidebar.nodes, icon: '🖥️' },
     { href: '/admin/xray', label: dict.admin.sidebar.xray_config, icon: '⚙️' },
     { href: '/admin/settings', label: dict.admin.sidebar.settings, icon: '🛠️' },
   ];

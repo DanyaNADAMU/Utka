@@ -15,6 +15,7 @@ async function main() {
       await db.uuidHistory.create({
         data: {
           subscriptionId: inbound.subscriptionId,
+          nodeId: inbound.nodeId,
           inboundTag: inbound.inboundTag,
           xrayUuid: inbound.xrayUuid
         }
@@ -33,6 +34,7 @@ async function main() {
       await db.uuidHistory.create({
         data: {
           subscriptionId: exp.subscriptionId,
+          nodeId: exp.nodeId,
           inboundTag: exp.inboundTag,
           xrayUuid: exp.xrayUuid
         }

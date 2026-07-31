@@ -29,7 +29,7 @@ model Subscription {
   lastFetched DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  traffic     TrafficLog?
+  traffic     TrafficLog[]
   history     TrafficHistory[]
   inbounds    SubscriptionInbound[]
   uuidHistory        UuidHistory[]
@@ -41,25 +41,33 @@ model SubscriptionInbound {
   id             String       @id @default(uuid())
   subscriptionId String
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  nodeId         String
+  node           Node         @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   inboundTag     String
   xrayUuid       String       @unique @default(uuid())
   
-  @@unique([subscriptionId, inboundTag])
+  @@unique([subscriptionId, nodeId, inboundTag])
 }
 
 model TrafficLog {
   id             String       @id @default(uuid())
-  subscriptionId String       @unique
+  subscriptionId String
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  nodeId         String
+  node           Node         @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   up             BigInt       @default(0)
   down           BigInt       @default(0)
   lastUpdate     DateTime     @default(now())
+
+  @@unique([subscriptionId, nodeId])
 }
 
 model TrafficHistory {
   id             String       @id @default(uuid())
   subscriptionId String
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  nodeId         String
+  node           Node         @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   up             BigInt
   down           BigInt
   timestamp      DateTime     @default(now())
@@ -70,6 +78,8 @@ model UuidHistory {
   id             String       @id @default(uuid())
   subscriptionId String
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  nodeId         String
+  node           Node         @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   inboundTag     String
   xrayUuid       String
   createdAt      DateTime     @default(now())
@@ -80,6 +90,8 @@ model UuidTrafficLog {
   xrayUuid       String       @unique
   subscriptionId String
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  nodeId         String
+  node           Node         @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   up             BigInt       @default(0)
   down           BigInt       @default(0)
   lastUpdate     DateTime     @default(now())
@@ -90,6 +102,8 @@ model UuidTrafficHistory {
   xrayUuid       String
   subscriptionId String
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  nodeId         String
+  node           Node         @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   up             BigInt
   down           BigInt
   timestamp      DateTime     @default(now())
@@ -100,11 +114,24 @@ model Node {
   id            String         @id @default(uuid())
   name          String
   address       String         // IP or Domain of the node for VLESS config
-  port          Int
-  apiHost       String         // gRPC API host, e.g., "xray:7999"
+  port          Int            // Public port for REALITY (e.g. 443)
+  apiHost       String         // Local Agent API Host, e.g., "127.0.0.1:9090"
+  adminUuid     String         @default(uuid()) // UUID used for REALITY tunnel
+  apiToken      String         @default(uuid()) // Bearer token for NadamuNode Agent
+  realityPubKey String?        // Public key for REALITY tunnel
+  realityShortId String?       // ShortId for REALITY tunnel
+  isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  subscriptions Subscription[]
+  
+  subscriptions      Subscription[]
+  inbounds           SubscriptionInbound[]
+  uuidHistory        UuidHistory[]
+  traffic            TrafficLog[]
+  trafficHistory     TrafficHistory[]
+  uuidTrafficLogs    UuidTrafficLog[]
+  uuidTrafficHistory UuidTrafficHistory[]
+  expiringUuids      ExpiringUuid[]
 }
 
 model ExpiringUuid {
@@ -114,6 +141,7 @@ model ExpiringUuid {
   xrayEmail      String       // The email string used in Xray (e.g. subId_xrayUuid)
   inboundTag     String
   nodeId         String       // We need to know which node to remove it from
+  node           Node         @relation(fields: [nodeId], references: [id], onDelete: Cascade)
   expiresAt      DateTime
 }
 

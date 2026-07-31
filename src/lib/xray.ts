@@ -26,15 +26,23 @@ const statsDef = protoLoader.loadSync(STATS_PROTO, loadOptions);
 const xrayProxyman = (grpc.loadPackageDefinition(proxymanDef) as any).xray.app.proxyman.command;
 const xrayStats = (grpc.loadPackageDefinition(statsDef) as any).xray.app.stats.command;
 
-let XRAY_API_URL = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
-// Auto-migrate legacy tcp configurations to unix socket
-if (XRAY_API_URL.includes('xray:8080') || XRAY_API_URL.includes('xray:7999')) {
-  XRAY_API_URL = 'unix:///app/xray/api.sock';
-}
+const clientsCache: Record<string, { handler: any, stats: any }> = {};
 
-// Initialize clients
-const handlerClient = new xrayProxyman.HandlerService(XRAY_API_URL, grpc.credentials.createInsecure());
-const statsClient = new xrayStats.StatsService(XRAY_API_URL, grpc.credentials.createInsecure());
+export function getClients(grpcHost: string) {
+  let host = grpcHost;
+  // Auto-migrate legacy tcp configurations to unix socket
+  if (host.includes('xray:8080') || host.includes('xray:7999')) {
+    host = 'unix:///app/xray/api.sock';
+  }
+  
+  if (!clientsCache[host]) {
+    clientsCache[host] = {
+      handler: new xrayProxyman.HandlerService(host, grpc.credentials.createInsecure()),
+      stats: new xrayStats.StatsService(host, grpc.credentials.createInsecure())
+    };
+  }
+  return clientsCache[host];
+}
 
 // Load protobufjs root for encoding TypedMessages
 let root = new protobuf.Root();
@@ -53,9 +61,10 @@ try {
 /**
  * Add a VLESS user to an existing inbound
  */
-export async function addVlessUser(inboundTag: string, email: string, uuid: string): Promise<boolean> {
+export async function addVlessUser(grpcHost: string, inboundTag: string, email: string, uuid: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     try {
+      const { handler } = getClients(grpcHost);
       const Account = root.lookupType("xray.proxy.vless.Account");
       const accountMsg = Account.create({
         id: uuid,
@@ -77,7 +86,7 @@ export async function addVlessUser(inboundTag: string, email: string, uuid: stri
       });
       const opBytes = AddUserOperation.encode(opMsg).finish();
 
-      handlerClient.alterInbound({
+      handler.alterInbound({
         tag: inboundTag,
         operation: {
           type: "xray.app.proxyman.command.AddUserOperation",
@@ -100,16 +109,17 @@ export async function addVlessUser(inboundTag: string, email: string, uuid: stri
 /**
  * Remove a VLESS user from an existing inbound
  */
-export async function removeVlessUser(inboundTag: string, email: string): Promise<boolean> {
+export async function removeVlessUser(grpcHost: string, inboundTag: string, email: string): Promise<boolean> {
   return new Promise((resolve) => {
     try {
+      const { handler } = getClients(grpcHost);
       const RemoveUserOperation = root.lookupType("xray.app.proxyman.command.RemoveUserOperation");
       const opMsg = RemoveUserOperation.create({
         email: email
       });
       const opBytes = RemoveUserOperation.encode(opMsg).finish();
 
-      handlerClient.alterInbound({
+      handler.alterInbound({
         tag: inboundTag,
         operation: {
           type: "xray.app.proxyman.command.RemoveUserOperation",
@@ -133,10 +143,11 @@ export async function removeVlessUser(inboundTag: string, email: string): Promis
  * Query traffic stats for a specific user email
  * Returns { up: number, down: number } (in bytes)
  */
-export async function queryUserStats(emailPrefix: string, reset: boolean = false): Promise<{ up: bigint, down: bigint }> {
+export async function queryUserStats(grpcHost: string, emailPrefix: string, reset: boolean = false): Promise<{ up: bigint, down: bigint }> {
   return new Promise((resolve) => {
-    statsClient.queryStats({
-      pattern: `user>>>${emailPrefix}_`,
+    const { stats } = getClients(grpcHost);
+    stats.queryStats({
+      pattern: `user>>>${emailPrefix}`,
       reset: reset
     }, (err: Error, res: any) => {
       if (err || !res || !res.stat) {
@@ -163,9 +174,10 @@ export async function queryUserStats(emailPrefix: string, reset: boolean = false
  * Query traffic stats for all users
  * Returns a dictionary of email to { up, down }
  */
-export async function queryAllUserStats(reset: boolean = false): Promise<Record<string, { up: bigint, down: bigint }>> {
+export async function queryAllUserStats(grpcHost: string, reset: boolean = false): Promise<Record<string, { up: bigint, down: bigint }>> {
   return new Promise((resolve) => {
-    statsClient.queryStats({
+    const { stats } = getClients(grpcHost);
+    stats.queryStats({
       pattern: `user>>>`,
       reset: reset
     }, (err: Error, res: any) => {

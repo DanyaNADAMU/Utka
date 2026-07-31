@@ -43,6 +43,7 @@
   "admin": {
     "sidebar": {
       "dashboard": "Дашборд",
+      "nodes": "Узлы",
       "users": "Пользователи",
       "settings": "Настройки",
       "xray_config": "Конфиг Xray"
@@ -122,6 +123,33 @@
       "title": "Текущий конфиг Xray",
       "description": "Конфигурация, загруженная из файла xray/config.json",
       "file_not_found": "Файл конфига не найден или недоступен"
+    },
+    "nodes": {
+      "title": "Управление узлами",
+      "subtitle": "Настройка и управление прокси-серверами.",
+      "add_node": "Добавить узел",
+      "edit_node": "Редактировать узел",
+      "delete_node": "Удалить узел",
+      "delete_confirm": "Вы уверены, что хотите удалить этот узел?",
+      "table": {
+        "name": "Имя",
+        "address": "Адрес",
+        "port": "Порт",
+        "apiHost": "API Хост",
+        "status": "Статус",
+        "actions": "Действия"
+      },
+      "form": {
+        "name": "Имя узла",
+        "address": "Адрес сервера (IP/Домен)",
+        "port": "Порт Reality",
+        "apiHost": "API Хост (напр. 127.0.0.1:9090)",
+        "adminUuid": "Admin UUID",
+        "apiToken": "API Токен",
+        "realityPubKey": "REALITY Public Key",
+        "realityShortId": "REALITY Short ID",
+        "isActive": "Активен"
+      }
     }
   }
 }

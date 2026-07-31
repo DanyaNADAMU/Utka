@@ -33,8 +33,10 @@ export default async function Dashboard() {
   
   // Fetch total traffic from daemon state or fallback to DB
   const stat = trafficState[sub.id];
-  const totalUp = stat ? stat.totalUp : (sub.traffic?.up || BigInt(0));
-  const totalDown = stat ? stat.totalDown : (sub.traffic?.down || BigInt(0));
+  const dbUp = sub.traffic?.reduce((acc: bigint, t: any) => acc + t.up, BigInt(0)) || BigInt(0);
+  const dbDown = sub.traffic?.reduce((acc: bigint, t: any) => acc + t.down, BigInt(0)) || BigInt(0);
+  const totalUp = stat ? stat.totalUp : dbUp;
+  const totalDown = stat ? stat.totalDown : dbDown;
   
   // Format bytes helper
   const formatBytes = (bytes: bigint) => {
