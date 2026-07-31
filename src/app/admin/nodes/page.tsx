@@ -5,9 +5,7 @@ import { getDictionary } from '@/i18n/dictionaries';
 export const dynamic = 'force-dynamic';
 
 export default async function NodesPage() {
-  const nodes = await db.node.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  const nodes = await db.node.findMany();
   
   const dict = await getDictionary();
 
