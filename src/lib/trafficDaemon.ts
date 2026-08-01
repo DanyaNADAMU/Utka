@@ -100,6 +100,7 @@ async function tick() {
     if (!configInitialised) {
       configInitialised = true;
       await regenerateMasterXrayConfig().catch((e) => console.error("[Daemon] Config init error:", e));
+      await new Promise((r) => setTimeout(r, 1000));
     }
     const now = new Date();
     const seconds = now.getSeconds();
