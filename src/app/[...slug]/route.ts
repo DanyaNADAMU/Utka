@@ -50,8 +50,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const target = forceClash ? 'clash' : 'auto';
 
     const internalUrl = `http://nadamudash:3000/${slug.join('/')}?raw=true`;
-    const configUrl = `http://nadamudash:3000/config.ini`;
-    const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}&config=${encodeURIComponent(configUrl)}`;
+    const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}&config=config.ini`;
     
     try {
       const subRes = await fetch(subUrl, {

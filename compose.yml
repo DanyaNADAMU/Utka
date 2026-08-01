@@ -49,3 +49,5 @@ services:
     image: metacubex/subconverter:latest
     container_name: nadamudash-subconverter
     restart: unless-stopped
+    volumes:
+      - ./xray/config.ini:/base/config.ini
