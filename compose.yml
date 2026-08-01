@@ -43,7 +43,7 @@ services:
     container_name: nadamudash-xray
     restart: unless-stopped
     network_mode: "host"
-    entrypoint: ["/bin/sh", "-c", "rm -f /etc/xray/*.sock && exec xray run -c /etc/xray/config.json"]
+    command: ["run", "-c", "/etc/xray/config.json"]
     volumes:
       - ./xray:/etc/xray
 
