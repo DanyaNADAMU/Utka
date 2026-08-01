@@ -11,6 +11,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - Master server: accessible via `ssh moscow-nadamudash`.
   - Node server: accessible via `ssh ice-nadamudash-node`.
   - You may directly run SSH commands or use SSH subagents to inspect logs, check containers, or modify configurations on both servers.
+  - To view Docker logs via SSH on Master or Node, use `sudo docker logs` or `sudo docker compose logs` (NOPASSWD is configured).
   - NEVER attempt to run `docker ps` or `docker compose` on the local machine.
 
 - **Deployment Rules**:
