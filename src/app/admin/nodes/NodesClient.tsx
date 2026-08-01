@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createNode, updateNode, deleteNode, getNodeConfigInstructions } from './actions';
+import Link from 'next/link';
+import { createNode, deleteNode, getNodeConfigInstructions } from './actions';
 import { Plus, Edit2, Trash2, FileCode, Copy, Check, X } from 'lucide-react';
 import { Node } from '@prisma/client';
 
@@ -63,25 +64,22 @@ export default function NodesClient({
     }, 2000);
   };
 
-  const openModal = (node?: Node) => {
-    if (node) {
-      setEditingNode(node);
-      setFormData({
-        name: node.name,
-        address: node.address,
-        port: node.port.toString(),
-        xrayPort: (node as any).xrayPort ? (node as any).xrayPort.toString() : '8443',
-        apiHost: node.apiHost,
-        adminUuid: node.adminUuid || '',
-        realityServerName: node.realityServerName || 'biz.mail.ru',
-        realityPubKey: node.realityPubKey || '',
-        realityPrivKey: (node as any).realityPrivKey || '',
-        realityShortId: node.realityShortId || '',
-        isActive: node.isActive,
-      });
-    } else {
-      setEditingNode(null);
-      setFormData({
+  const openCreateModal = () => {
+    setFormData({
+      name: '',
+      address: '',
+      port: '443',
+      xrayPort: '8443',
+      apiHost: '',
+      adminUuid: '',
+      realityServerName: 'biz.mail.ru',
+      realityPubKey: '',
+      realityPrivKey: '',
+      realityShortId: '',
+      isActive: true,
+    });
+    setIsModalOpen(true);
+  };
         name: '',
         address: '',
         port: '443',
@@ -121,14 +119,8 @@ export default function NodesClient({
           isActive: formData.isActive,
         };
 
-        let targetNode: Node;
-        if (editingNode) {
-          targetNode = await updateNode(editingNode.id, payload);
-          setNodes(nodes.map(n => n.id === targetNode.id ? targetNode : n));
-        } else {
-          targetNode = await createNode(payload);
-          setNodes([targetNode, ...nodes]);
-        }
+        const targetNode = await createNode(payload);
+        setNodes([targetNode, ...nodes]);
         closeModal();
 
         // Open setup instructions automatically after saving
@@ -158,7 +150,7 @@ export default function NodesClient({
     <div>
       <div className="mb-4 flex justify-end">
         <button
-          onClick={() => openModal()}
+          onClick={() => openCreateModal()}
           className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-lg shadow-emerald-500/20"
         >
           <Plus size={18} />
@@ -216,13 +208,13 @@ export default function NodesClient({
                     >
                       <FileCode size={16} />
                     </button>
-                    <button
-                      onClick={() => openModal(node)}
+                    <Link
+                      href={`/admin/nodes/${node.id}`}
                       className="text-slate-400 hover:text-cyan-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
                       title={dict.admin.nodes.edit_node}
                     >
                       <Edit2 size={16} />
-                    </button>
+                    </Link>
                     <button
                       onClick={() => handleDelete(node.id)}
                       className="text-slate-400 hover:text-red-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
@@ -251,7 +243,7 @@ export default function NodesClient({
           <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-slate-800">
               <h2 className="text-xl font-bold text-white">
-                {editingNode ? dict.admin.nodes.edit_node : dict.admin.nodes.add_node}
+                {dict.admin.nodes.add_node}
               </h2>
             </div>
             
@@ -441,41 +433,11 @@ export default function NodesClient({
               >
                 <span>{dict.admin.nodes.node_tab || "Node (ice-nadamudash-node)"}</span>
               </button>
-              {(instructionsNode as any).xrayConfig && (
-                <button
-                  onClick={() => setActiveTab('reported')}
-                  className={`px-4 py-2.5 font-medium text-sm rounded-t-lg transition-colors flex items-center space-x-2 ${
-                    activeTab === 'reported'
-                      ? 'bg-slate-900 text-purple-400 border-t border-x border-slate-700'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-900/50'
-                  }`}
-                >
-                  <span>Reported Config</span>
-                </button>
-              )}
             </div>
 
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
               {!instructionsData ? (
                 <div className="py-12 text-center text-slate-400">Loading instructions...</div>
-              ) : activeTab === 'reported' && (instructionsNode as any).xrayConfig ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-300 bg-purple-950/40 border border-purple-800/40 rounded-lg p-3 flex-1 mr-3">
-                      This is the live Xray configuration reported by the node.
-                    </p>
-                    <button
-                      onClick={() => handleCopy(JSON.stringify((instructionsNode as any).xrayConfig, null, 2), 'nodeConfigReported')}
-                      className="text-xs flex items-center space-x-1 text-slate-400 hover:text-purple-400 bg-slate-800 px-3 py-2 rounded-lg transition-colors shrink-0"
-                    >
-                      {copiedKey === 'nodeConfigReported' ? <Check size={14} className="text-purple-400" /> : <Copy size={14} />}
-                      <span>{copiedKey === 'nodeConfigReported' ? (dict.admin.nodes.copied || 'Copied!') : 'Copy config'}</span>
-                    </button>
-                  </div>
-                  <pre className="bg-slate-950 p-4 rounded-xl text-xs text-purple-400 overflow-x-auto border border-slate-800 font-mono">
-                    <code>{JSON.stringify((instructionsNode as any).xrayConfig, null, 2)}</code>
-                  </pre>
-                </div>
               ) : activeTab === 'master' ? (
                 <div className="space-y-6">
                   <p className="text-sm text-slate-300 bg-cyan-950/40 border border-cyan-800/40 rounded-lg p-3">

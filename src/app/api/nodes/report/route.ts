@@ -32,11 +32,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 403 });
     }
 
+    if (!config || typeof config !== 'string') {
+      return NextResponse.json({ error: 'Config missing or invalid format (expected text)' }, { status: 400 });
+    }
+
     // Update node with the received config
     await db.node.update({
       where: { id: nodeId },
       data: {
-        xrayConfig: config
+        xrayConfig: config,
       }
     });
 

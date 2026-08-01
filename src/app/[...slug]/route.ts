@@ -3,6 +3,7 @@ import db from '@/lib/db';
 import { addVlessUser, removeVlessUser, getClientInboundTags, buildClientLink } from '@/lib/xray';
 import crypto from 'crypto';
 import { getSettings } from '@/lib/settings';
+import stripJsonComments from 'strip-json-comments';
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const userAgent = request.headers.get('user-agent') || 'unknown';
@@ -133,15 +134,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   for (const node of activeNodes) {
     // Determine the tags for this specific node
     let nodeTags = activeInboundTags; // Fallback to Master tags
-    if (node.xrayConfig && typeof node.xrayConfig === 'object') {
-      const config = node.xrayConfig as any;
-      if (config.inbounds && Array.isArray(config.inbounds)) {
-        const parsedTags = config.inbounds
-          .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
-          .map((i: any) => i.tag);
-        if (parsedTags.length > 0) {
-          nodeTags = parsedTags;
+    if (node.xrayConfig && typeof node.xrayConfig === 'string') {
+      try {
+        const configText = stripJsonComments(node.xrayConfig);
+        const config = JSON.parse(configText);
+        if (config.inbounds && Array.isArray(config.inbounds)) {
+          const parsedTags = config.inbounds
+            .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
+            .map((i: any) => i.tag);
+          if (parsedTags.length > 0) {
+            nodeTags = parsedTags;
+          }
         }
+      } catch (e) {
+        console.error(`Failed to parse config for node ${node.name}:`, e);
       }
     }
 
@@ -179,7 +185,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   // 1. Generate proxy link(s) for Master server
   const hasLocalMasterInDb = activeNodes.some((n: any) => n.apiHost === 'unix:///app/xray/api.sock' || n.address === '127.0.0.1' || n.address === 'localhost');
   if (!hasLocalMasterInDb) {
-    const masterAddress = process.env.XRAY_SERVER_DOMAIN || request.headers.get('host')?.split(':')[0] || '81.30.105.65';
+    const masterAddress = process.env.XRAY_SERVER_DOMAIN_OR_IP || process.env.XRAY_SERVER_DOMAIN || request.headers.get('host')?.split(':')[0] || '81.30.105.65';
     for (const tag of activeInboundTags) {
       const masterUuid = crypto.randomUUID();
       const masterEmail = `${sub.id}_master_${tag}_${masterUuid}`;
@@ -203,15 +209,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
     // Check if the inbound tag is still valid for this node
     let nodeTags = activeInboundTags;
-    if (inbound.node.xrayConfig && typeof inbound.node.xrayConfig === 'object') {
-      const config = inbound.node.xrayConfig as any;
-      if (config.inbounds && Array.isArray(config.inbounds)) {
-        const parsedTags = config.inbounds
-          .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
-          .map((i: any) => i.tag);
-        if (parsedTags.length > 0) {
-          nodeTags = parsedTags;
+    if (inbound.node.xrayConfig && typeof inbound.node.xrayConfig === 'string') {
+      try {
+        const configText = stripJsonComments(inbound.node.xrayConfig);
+        const config = JSON.parse(configText);
+        if (config.inbounds && Array.isArray(config.inbounds)) {
+          const parsedTags = config.inbounds
+            .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
+            .map((i: any) => i.tag);
+          if (parsedTags.length > 0) {
+            nodeTags = parsedTags;
+          }
         }
+      } catch (e) {
+        console.error(`Failed to parse config for node ${inbound.node.name}:`, e);
       }
     }
 
