@@ -114,15 +114,17 @@ model Node {
   id            String         @id @default(uuid())
   name          String
   address       String         // IP or Domain of the node for VLESS config
-  port          Int            // Public port for REALITY (e.g. 443)
-  apiHost       String         // Local Agent API Host, e.g., "127.0.0.1:9090"
-  adminUuid     String         @default(uuid()) // UUID used for REALITY tunnel
-  realityServerName String     @default("biz.mail.ru") // SNI for REALITY masking
-  realityPubKey String?        // Public key for REALITY tunnel
-  realityShortId String?       // ShortId for REALITY tunnel
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  port              Int            @default(443) // Public port for REALITY (e.g. 443)
+  xrayPort          Int            @default(8443) // Xray internal port behind HAProxy (e.g. 8443)
+  apiHost           String         // Local Agent API Host, e.g., "127.0.0.1:9090"
+  adminUuid         String         @default(uuid()) // UUID used for REALITY tunnel
+  realityServerName String         @default("biz.mail.ru") // SNI for REALITY masking
+  realityPubKey     String?        // Public key for REALITY tunnel
+  realityPrivKey    String?        // Private key for REALITY tunnel (used on node)
+  realityShortId    String?        // ShortId for REALITY tunnel
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
   
   subscriptions      Subscription[]
   inbounds           SubscriptionInbound[]

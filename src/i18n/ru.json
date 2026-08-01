@@ -158,14 +158,28 @@
       "form": {
         "name": "Имя узла",
         "address": "Адрес сервера (IP/Домен)",
-        "port": "Порт Reality",
+        "port": "Публичный порт для клиентов (HAProxy, напр. 443)",
+        "xrayPort": "Внутренний порт Xray (за HAProxy, напр. 8443)",
         "apiHost": "API Хост (напр. 127.0.0.1:9090)",
-        "adminUuid": "Admin UUID",
+        "adminUuid": "Admin UUID (автогенерация)",
         "realityServerName": "REALITY Домен (SNI)",
-        "realityPubKey": "REALITY Public Key",
-        "realityShortId": "REALITY Short ID",
+        "realityPubKey": "REALITY Public Key (автогенерация)",
+        "realityPrivKey": "REALITY Private Key (автогенерация)",
+        "realityShortId": "REALITY Short ID (автогенерация)",
         "isActive": "Активен"
-      }
+      },
+      "instructions": "Инструкция по настройке",
+      "instructions_title": "Инструкции по настройке Xray для узела",
+      "master_tab": "Мастер (moscow-nadamudash)",
+      "node_tab": "Узел (ice-nadamudash-node)",
+      "master_desc": "Добавьте эти секции в файл /app/xray/config.json на сервере Мастера:",
+      "node_desc": "Используйте эту конфигурацию для файла xray/config.json на сервере Узла:",
+      "copy_button": "Скопировать",
+      "copied": "Скопировано!",
+      "inbound_title": "1. Секция inbounds (прием gRPC команд):",
+      "outbound_title": "2. Секция outbounds (туннель к узлу):",
+      "routing_title": "3. Секция routing.rules (маршрутизация):",
+      "close": "Закрыть"
     }
   }
 }

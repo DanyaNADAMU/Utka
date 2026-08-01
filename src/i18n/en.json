@@ -158,14 +158,28 @@
       "form": {
         "name": "Node Name",
         "address": "Server Address (IP/Domain)",
-        "port": "Reality Port",
+        "port": "Public Client Port (HAProxy, e.g. 443)",
+        "xrayPort": "Internal Xray Port (behind HAProxy, e.g. 8443)",
         "apiHost": "API Host (e.g. 127.0.0.1:9090)",
-        "adminUuid": "Admin UUID",
+        "adminUuid": "Admin UUID (auto-generated)",
         "realityServerName": "REALITY ServerName (SNI)",
-        "realityPubKey": "REALITY Public Key",
-        "realityShortId": "REALITY Short ID",
+        "realityPubKey": "REALITY Public Key (auto-generated)",
+        "realityPrivKey": "REALITY Private Key (auto-generated)",
+        "realityShortId": "REALITY Short ID (auto-generated)",
         "isActive": "Is Active"
-      }
+      },
+      "instructions": "Setup Instructions",
+      "instructions_title": "Xray Setup Instructions for Node",
+      "master_tab": "Master (moscow-nadamudash)",
+      "node_tab": "Node (ice-nadamudash-node)",
+      "master_desc": "Add these sections to /app/xray/config.json on Master server:",
+      "node_desc": "Use this configuration for xray/config.json on Node server:",
+      "copy_button": "Copy",
+      "copied": "Copied!",
+      "inbound_title": "1. inbounds section (gRPC command receiver):",
+      "outbound_title": "2. outbounds section (tunnel to node):",
+      "routing_title": "3. routing.rules section (routing):",
+      "close": "Close"
     }
   }
 }
