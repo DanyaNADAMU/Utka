@@ -131,7 +131,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const inboundsToCreate = [];
   
   for (const node of activeNodes) {
-    for (const tag of activeInboundTags) {
+    // Determine the tags for this specific node
+    let nodeTags = activeInboundTags; // Fallback to Master tags
+    if (node.xrayConfig && typeof node.xrayConfig === 'object') {
+      const config = node.xrayConfig as any;
+      if (config.inbounds && Array.isArray(config.inbounds)) {
+        const parsedTags = config.inbounds
+          .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
+          .map((i: any) => i.tag);
+        if (parsedTags.length > 0) {
+          nodeTags = parsedTags;
+        }
+      }
+    }
+
+    for (const tag of nodeTags) {
       const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
       if (!exists) {
         inboundsToCreate.push({
@@ -185,8 +199,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   // 2. Generate proxy link(s) for active Nodes
   for (const inbound of updatedSub.inbounds) {
     // Only process active inbounds and active nodes
-    if (!activeInboundTags.includes(inbound.inboundTag)) continue;
     if (!inbound.node || !inbound.node.isActive) continue;
+
+    // Check if the inbound tag is still valid for this node
+    let nodeTags = activeInboundTags;
+    if (inbound.node.xrayConfig && typeof inbound.node.xrayConfig === 'object') {
+      const config = inbound.node.xrayConfig as any;
+      if (config.inbounds && Array.isArray(config.inbounds)) {
+        const parsedTags = config.inbounds
+          .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
+          .map((i: any) => i.tag);
+        if (parsedTags.length > 0) {
+          nodeTags = parsedTags;
+        }
+      }
+    }
+
+    if (!nodeTags.includes(inbound.inboundTag)) continue;
 
     const newUuid = crypto.randomUUID();
     const oldUuid = inbound.xrayUuid;

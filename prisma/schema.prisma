@@ -123,6 +123,7 @@ model Node {
   realityPrivKey    String?        // Private key for REALITY tunnel (used on node)
   realityShortId    String?        // ShortId for REALITY tunnel
   isActive          Boolean        @default(true)
+  xrayConfig        Json?          // Stores the parsed xray/config.json from the node
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   
