@@ -5,6 +5,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- END:nextjs-agent-rules -->
 
 
-- **Environment Rule**: The local machine ONLY contains the source code for NadamuDash. The actual deployed application and its Docker containers run on a remote server accessible via SSH (`ssh moscow-nadamudash`). NEVER attempt to run `docker ps`, `docker compose`, or interact with the running panel on the local machine. All production environment checks must be done via a dedicated SSH subagent.
+- **Environment & SSH Rule**: The local machine ONLY contains the source code for NadamuDash. The actual deployed application and its Docker containers run on remote servers.
+  - Master server: accessible via `ssh moscow-nadamudash`.
+  - Node server: accessible via `ssh ice-nadamudash-node`.
+  - You may directly run SSH commands or use SSH subagents to inspect logs, check containers, or modify configurations on both servers.
+  - NEVER attempt to run `docker ps` or `docker compose` on the local machine.
 
-- **Deployment Rule**: The local machine has a script `./deploy.sh` for deploying the project to the server. Use it whenever a deployment is required by running `./deploy.sh "commit message"`.
+- **Deployment Rules**:
+  - Master Deployment: Use `./deploy.sh "commit message"` from the local repository directory (`/home/danya/Projects/NadamuDash`).
+  - Node Deployment: Use `/home/danya/Projects/NadamuDash-node/deploy.sh "commit message"`.
+  - NEVER attempt to run server-side deployment scripts directly by hand over SSH unless explicitly requested. Always trigger deployments using the local deployment scripts.
