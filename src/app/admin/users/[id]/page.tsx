@@ -7,6 +7,7 @@ import Link from "next/link";
 import UserTrafficViewer from "@/components/UserTrafficViewer";
 import CopyButton from "@/components/CopyButton";
 import UuidHistoryViewer from "@/components/UuidHistoryViewer";
+import { trafficState } from "@/lib/trafficDaemon";
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const dict = await getDictionary();
@@ -126,7 +127,18 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      <UserTrafficViewer subId={sub.id} />
+      {(() => {
+        const myTrafficState = trafficState[sub.id] || {
+          speedUp: 0, speedDown: 0,
+          last5sUp: 0, last5sDown: 0,
+          last1mUp: 0, last1mDown: 0,
+          last1hUp: 0, last1hDown: 0,
+          last1moUp: 0, last1moDown: 0,
+          totalUp: 0, totalDown: 0,
+        };
+        return <UserTrafficViewer subId={sub.id} trafficState={myTrafficState as any} />;
+      })()}
+
       <UuidHistoryViewer history={enrichedHistory} />
     </div>
   );

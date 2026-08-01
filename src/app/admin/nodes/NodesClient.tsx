@@ -1,36 +1,23 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { createNode, updateNode, deleteNode } from './actions';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { Node } from '@prisma/client';
 
-export default function NodesClient({ initialNodes, dict }: { initialNodes: Node[], dict: any }) {
-  const [nodes, setNodes] = useState(initialNodes);
+export default function NodesClient({ 
+  initialNodes, 
+  dict,
+  nodeStatus
+}: { 
+  initialNodes: Node[]; 
+  dict: any;
+  nodeStatus: Record<string, boolean>;
+}) {
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [nodeStatus, setNodeStatus] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch('/api/admin/traffic');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.nodes) {
-            setNodeStatus(data.nodes);
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const [formData, setFormData] = useState({
     name: '',

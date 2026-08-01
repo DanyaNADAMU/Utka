@@ -7,13 +7,13 @@ import { Activity, Server, Users, Network, HardDrive, Cpu } from 'lucide-react';
 import TrafficTableUI from '@/components/TrafficTableUI';
 import { formatDateTime } from '@/lib/formatDate';
 
-interface SystemStats {
+export interface SystemStats {
   cpu: number;
   ram: number;
   history: { date: string; up: string; down: string }[];
 }
 
-interface GlobalTrafficStats {
+export interface GlobalTrafficStats {
   speedUp: number;
   speedDown: number;
   last5sUp: number;
@@ -31,95 +31,17 @@ interface GlobalTrafficStats {
 export default function AdminDashboardClient({ 
   totalUsers, 
   totalSubs, 
-  totalNodes 
+  totalNodes,
+  globalTraffic,
+  systemStats
 }: { 
   totalUsers: number;
   totalSubs: number;
   totalNodes: number;
+  globalTraffic: GlobalTrafficStats;
+  systemStats: SystemStats | null;
 }) {
   const dict = useTranslation();
-  const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
-  const [globalTraffic, setGlobalTraffic] = useState<GlobalTrafficStats>({ 
-    speedUp: 0, speedDown: 0, 
-    last5sUp: 0, last5sDown: 0, 
-    last1mUp: 0, last1mDown: 0, 
-    last1hUp: 0, last1hDown: 0, 
-    last1moUp: 0, last1moDown: 0, 
-    totalUp: 0, totalDown: 0 
-  });
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    // Fetch static system stats (history) and initial cpu/ram
-    const fetchSystemStats = async () => {
-      try {
-        const res = await fetch('/api/admin/system');
-        if (res.ok) {
-          setSystemStats(await res.json());
-        }
-      } catch (e) {
-        console.error('Failed to fetch system stats', e);
-      }
-    };
-    fetchSystemStats();
-
-    // Fetch live traffic and cpu/ram updates
-    const fetchLiveStats = async () => {
-      try {
-        const trafficRes = await fetch('/api/admin/traffic?t=' + Date.now(), { cache: 'no-store' });
-        if (trafficRes.ok) {
-          const trafficData = await trafficRes.json();
-          let gt = {
-            speedUp: 0, speedDown: 0, 
-            last5sUp: 0, last5sDown: 0, 
-            last1mUp: 0, last1mDown: 0, 
-            last1hUp: 0, last1hDown: 0, 
-            last1moUp: 0, last1moDown: 0, 
-            totalUp: 0, totalDown: 0 
-          };
-          Object.values(trafficData.subscriptions || {}).forEach((t: any) => {
-            gt.speedUp += Number(t.speedUp || 0);
-            gt.speedDown += Number(t.speedDown || 0);
-            gt.last5sUp += Number(t.last5sUp || 0);
-            gt.last5sDown += Number(t.last5sDown || 0);
-            gt.last1mUp += Number(t.last1mUp || 0);
-            gt.last1mDown += Number(t.last1mDown || 0);
-            gt.last1hUp += Number(t.last1hUp || 0);
-            gt.last1hDown += Number(t.last1hDown || 0);
-            gt.last1moUp += Number(t.last1moUp || 0);
-            gt.last1moDown += Number(t.last1moDown || 0);
-            gt.totalUp += Number(t.totalUp || 0);
-            gt.totalDown += Number(t.totalDown || 0);
-          });
-          setGlobalTraffic(gt);
-        }
-        
-        // Also refresh CPU/RAM occasionally (every 5s is fine)
-        const sysRes = await fetch('/api/admin/system?t=' + Date.now(), { cache: 'no-store' });
-        if (sysRes.ok) {
-          setSystemStats(await sysRes.json());
-        }
-      } catch (e) {
-        console.error('Failed to fetch live stats', e);
-      }
-    };
-
-    fetchLiveStats();
-    const interval = setInterval(fetchLiveStats, 5000);
-    
-    let animationFrame: number;
-    const animate = () => {
-      const msInCycle = Date.now() % 5000;
-      setProgress((msInCycle / 5000) * 100);
-      animationFrame = requestAnimationFrame(animate);
-    };
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => {
-      clearInterval(interval);
-      cancelAnimationFrame(animationFrame);
-    };
-  }, []);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -225,7 +147,6 @@ export default function AdminDashboardClient({
       <TrafficTableUI 
         title={dict.admin.dash.global_traffic_table || 'Серверная статистика трафика'} 
         traffic={globalTraffic} 
-        progress={progress} 
       />
     </div>
   );

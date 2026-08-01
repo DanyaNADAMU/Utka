@@ -33,78 +33,12 @@ interface TrafficState {
   totalDown: string;
 }
 
-export default function AdminUsersTable({ subscriptions }: { subscriptions: any[] }) {
-  const [traffic, setTraffic] = useState<Record<string, TrafficState>>({});
-  const [progress, setProgress] = useState(0);
+export default function AdminUsersTable({ subscriptions, trafficState }: { subscriptions: any[], trafficState: Record<string, TrafficState> }) {
   const dict = useTranslation();
   const router = useRouter();
 
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    let isFetching = false;
-    
-    const fetchTraffic = async () => {
-      if (isFetching) return;
-      isFetching = true;
-      try {
-        const res = await fetch('/api/admin/traffic?t=' + Date.now(), { cache: 'no-store' });
-        const data = await res.json();
-        setTraffic(data.subscriptions || {});
-      } catch (err) {
-        console.error('Failed to fetch traffic', err);
-      } finally {
-        isFetching = false;
-      }
-    };
-
-    const scheduleNextFetch = () => {
-      const now = Date.now();
-      // Вычисляем задержку до следующих 00, 05, 10 секунд плюс 200мс,
-      // чтобы дать серверному демону гарантированно записать данные в кэш.
-      const delay = 5000 - (now % 5000) + 200;
-      
-      timeoutId = setTimeout(() => {
-        fetchTraffic();
-        scheduleNextFetch();
-      }, delay);
-    };
-
-    // Первичный запрос и запуск расписания
-    fetchTraffic();
-    scheduleNextFetch();
-    
-    // Анимация таймера, жестко привязанная к часам системы
-    let animationFrame: number;
-    const animate = () => {
-      const msInCycle = Date.now() % 5000;
-      setProgress((msInCycle / 5000) * 100);
-      animationFrame = requestAnimationFrame(animate);
-    };
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => {
-      clearTimeout(timeoutId);
-      cancelAnimationFrame(animationFrame);
-    };
-  }, []);
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end gap-3 mb-2">
-        <span className="text-sm font-medium text-slate-400">{dict.admin.users.profile.auto_update}</span>
-        <div className="relative w-6 h-6">
-          <svg className="w-6 h-6 -rotate-90 transform" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-800" />
-            <circle 
-              cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="transparent" 
-              className="text-emerald-400 transition-all duration-75"
-              strokeDasharray={2 * Math.PI * 10}
-              strokeDashoffset={2 * Math.PI * 10 * (1 - progress / 100)}
-            />
-          </svg>
-        </div>
-      </div>
-
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
@@ -119,7 +53,7 @@ export default function AdminUsersTable({ subscriptions }: { subscriptions: any[
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {subscriptions.map((sub) => {
-                const stat = traffic[sub.id] || {
+                const stat = trafficState[sub.id] || {
                   speedUp: '0', speedDown: '0',
                   last5sUp: '0', last5sDown: '0',
                   last1mUp: '0', last1mDown: '0',

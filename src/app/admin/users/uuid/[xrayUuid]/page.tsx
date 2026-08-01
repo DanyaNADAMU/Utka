@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import CopyButton from "@/components/CopyButton";
 import SingleUuidTrafficViewer from "@/components/SingleUuidTrafficViewer";
+import { uuidTrafficState } from "@/lib/trafficDaemon";
 
 export default async function UuidDetailPage({ params }: { params: Promise<{ xrayUuid: string }> }) {
   const dict = await getDictionary();
@@ -132,7 +133,18 @@ export default async function UuidDetailPage({ params }: { params: Promise<{ xra
         </div>
       </div>
 
-      <SingleUuidTrafficViewer xrayUuid={xrayUuid} />
+      {(() => {
+        const state = uuidTrafficState[xrayUuid] || {
+          speedUp: 0, speedDown: 0,
+          last5sUp: 0, last5sDown: 0,
+          last1mUp: 0, last1mDown: 0,
+          last1hUp: 0, last1hDown: 0,
+          last1moUp: 0, last1moDown: 0,
+          totalUp: 0, totalDown: 0,
+        };
+        return <SingleUuidTrafficViewer xrayUuid={xrayUuid} trafficState={state as any} />;
+      })()}
+      
     </div>
   );
 }
