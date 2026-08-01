@@ -112,12 +112,15 @@ async function tick() {
     const uuidLiveStats: Record<string, { up: bigint, down: bigint, subId: string, nodeId: string }> = {};
     
     for (const node of nodes) {
+      console.log(`[Daemon] Querying stats for node ${node.name} (${node.id}) at ${node.apiHost}...`);
       const allStats = await queryAllUserStats(node.apiHost, true);
       
       if (allStats === null) {
+        console.log(`[Daemon] Node ${node.name} (${node.id}) returned NULL (OFFLINE)`);
         nodeStatusState[node.id] = false;
         continue;
       }
+      console.log(`[Daemon] Node ${node.name} (${node.id}) returned stats (ONLINE)`);
       nodeStatusState[node.id] = true;
       
       for (const [email, stat] of Object.entries(allStats)) {
