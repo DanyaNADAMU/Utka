@@ -51,6 +51,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Create start script
 RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'rm -f /app/xray/*.sock' >> /app/start.sh && \
     echo 'echo "Syncing database..."' >> /app/start.sh && \
     echo 'prisma db push --accept-data-loss --skip-generate' >> /app/start.sh && \
     echo 'echo "Starting NadamuDash..."' >> /app/start.sh && \

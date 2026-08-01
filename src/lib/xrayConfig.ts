@@ -114,7 +114,16 @@ export async function regenerateMasterXrayConfig() {
   }
 
   try {
-    const configPath = path.join(process.cwd(), 'xray', 'config.json');
+    const xrayDir = path.join(process.cwd(), 'xray');
+    if (fs.existsSync(xrayDir)) {
+      const files = fs.readdirSync(xrayDir);
+      for (const f of files) {
+        if (f.endsWith('.sock')) {
+          try { fs.unlinkSync(path.join(xrayDir, f)); } catch {}
+        }
+      }
+    }
+    const configPath = path.join(xrayDir, 'config.json');
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
     console.log("Regenerated xray config.");
   } catch (err) {
