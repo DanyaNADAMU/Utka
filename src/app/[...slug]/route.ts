@@ -291,10 +291,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   });
 
   const base64Link = Buffer.from(links.join('\n')).toString('base64');
+  const encodedFilename = encodeURIComponent(profileName);
   
   return new NextResponse(base64Link, {
     headers: {
-      'Content-Type': 'text/plain; charset=utf-8'
+      'Content-Type': 'text/plain; charset=utf-8',
+      'profile-title': profileName,
+      'profile-update-interval': '24',
+      'Content-Disposition': `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`
     }
   });
 }
