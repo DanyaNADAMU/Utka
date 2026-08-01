@@ -50,7 +50,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const target = forceClash ? 'clash' : 'auto';
 
     const internalUrl = `http://nadamudash:3000/${slug.join('/')}?raw=true`;
-    const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}`;
+    const configUrl = `http://nadamudash:3000/config.ini`;
+    const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}&config=${encodeURIComponent(configUrl)}`;
     
     try {
       const subRes = await fetch(subUrl, {
@@ -62,15 +63,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         
         // Fix random fingerprint to chrome
         subText = subText.replace(/client-fingerprint: random/g, 'client-fingerprint: chrome');
-        
-        // Clean up default Chinese rules from subconverter if we are serving YAML
-        if (subText.includes('rules:')) {
-          const rulesIndex = subText.indexOf('rules:');
-          const beforeRules = subText.substring(0, rulesIndex);
-          const cleanRules = `rules:
-  - MATCH,🔰 节点选择`;
-          subText = beforeRules + cleanRules;
-        }
 
         const contentType = subRes.headers.get('content-type') || 'text/plain; charset=utf-8';
         const disposition = subRes.headers.get('content-disposition');
@@ -102,7 +94,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     });
 
     for (const exp of expiredUuids) {
-      const success = await removeVlessUser(exp.node.apiHost, exp.inboundTag, exp.xrayEmail);
+      const apiHost = exp.node ? exp.node.apiHost : 'unix:///app/xray/api.sock';
+      const success = await removeVlessUser(apiHost, exp.inboundTag, exp.xrayEmail);
       if (success || !success) { 
         await db.expiringUuid.delete({ where: { id: exp.id } });
       }
@@ -154,6 +147,27 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const expireMinutes = Number(settings.OLD_UUID_EXPIRE_MINUTES) || 2031;
   const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
 
+  // 1. Generate proxy link(s) for Master server
+  const hasLocalMasterInDb = activeNodes.some((n: any) => n.apiHost === 'unix:///app/xray/api.sock' || n.address === '127.0.0.1' || n.address === 'localhost');
+  if (!hasLocalMasterInDb) {
+    const masterAddress = process.env.XRAY_SERVER_DOMAIN || request.headers.get('host')?.split(':')[0] || '81.30.105.65';
+    for (const tag of activeInboundTags) {
+      const masterUuid = crypto.randomUUID();
+      const masterEmail = `${sub.id}_master_${tag}_${masterUuid}`;
+      await addVlessUser('unix:///app/xray/api.sock', tag, masterEmail, masterUuid);
+
+      const masterLink = await buildClientLink(
+        tag,
+        masterUuid,
+        `${sub.name || "NadamuDash"} - Master`,
+        masterAddress,
+        443
+      );
+      links.push(masterLink);
+    }
+  }
+
+  // 2. Generate proxy link(s) for active Nodes
   for (const inbound of updatedSub.inbounds) {
     // Only process active inbounds and active nodes
     if (!activeInboundTags.includes(inbound.inboundTag)) continue;
