@@ -90,7 +90,7 @@ export default function GlobalAutoRefresh({ collapsed = false }: { collapsed?: b
         </svg>
       </div>
       <span className="text-xs font-medium text-slate-300 truncate">
-        Update
+        {dict.admin.users.profile.auto_update_short || 'Update'}
       </span>
     </div>
   );

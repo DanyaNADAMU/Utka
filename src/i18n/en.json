@@ -80,6 +80,7 @@
         "updated": "Updated",
         "detailed_stats": "Detailed Traffic Stats",
         "auto_update": "Auto-update (every 5s)",
+        "auto_update_short": "Update",
         "uuid_history_title": "UUID History",
         "inbound_tag": "Inbound Tag",
         "uuid": "UUID",

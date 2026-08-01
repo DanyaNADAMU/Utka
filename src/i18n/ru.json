@@ -80,6 +80,7 @@
         "updated": "Обновлено",
         "detailed_stats": "Детальная статистика трафика",
         "auto_update": "Автообновление (каждые 5 сек)",
+        "auto_update_short": "Обновление",
         "uuid_history_title": "История UUID",
         "inbound_tag": "Входящий тег",
         "uuid": "UUID",
