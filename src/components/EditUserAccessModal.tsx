@@ -92,7 +92,7 @@ export default function EditUserAccessModal({
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
         </svg>
-        {dict.admin?.users?.profile?.manage_access || "Manage Access"}
+        {(dict.admin?.users?.profile as any)?.manage_access || "Manage Access"}
       </button>
 
       {isOpen && (
@@ -100,7 +100,7 @@ export default function EditUserAccessModal({
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh]">
             <div className="p-6 border-b border-slate-800 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-100">
-                {dict.admin?.users?.profile?.manage_access || "Manage Access"}
+                {(dict.admin?.users?.profile as any)?.manage_access || "Manage Access"}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}

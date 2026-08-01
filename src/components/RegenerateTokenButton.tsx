@@ -11,7 +11,7 @@ export default function RegenerateTokenButton({ subscriptionId }: { subscription
   const router = useRouter();
 
   const handleRegenerate = async () => {
-    if (!confirm(dict.admin?.users?.profile?.regenerate_confirm || "Are you sure you want to regenerate the token? The old link will stop working.")) {
+    if (!confirm((dict.admin?.users?.profile as any)?.regenerate_confirm || "Are you sure you want to regenerate the token? The old link will stop working.")) {
       return;
     }
     
@@ -36,7 +36,7 @@ export default function RegenerateTokenButton({ subscriptionId }: { subscription
       onClick={handleRegenerate}
       disabled={loading}
       className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors disabled:opacity-50 flex items-center justify-center"
-      title={dict.admin?.users?.profile?.regenerate_token || "Regenerate Token"}
+      title={(dict.admin?.users?.profile as any)?.regenerate_token || "Regenerate Token"}
     >
       {loading ? (
         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
