@@ -136,10 +136,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     let nodeTags = activeInboundTags; // Fallback to Master tags
     if (node.xrayConfig && typeof node.xrayConfig === 'string') {
       try {
-        const configText = stripJsonComments(node.xrayConfig);
-        const config = JSON.parse(configText);
-        if (config.inbounds && Array.isArray(config.inbounds)) {
-          const parsedTags = config.inbounds
+        let configText = stripJsonComments(node.xrayConfig);
+        let parsedData = JSON.parse(configText);
+        
+        // Handle double-stringified json (from Postgres migration)
+        if (typeof parsedData === 'string') {
+          parsedData = JSON.parse(parsedData);
+        }
+        
+        if (parsedData.inbounds && Array.isArray(parsedData.inbounds)) {
+          const parsedTags = parsedData.inbounds
             .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
             .map((i: any) => i.tag);
           if (parsedTags.length > 0) {
@@ -211,10 +217,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     let nodeTags = activeInboundTags;
     if (inbound.node.xrayConfig && typeof inbound.node.xrayConfig === 'string') {
       try {
-        const configText = stripJsonComments(inbound.node.xrayConfig);
-        const config = JSON.parse(configText);
-        if (config.inbounds && Array.isArray(config.inbounds)) {
-          const parsedTags = config.inbounds
+        let configText = stripJsonComments(inbound.node.xrayConfig);
+        let parsedData = JSON.parse(configText);
+
+        // Handle double-stringified json (from Postgres migration)
+        if (typeof parsedData === 'string') {
+          parsedData = JSON.parse(parsedData);
+        }
+
+        if (parsedData.inbounds && Array.isArray(parsedData.inbounds)) {
+          const parsedTags = parsedData.inbounds
             .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
             .map((i: any) => i.tag);
           if (parsedTags.length > 0) {

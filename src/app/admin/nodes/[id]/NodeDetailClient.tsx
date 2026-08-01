@@ -148,7 +148,7 @@ export default function NodeDetailClient({
           }`}
         >
           <Terminal size={18} />
-          <span>Reported Config</span>
+          <span>{dict.admin.nodes.form?.reported_config || 'Reported Config'}</span>
         </button>
       </div>
 
@@ -159,7 +159,7 @@ export default function NodeDetailClient({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">{dict.admin.nodes.form?.basic_info || 'Basic Information'}</h3>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.name}</label>
@@ -223,7 +223,7 @@ export default function NodeDetailClient({
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">REALITY Settings</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">{dict.admin.nodes.form?.reality_settings || 'REALITY Settings'}</h3>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.realityServerName}</label>
@@ -286,22 +286,36 @@ export default function NodeDetailClient({
         ) : (
           <div className="p-0">
             {node.xrayConfig ? (
-              <div className="relative">
-                <div className="absolute top-4 right-4 flex space-x-2">
-                  <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md">
-                    Raw File Format
-                  </span>
-                </div>
-                <pre className="p-8 bg-slate-950 text-emerald-400 font-mono text-sm overflow-x-auto min-h-[500px]">
-                  <code>{node.xrayConfig as string}</code>
-                </pre>
-              </div>
+              (() => {
+                let displayConfig = node.xrayConfig as string;
+                try {
+                  const parsed = JSON.parse(displayConfig);
+                  if (typeof parsed === 'string') {
+                    displayConfig = parsed;
+                  } else {
+                    displayConfig = JSON.stringify(parsed, null, 2);
+                  }
+                } catch (e) {}
+
+                return (
+                  <div className="relative">
+                    <div className="absolute top-4 right-4 flex space-x-2">
+                      <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md">
+                        {dict.admin.nodes.form?.raw_format || 'Raw File Format'}
+                      </span>
+                    </div>
+                    <pre className="p-8 bg-slate-950 text-emerald-400 font-mono text-sm overflow-x-auto min-h-[500px]">
+                      <code>{displayConfig}</code>
+                    </pre>
+                  </div>
+                );
+              })()
             ) : (
               <div className="flex flex-col items-center justify-center py-32 text-slate-500">
                 <Terminal size={48} className="mb-4 text-slate-700" />
-                <p className="text-lg font-medium text-slate-400">No config reported yet</p>
+                <p className="text-lg font-medium text-slate-400">{dict.admin.nodes.form?.no_config || 'No config reported yet'}</p>
                 <p className="text-sm mt-2 max-w-md text-center">
-                  Make sure the Node Agent is running on the node server and has MASTER_URL and NODE_ID set in its .env file.
+                  {dict.admin.nodes.form?.no_config_help || 'Make sure the Node Agent is running on the node server and has MASTER_URL and NODE_ID set in its .env file.'}
                 </p>
               </div>
             )}
