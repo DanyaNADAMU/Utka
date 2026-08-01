@@ -192,6 +192,7 @@ export async function queryAllUserStats(grpcHost: string, reset: boolean = false
       reset: reset
     }, (err: Error, res: any) => {
       if (err) {
+        console.error(`[Xray API QueryAllStats Error for ${grpcHost}]:`, err);
         return resolve(null);
       }
       if (!res || !res.stat) {
