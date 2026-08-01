@@ -67,8 +67,8 @@ export async function regenerateMasterXrayConfig() {
       port: 1,
       protocol: "dokodemo-door",
       settings: {
-        address: "127.0.0.1", 
-        port: 8080,
+        address: "/etc/xray/api.sock", 
+        port: 1,
         network: "unix"
       }
     });
