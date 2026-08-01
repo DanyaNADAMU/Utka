@@ -42,10 +42,9 @@ services:
     restart: unless-stopped
     network_mode: "host"
     command: >
-      /bin/sh -c "if [ ! -f /etc/xray/config.json ]; then cp /repo/xray/config.json /etc/xray/config.json; fi && /usr/bin/xray run -c /etc/xray/config.json"
+      /bin/sh -c "while [ ! -f /etc/xray/config.json ]; do sleep 1; done && /usr/bin/xray run -c /etc/xray/config.json"
     volumes:
       - ./xray:/etc/xray
-      - ./repo:/repo:ro
 
   subconverter:
     image: metacubex/subconverter:latest
