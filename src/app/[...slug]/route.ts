@@ -180,7 +180,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
 
   // 1. Generate proxy link(s) for Master server
-  const hasLocalMasterInDb = activeNodes.some((n: any) => n.apiHost === 'unix:///app/xray/api.sock' || n.address === '127.0.0.1' || n.address === 'localhost');
+  const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+  const hasLocalMasterInDb = activeNodes.some((n: any) => n.apiHost === 'unix:///app/xray/api.sock' || n.address === '127.0.0.1' || n.address === 'localhost' || n.apiHost === masterApiHost);
   if (!hasLocalMasterInDb) {
     const masterAddress = process.env.XRAY_SERVER_DOMAIN_OR_IP || process.env.XRAY_SERVER_DOMAIN || request.headers.get('host')?.split(':')[0] || '81.30.105.65';
     for (const tag of activeInboundTags) {
@@ -274,9 +275,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       inbound.node.address,
       inbound.node.port,
       {
-        sni: inbound.node.realityServerName,
-        pbk: inbound.node.realityPubKey,
-        sid: inbound.node.realityShortId
+        sni: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityServerName,
+        pbk: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityPubKey,
+        sid: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityShortId
       }
     );
     console.log(`[Generated VLESS Link for node ${inbound.node.name}]`, vlessLink);

@@ -13,7 +13,8 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
     where: { id }
   });
 
-  if (!node) {
+  const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+  if (!node || node.apiHost === masterApiHost) {
     notFound();
   }
 
