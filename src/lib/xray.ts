@@ -193,6 +193,7 @@ export async function queryAllUserStats(grpcHost: string, reset: boolean = false
     }, (err: Error, res: any) => {
       if (err) {
         console.error(`[Xray API QueryAllStats Error for ${grpcHost}]:`, err);
+        invalidateClientCache(grpcHost);
         return resolve(null);
       }
       if (!res || !res.stat) {

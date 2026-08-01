@@ -142,8 +142,9 @@ export async function regenerateMasterXrayConfig() {
 
   // Attempt to restart Xray container if docker socket is available
   try {
-    await execAsync('docker restart nadamudash-xray').catch(() => {});
+    const res = await execAsync('docker restart nadamudash-xray');
+    console.log("[Daemon] Restarted nadamudash-xray container:", res.stdout.trim());
   } catch (e) {
-    console.warn("Could not restart docker xray:", e);
+    console.warn("[Daemon] Could not restart docker xray:", e);
   }
 }
