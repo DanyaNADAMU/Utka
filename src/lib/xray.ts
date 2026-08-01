@@ -282,7 +282,7 @@ export async function buildClientLink(
 ): Promise<string> {
   const conf = await getInboundConfig(inboundTag);
   const settings = await getSettings();
-  const name = encodeURIComponent(`${nodeName || "NadamuDash"} - ${inboundTag}`);
+  const name = encodeURIComponent(inboundTag);
   
   // Apply per-inbound settings
   const customPort = settings[`INBOUND_${inboundTag}_PORT`];
@@ -346,7 +346,7 @@ export async function buildClashProxyObject(
   nodePort: number
 ): Promise<any> {
   const conf = await getInboundConfig(inboundTag);
-  const name = `${nodeName || "NadamuDash"} - ${inboundTag}`;
+  const name = inboundTag;
   
   if (!conf) {
     return null;
