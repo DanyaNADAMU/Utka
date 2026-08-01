@@ -80,7 +80,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         headers.set('Content-Type', contentType);
         headers.set('profile-title', profileName);
         const encodedFilename = encodeURIComponent(profileName);
-        headers.set('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`);
+        const ext = forceClash ? '.yaml' : '';
+        headers.set('Content-Disposition', `inline; filename="${encodedFilename}${ext}"; filename*=UTF-8''${encodedFilename}${ext}`);
         
         return new NextResponse(subText, { headers, status: 200 });
       }
