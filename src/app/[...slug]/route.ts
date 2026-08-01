@@ -236,6 +236,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         sid: inbound.node.realityShortId
       }
     );
+    console.log(`[Generated VLESS Link for node ${inbound.node.name}]`, vlessLink);
     links.push(vlessLink);
   }
 

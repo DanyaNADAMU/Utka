@@ -11,6 +11,7 @@ export default async function NodesPage() {
       name: 'asc'
     }
   });
+  console.log("[DB Nodes]", JSON.stringify(nodes));
   
   const dict = await getDictionary();
 
