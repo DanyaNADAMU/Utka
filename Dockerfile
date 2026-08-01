@@ -31,6 +31,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 65532 nodejs
 RUN adduser --system --uid 65532 nextjs
 
+RUN apk add --no-cache docker-cli
+
 # Install Prisma CLI globally to run db push on startup
 RUN npm install -g prisma@6.19.3
 
