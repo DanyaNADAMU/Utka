@@ -79,9 +79,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         const headers = new Headers();
         headers.set('Content-Type', contentType);
         headers.set('profile-title', profileName);
-        const encodedFilename = encodeURIComponent(profileName);
-        const ext = forceClash ? '.yaml' : '';
-        headers.set('Content-Disposition', `inline; filename="${encodedFilename}${ext}"; filename*=UTF-8''${encodedFilename}${ext}`);
+        const ext = forceClash ? '.yaml' : '.txt';
+        headers.set('Content-Disposition', `attachment; filename="subscription${ext}"`);
         
         return new NextResponse(subText, { headers, status: 200 });
       }
@@ -292,14 +291,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   });
 
   const base64Link = Buffer.from(links.join('\n')).toString('base64');
-  const encodedFilename = encodeURIComponent(profileName);
   
   return new NextResponse(base64Link, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'profile-title': profileName,
       'profile-update-interval': '24',
-      'Content-Disposition': `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`
+      'Content-Disposition': 'attachment; filename="subscription.txt"'
     }
   });
 }
