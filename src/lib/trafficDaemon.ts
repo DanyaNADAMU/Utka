@@ -96,7 +96,7 @@ async function tick() {
   try {
     const now = new Date();
     const seconds = now.getSeconds();
-    
+
     const nodes = await db.node.findMany({ where: { isActive: true } });
     
     const subLiveStats: Record<string, { up: bigint, down: bigint }> = {}; // Overall for sub
@@ -193,6 +193,8 @@ async function tick() {
     
   } catch (err) {
     console.error("[Daemon] Tick error:", err);
+  } finally {
+    isTicking = false;
   }
 }
 
