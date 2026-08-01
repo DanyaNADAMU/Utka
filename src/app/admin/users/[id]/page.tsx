@@ -39,15 +39,20 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     if (!masterNode) {
       masterNode = await db.node.create({
         data: {
-          name: 'Master Server',
+          name: 'Master',
           address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
           port: 443,
           apiHost: masterApiHost,
           isActive: true
         }
       });
-    } else if (!masterNode.isActive) {
-      masterNode = await db.node.update({ where: { id: masterNode.id }, data: { isActive: true } });
+    } else {
+      let updateData: any = {};
+      if (!masterNode.isActive) updateData.isActive = true;
+      if (masterNode.name === 'Master Server') updateData.name = 'Master';
+      if (Object.keys(updateData).length > 0) {
+        masterNode = await db.node.update({ where: { id: masterNode.id }, data: updateData });
+      }
     }
     allNodesRaw.push({ id: masterNode.id, name: masterNode.name, apiHost: masterNode.apiHost, xrayConfig: null });
   }

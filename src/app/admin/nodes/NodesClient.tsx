@@ -426,7 +426,7 @@ export default function NodesClient({
               ) : activeTab === 'master' ? (
                 <div className="space-y-6">
                   <p className="text-sm text-slate-300 bg-cyan-950/40 border border-cyan-800/40 rounded-lg p-3">
-                    {dict.admin.nodes.master_desc || "Add these sections to /app/xray/config.json on Master server:"}
+                    {dict.admin.nodes.master_desc || "Add these sections to /app/xray/config.json on Master:"}
                   </p>
 
                   {/* Master Inbound */}

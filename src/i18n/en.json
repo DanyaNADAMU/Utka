@@ -179,7 +179,7 @@
       "instructions_title": "Xray Setup Instructions for Node",
       "master_tab": "Master (moscow-nadamudash)",
       "node_tab": "Node (ice-nadamudash-node)",
-      "master_desc": "Add these sections to /app/xray/config.json on Master server:",
+      "master_desc": "Add these sections to /app/xray/config.json on Master:",
       "node_desc": "Use this configuration for xray/config.json on Node server:",
       "copy_button": "Copy",
       "copied": "Copied!",

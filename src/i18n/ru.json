@@ -179,7 +179,7 @@
       "instructions_title": "Инструкции по настройке Xray для узела",
       "master_tab": "Мастер (moscow-nadamudash)",
       "node_tab": "Узел (ice-nadamudash-node)",
-      "master_desc": "Добавьте эти секции в файл /app/xray/config.json на сервере Мастера:",
+      "master_desc": "Добавьте эти секции в файл /app/xray/config.json на Мастере:",
       "node_desc": "Используйте эту конфигурацию для файла xray/config.json на сервере Узла:",
       "copy_button": "Скопировать",
       "copied": "Скопировано!",
