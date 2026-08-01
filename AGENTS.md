@@ -6,3 +6,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 
 - **Environment Rule**: The local machine ONLY contains the source code for NadamuDash. The actual deployed application and its Docker containers run on a remote server accessible via SSH (`ssh moscow-nadamudash`). NEVER attempt to run `docker ps`, `docker compose`, or interact with the running panel on the local machine. All production environment checks must be done via a dedicated SSH subagent.
+
+- **Deployment Rule**: The local machine has a script `./deploy.sh` for deploying the project to the server. Use it whenever a deployment is required by running `./deploy.sh "commit message"`.
