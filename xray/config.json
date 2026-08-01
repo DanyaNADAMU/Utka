@@ -54,13 +54,13 @@
         },
         "security": "reality",
         "realitySettings": {
-          "dest": "YOUR_SERVER_NAME_HERE:443",
+          "dest": "biz.mail.ru:443",
           "serverNames": [
-            "YOUR_SERVER_NAME_HERE"
+            "biz.mail.ru"
           ],
-          "privateKey": "YOUR_PRIVATE_KEY_HERE",
+          "privateKey": "GFoBeOnYSOvxsWcZFntcWBqWLT6summvvFwZipk_xEk",
           "shortIds": [
-            "YOUR_SHORT_ID_HERE"
+            "4a24f619"
           ]
         }
       },

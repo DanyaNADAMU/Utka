@@ -116,6 +116,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   // Sync inbounds for all nodes
   const activeNodes = await db.node.findMany({ where: { isActive: true } });
+
+  // Migration safeguard: Fix any legacy/mismatched inboundTags in database (e.g. "moscow" -> "vless-in")
+  if (activeInboundTags.length > 0) {
+    await db.subscriptionInbound.updateMany({
+      where: {
+        subscriptionId: sub.id,
+        inboundTag: { notIn: activeInboundTags }
+      },
+      data: { inboundTag: activeInboundTags[0] }
+    });
+  }
+
   const inboundsToCreate = [];
   
   for (const node of activeNodes) {
