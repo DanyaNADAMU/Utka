@@ -8,6 +8,10 @@ import UserTrafficViewer from "@/components/UserTrafficViewer";
 import CopyButton from "@/components/CopyButton";
 import UuidHistoryViewer from "@/components/UuidHistoryViewer";
 import { trafficState } from "@/lib/trafficDaemon";
+import DeleteUserButton from "@/components/DeleteUserButton";
+import RegenerateTokenButton from "@/components/RegenerateTokenButton";
+import EditUserAccessModal from "@/components/EditUserAccessModal";
+import { getClientInboundTags } from "@/lib/xray";
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const dict = await getDictionary();
@@ -24,6 +28,9 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
       inbounds: true
     }
   });
+
+  const allNodes = await db.node.findMany({ where: { isActive: true }, select: { id: true, name: true } });
+  const allTags = await getClientInboundTags();
 
   const expiringUuids = await db.expiringUuid.findMany({
     where: { subscriptionId: id }
@@ -67,13 +74,24 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/users" className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors text-slate-300">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-        </Link>
-        <h1 className="text-2xl font-bold text-white">{dict.admin.users.profile.title}: {sub.user?.email || dict.admin.users.profile.unknown}</h1>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/users" className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors text-slate-300">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </Link>
+          <h1 className="text-2xl font-bold text-white">{dict.admin.users.profile.title}: {sub.user?.email || dict.admin.users.profile.unknown}</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <EditUserAccessModal 
+            subscriptionId={sub.id} 
+            nodes={allNodes} 
+            allTags={allTags} 
+            currentAccess={sub.inbounds} 
+          />
+          <DeleteUserButton subscriptionId={sub.id} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -86,9 +104,12 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
             </div>
             <div>
               <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.token}</p>
-              <code className="text-sm text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">
-                {sub.token}
-              </code>
+              <div className="flex items-center gap-2">
+                <code className="text-sm text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                  {sub.token}
+                </code>
+                <RegenerateTokenButton subscriptionId={sub.id} />
+              </div>
             </div>
             <div>
               <p className="text-sm text-slate-400 mb-1">{dict.admin.users.profile.sub_link}</p>
