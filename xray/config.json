@@ -39,7 +39,7 @@
       "tag": "api"
     },
     {
-      "listen": "0.0.0.0",
+      "listen": "127.0.0.1",
       "port": 443,
       "protocol": "vless",
       "tag": "vless-in",
@@ -54,10 +54,9 @@
         },
         "security": "reality",
         "realitySettings": {
-          "dest": "biz.mail.ru:443",
+          "dest": "YOUR_SERVER_NAME_HERE:443",
           "serverNames": [
-            "biz.mail.ru",
-            "www.biz.mail.ru"
+            "YOUR_SERVER_NAME_HERE"
           ],
           "privateKey": "YOUR_PRIVATE_KEY_HERE",
           "shortIds": [
