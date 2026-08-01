@@ -29,7 +29,33 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     }
   });
 
-  const allNodes = await db.node.findMany({ where: { isActive: true }, select: { id: true, name: true } });
+  const allNodesRaw = await db.node.findMany({ where: { isActive: true }, select: { id: true, name: true, apiHost: true } });
+  
+  const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+  let hasMaster = allNodesRaw.some(n => n.apiHost === masterApiHost);
+  
+  if (!hasMaster) {
+    let masterNode = await db.node.findFirst({ where: { apiHost: masterApiHost } });
+    if (!masterNode) {
+      masterNode = await db.node.create({
+        data: {
+          name: 'Master Server',
+          address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
+          port: 443,
+          apiHost: masterApiHost,
+          isActive: true
+        }
+      });
+    } else if (!masterNode.isActive) {
+      masterNode = await db.node.update({ where: { id: masterNode.id }, data: { isActive: true } });
+    }
+    allNodesRaw.push({ id: masterNode.id, name: masterNode.name, apiHost: masterNode.apiHost });
+  }
+
+  const allNodes = allNodesRaw.map(n => ({
+    id: n.id,
+    name: n.apiHost === masterApiHost ? `${n.name} (Master)` : n.name
+  }));
   const allTags = await getClientInboundTags();
 
   const expiringUuids = await db.expiringUuid.findMany({
