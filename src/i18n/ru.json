@@ -92,6 +92,22 @@
         "uuid_history_empty": "История UUID пуста."
       },
       "total_subs": "Всего подписок",
+      "add_user": "Добавить пользователя",
+      "modal": {
+        "title": "Создание нового пользователя",
+        "email": "Email пользователя",
+        "email_placeholder": "user@example.com",
+        "name": "Имя / Идентификатор",
+        "name_placeholder": "Иван Иванов",
+        "sub_name": "Название подписки",
+        "sub_name_placeholder": "Default Device",
+        "role": "Роль",
+        "role_user": "Пользователь (USER)",
+        "role_admin": "Администратор (ADMIN)",
+        "submit": "Создать пользователя",
+        "cancel": "Отмена",
+        "creating": "Создание..."
+      },
       "traffic_sync_note": "Статистика трафика синхронизируется сервером в фоновом режиме. Таблица обновляется каждые 5 секунд без дополнительной нагрузки на базу данных или ядро Xray."
     },
     "dash": {

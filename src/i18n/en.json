@@ -92,6 +92,22 @@
         "uuid_history_empty": "No UUID history found."
       },
       "total_subs": "Total Subscriptions",
+      "add_user": "Add User",
+      "modal": {
+        "title": "Create New User",
+        "email": "User Email",
+        "email_placeholder": "user@example.com",
+        "name": "Name / Note",
+        "name_placeholder": "John Doe",
+        "sub_name": "Subscription Name",
+        "sub_name_placeholder": "Default Device",
+        "role": "Role",
+        "role_user": "User (USER)",
+        "role_admin": "Administrator (ADMIN)",
+        "submit": "Create User",
+        "cancel": "Cancel",
+        "creating": "Creating..."
+      },
       "traffic_sync_note": "Traffic statistics are synchronized by the server in the background. The table updates every 5 seconds without additional load on the database or Xray core."
     },
     "dash": {
