@@ -80,21 +80,6 @@ export default function NodesClient({
     });
     setIsModalOpen(true);
   };
-        name: '',
-        address: '',
-        port: '443',
-        xrayPort: '8443',
-        apiHost: '',
-        adminUuid: '',
-        realityServerName: 'biz.mail.ru',
-        realityPubKey: '',
-        realityPrivKey: '',
-        realityShortId: '',
-        isActive: true,
-      });
-    }
-    setIsModalOpen(true);
-  };
 
   const closeModal = () => {
     setIsModalOpen(false);
