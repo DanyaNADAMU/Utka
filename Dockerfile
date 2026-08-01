@@ -53,7 +53,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Create start script
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'chmod 777 /app/xray 2>/dev/null || true' >> /app/start.sh && \
+    echo 'chmod 750 /app/xray 2>/dev/null || true' >> /app/start.sh && \
+    echo 'chmod 660 /app/xray/api.sock 2>/dev/null || true' >> /app/start.sh && \
     echo 'chown root:root /app/xray/config.json 2>/dev/null || true' >> /app/start.sh && \
     echo 'chmod 444 /app/xray/config.json 2>/dev/null || true' >> /app/start.sh && \
     echo 'echo "Syncing database..."' >> /app/start.sh && \
