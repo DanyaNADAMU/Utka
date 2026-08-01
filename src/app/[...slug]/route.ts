@@ -60,7 +60,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
     const internalUrl = `http://nadamudash:3000/${slug.join('/')}?raw=true`;
     const configUrl = `http://nadamudash:3000/api/config.ini`;
-    const filenameParam = encodeURIComponent(`${profileName}.yaml`);
+    const filenameParam = encodeURIComponent(profileName);
     const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}&config=${encodeURIComponent(configUrl)}&filename=${filenameParam}`;
     
     try {
@@ -79,7 +79,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         headers.set('Content-Type', contentType);
         headers.set('profile-title', profileName);
         const encodedFilename = encodeURIComponent(profileName);
-        headers.set('Content-Disposition', `attachment; filename="${encodedFilename}.yaml"; filename*=UTF-8''${encodedFilename}.yaml`);
+        headers.set('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`);
         
         return new NextResponse(subText, { headers, status: 200 });
       }
