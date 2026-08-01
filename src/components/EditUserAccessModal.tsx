@@ -8,19 +8,18 @@ import { useTranslation } from '@/i18n/LanguageProvider';
 interface NodeAccess {
   id: string;
   name: string;
+  tags: string[];
 }
 
 interface EditUserAccessModalProps {
   subscriptionId: string;
   nodes: NodeAccess[];
-  allTags: string[];
   currentAccess: { nodeId: string; inboundTag: string }[];
 }
 
 export default function EditUserAccessModal({
   subscriptionId,
   nodes,
-  allTags,
   currentAccess,
 }: EditUserAccessModalProps) {
   const dict = useTranslation();
@@ -117,7 +116,7 @@ export default function EditUserAccessModal({
                 <div key={node.id} className="space-y-3">
                   <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">{node.name}</h3>
                   <div className="bg-slate-950/50 border border-slate-800 rounded-xl divide-y divide-slate-800/50">
-                    {allTags.map(tag => {
+                    {node.tags.map(tag => {
                       const key = `${node.id}:${tag}`;
                       const isChecked = selected.has(key);
                       return (
@@ -139,7 +138,7 @@ export default function EditUserAccessModal({
                         </label>
                       );
                     })}
-                    {allTags.length === 0 && (
+                    {node.tags.length === 0 && (
                       <div className="p-3 text-sm text-slate-500 italic">No inbounds available</div>
                     )}
                   </div>

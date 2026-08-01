@@ -29,7 +29,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     }
   });
 
-  const allNodesRaw = await db.node.findMany({ where: { isActive: true }, select: { id: true, name: true, apiHost: true } });
+  const allNodesRaw = await db.node.findMany({ where: { isActive: true }, select: { id: true, name: true, apiHost: true, xrayConfig: true } });
   
   const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
   let hasMaster = allNodesRaw.some(n => n.apiHost === masterApiHost);
@@ -49,14 +49,34 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     } else if (!masterNode.isActive) {
       masterNode = await db.node.update({ where: { id: masterNode.id }, data: { isActive: true } });
     }
-    allNodesRaw.push({ id: masterNode.id, name: masterNode.name, apiHost: masterNode.apiHost });
+    allNodesRaw.push({ id: masterNode.id, name: masterNode.name, apiHost: masterNode.apiHost, xrayConfig: null });
   }
 
-  const allNodes = allNodesRaw.map(n => ({
-    id: n.id,
-    name: n.apiHost === masterApiHost ? `${n.name} (Master)` : n.name
+  const allNodes = await Promise.all(allNodesRaw.map(async (n) => {
+    let tags: string[] = [];
+    
+    if (n.apiHost === masterApiHost) {
+      tags = await getClientInboundTags();
+    } else if (n.xrayConfig) {
+      try {
+        const stripJsonComments = (await import('strip-json-comments')).default;
+        const config = JSON.parse(stripJsonComments(n.xrayConfig as string));
+        if (config.inbounds && Array.isArray(config.inbounds)) {
+          tags = config.inbounds
+            .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
+            .map((i: any) => i.tag);
+        }
+      } catch (e) {
+        console.error(`Failed to parse xrayConfig for node ${n.name}:`, e);
+      }
+    }
+
+    return {
+      id: n.id,
+      name: n.apiHost === masterApiHost ? `${n.name} (Master)` : n.name,
+      tags
+    };
   }));
-  const allTags = await getClientInboundTags();
 
   const expiringUuids = await db.expiringUuid.findMany({
     where: { subscriptionId: id }
@@ -113,7 +133,6 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
           <EditUserAccessModal 
             subscriptionId={sub.id} 
             nodes={allNodes} 
-            allTags={allTags} 
             currentAccess={sub.inbounds} 
           />
           <DeleteUserButton subscriptionId={sub.id} />
