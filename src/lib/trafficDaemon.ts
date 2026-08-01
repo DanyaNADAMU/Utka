@@ -87,13 +87,20 @@ function updateStateObj(stateMap: Record<string, TrafficState>, id: string, live
   };
 }
 
+import { regenerateMasterXrayConfig } from "@/lib/xrayConfig";
+
 let isTicking = false;
+let configInitialised = false;
 
 async function tick() {
   if (isTicking) return;
   isTicking = true;
   
   try {
+    if (!configInitialised) {
+      configInitialised = true;
+      await regenerateMasterXrayConfig().catch((e) => console.error("[Daemon] Config init error:", e));
+    }
     const now = new Date();
     const seconds = now.getSeconds();
     
