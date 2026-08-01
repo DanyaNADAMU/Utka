@@ -40,6 +40,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const sub = await db.subscription.findUnique({
+    where: { token },
+    include: { inbounds: { include: { node: true } } }
+  });
+
+  if (!sub) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const profileName = sub.name || "NadamuDash";
+
   // Detect if this request is from our own subconverter container
   const reqUrl = new URL(request.url);
   const isRawRequest = reqUrl.searchParams.get('raw') === 'true';
@@ -51,7 +60,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
     const internalUrl = `http://nadamudash:3000/${slug.join('/')}?raw=true`;
     const configUrl = `http://nadamudash:3000/api/config.ini`;
-    const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}&config=${encodeURIComponent(configUrl)}`;
+    const filenameParam = encodeURIComponent(`${profileName}.yaml`);
+    const subUrl = `http://subconverter:25500/sub?target=${target}&url=${encodeURIComponent(internalUrl)}&config=${encodeURIComponent(configUrl)}&filename=${filenameParam}`;
     
     try {
       const subRes = await fetch(subUrl, {
@@ -65,11 +75,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         subText = subText.replace(/client-fingerprint: random/g, 'client-fingerprint: chrome');
 
         const contentType = subRes.headers.get('content-type') || 'text/plain; charset=utf-8';
-        const disposition = subRes.headers.get('content-disposition');
-        
         const headers = new Headers();
         headers.set('Content-Type', contentType);
-        if (disposition) headers.set('Content-Disposition', disposition);
+        headers.set('profile-title', profileName);
+        const encodedFilename = encodeURIComponent(profileName);
+        headers.set('Content-Disposition', `attachment; filename="${encodedFilename}.yaml"; filename*=UTF-8''${encodedFilename}.yaml`);
         
         return new NextResponse(subText, { headers, status: 200 });
       }
@@ -103,13 +113,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   } catch (e) {
     console.error("Failed to cleanup expired UUIDs:", e);
   }
-
-  const sub = await db.subscription.findUnique({
-    where: { token },
-    include: { inbounds: { include: { node: true } } }
-  });
-
-  if (!sub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Sync inbounds for all nodes
   const activeNodes = await db.node.findMany({ where: { isActive: true } });

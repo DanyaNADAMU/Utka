@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const DEFAULT_CONFIG_INI = `[custom]
+clash_mode=rule
 ruleset=🛑 AdBlock,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/BanAD.list
 ruleset=🏠 Local Network,[]GEOIP,LAN
 ruleset=🏠 Local Network,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/LocalAreaNetwork.list
