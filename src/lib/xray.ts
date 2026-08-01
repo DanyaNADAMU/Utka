@@ -265,7 +265,8 @@ export async function buildClientLink(
   xrayUuid: string, 
   nodeName: string, 
   nodeAddress: string, 
-  nodePort: number
+  nodePort: number,
+  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null }
 ): Promise<string> {
   const conf = await getInboundConfig(inboundTag);
   const settings = await getSettings();
@@ -275,37 +276,31 @@ export async function buildClientLink(
   const customPort = settings[`INBOUND_${inboundTag}_PORT`];
   const customFlow = settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
   
-  // We MUST use the external nodePort (exposed by haproxy) or the custom port
-  // rather than the internal Xray listen port (conf.port)
   const port = customPort ? parseInt(customPort) : nodePort;
   
-  if (!conf) {
-    // Fallback if not found
-    return `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none&flow=${customFlow}&security=reality&sni=biz.mail.ru&fp=chrome&type=tcp&headerType=none#${name}`;
-  }
-
-  const protocol = conf.protocol || "vless";
+  const protocol = conf?.protocol || "vless";
   
-  // Extract reality settings
-  let pbk = process.env.XRAY_PUBLIC_KEY || "";
-  let sid = process.env.XRAY_SHORT_ID || "";
-  let sni = process.env.XRAY_SNI || "biz.mail.ru";
+  let pbk = nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
+  let sid = nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
+  let sni = nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
   
-  const stream = conf.streamSettings || {};
-  const network = stream.network || "tcp";
-  const security = stream.security || "none";
+  const stream = conf?.streamSettings || {};
+  const network = stream?.network || "tcp";
+  const security = stream?.security || "reality";
   
-  if (security === "reality" && stream.realitySettings) {
-    const rs = stream.realitySettings;
-    if (rs.serverNames && rs.serverNames.length > 0) sni = rs.serverNames[0];
-    if (rs.shortIds && rs.shortIds.length > 0) sid = rs.shortIds[0];
-    if (rs.privateKey) {
-      const derivedPbk = getX25519PublicKey(rs.privateKey);
-      if (derivedPbk) pbk = derivedPbk;
+  if (!nodeReality?.pbk || !nodeReality?.sni) {
+    if (security === "reality" && stream.realitySettings) {
+      const rs = stream.realitySettings;
+      if (!nodeReality?.sni && rs.serverNames && rs.serverNames.length > 0) sni = rs.serverNames[0];
+      if (!nodeReality?.sid && rs.shortIds && rs.shortIds.length > 0) sid = rs.shortIds[0];
+      if (!nodeReality?.pbk && rs.privateKey) {
+        const derivedPbk = getX25519PublicKey(rs.privateKey);
+        if (derivedPbk) pbk = derivedPbk;
+      }
+    } else if (security === "tls" && stream.tlsSettings) {
+      const ts = stream.tlsSettings;
+      if (!nodeReality?.sni && ts.serverName) sni = ts.serverName;
     }
-  } else if (security === "tls" && stream.tlsSettings) {
-    const ts = stream.tlsSettings;
-    if (ts.serverName) sni = ts.serverName;
   }
 
   if (protocol === "vless") {

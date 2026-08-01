@@ -214,7 +214,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       newUuid,
       `${sub.name || "NadamuDash"} - ${inbound.node.name}`,
       inbound.node.address,
-      inbound.node.port
+      inbound.node.port,
+      {
+        sni: inbound.node.realityServerName,
+        pbk: inbound.node.realityPubKey,
+        sid: inbound.node.realityShortId
+      }
     );
     links.push(vlessLink);
   }
