@@ -52,8 +52,18 @@ export async function regenerateMasterXrayConfig() {
   };
 
   for (const node of activeNodes) {
-    // If it's the master local node (or apiHost is the master api.sock)
-    if (node.apiHost === 'unix:///app/xray/api.sock' || node.address === '127.0.0.1' || node.address === 'localhost') {
+    const isLocal = node.address === '127.0.0.1' || node.address === 'localhost' || node.apiHost === 'unix:///app/xray/api.sock';
+    const expectedApiHost = isLocal ? 'unix:///app/xray/api.sock' : `unix:///app/xray/node-${node.id}.sock`;
+
+    if (node.apiHost !== expectedApiHost) {
+      await db.node.update({
+        where: { id: node.id },
+        data: { apiHost: expectedApiHost }
+      }).catch(console.error);
+      node.apiHost = expectedApiHost;
+    }
+
+    if (isLocal) {
       continue; 
     }
 

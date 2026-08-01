@@ -30,7 +30,7 @@ const clientsCache: Record<string, { handler: any, stats: any }> = {};
 
 export function invalidateClientCache(grpcHost: string) {
   let host = grpcHost;
-  if (host.includes('xray:8080') || host.includes('xray:7999')) {
+  if (!host || !host.startsWith('unix://')) {
     host = 'unix:///app/xray/api.sock';
   }
   delete clientsCache[host];
@@ -39,7 +39,7 @@ export function invalidateClientCache(grpcHost: string) {
 export function getClients(grpcHost: string) {
   let host = grpcHost;
   // Auto-migrate legacy tcp configurations to unix socket
-  if (host.includes('xray:8080') || host.includes('xray:7999')) {
+  if (!host || !host.startsWith('unix://')) {
     host = 'unix:///app/xray/api.sock';
   }
   
