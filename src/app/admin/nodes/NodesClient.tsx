@@ -227,27 +227,15 @@ export default function NodesClient({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">{dict.admin.nodes.form.port}</label>
-                    <input
-                      type="number"
-                      required
-                      value={formData.port}
-                      onChange={(e) => setFormData({ ...formData, port: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">{dict.admin.nodes.form.apiHost}</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.apiHost}
-                      onChange={(e) => setFormData({ ...formData, apiHost: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{dict.admin.nodes.form.port}</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.port}
+                    onChange={(e) => setFormData({ ...formData, port: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  />
                 </div>
 
                 <div>
@@ -269,7 +257,6 @@ export default function NodesClient({
                     onChange={(e) => setFormData({ ...formData, realityServerName: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
                     placeholder="e.g. biz.mail.ru"
-                    required
                   />
                 </div>
 
@@ -281,8 +268,7 @@ export default function NodesClient({
                       value={formData.realityPubKey}
                       onChange={(e) => setFormData({ ...formData, realityPubKey: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                      placeholder="Required for REALITY"
-                      required
+                      placeholder="Optional for local"
                     />
                   </div>
                   <div>
@@ -292,8 +278,7 @@ export default function NodesClient({
                       value={formData.realityShortId}
                       onChange={(e) => setFormData({ ...formData, realityShortId: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                      placeholder="Required for REALITY"
-                      required
+                      placeholder="Optional for local"
                     />
                   </div>
                 </div>

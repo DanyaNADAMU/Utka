@@ -52,28 +52,24 @@ export async function regenerateMasterXrayConfig() {
   };
 
   for (const node of activeNodes) {
-    if (node.apiHost.includes('unix://')) {
-      // Master already has local api.sock configured by default
+    // If it's the master local node (or apiHost is the master api.sock)
+    if (node.apiHost === 'unix:///app/xray/api.sock' || node.address === '127.0.0.1' || node.address === 'localhost') {
       continue; 
     }
-
-    const hostParts = node.apiHost.replace('http://', '').split(':');
-    if (hostParts.length !== 2) continue;
-    const grpcPort = parseInt(hostParts[1]);
 
     const inboundTag = `grpc-in-${node.id}`;
     const outboundTag = `vless-out-${node.id}`;
 
-    // 1. Inbound (dokodemo-door) listening on grpcPort, forwarding to remote grpc port (8080)
+    // 1. Inbound (dokodemo-door) listening on Unix Domain Socket /etc/xray/node-[id].sock
     config.inbounds.push({
       tag: inboundTag,
-      listen: "127.0.0.1",
-      port: grpcPort,
+      listen: `/etc/xray/node-${node.id}.sock`,
+      port: 1,
       protocol: "dokodemo-door",
       settings: {
         address: "127.0.0.1", 
         port: 8080,
-        network: "tcp"
+        network: "unix"
       }
     });
 
@@ -117,14 +113,16 @@ export async function regenerateMasterXrayConfig() {
     });
   }
 
-  const configPath = path.join(process.cwd(), 'xray', 'config.json');
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-  
-  console.log("Regenerated xray config.");
-
-  // Restart Xray container
   try {
-    // If running in docker, we restart the nadamudash-xray container
+    const configPath = path.join(process.cwd(), 'xray', 'config.json');
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log("Regenerated xray config.");
+  } catch (err) {
+    console.error("Failed to write xray config.json:", err);
+  }
+
+  // Attempt to restart Xray container if docker socket is available
+  try {
     await execAsync('docker restart nadamudash-xray').catch(() => {});
   } catch (e) {
     console.warn("Could not restart docker xray:", e);
