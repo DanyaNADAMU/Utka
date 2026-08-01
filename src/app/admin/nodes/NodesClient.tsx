@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { createNode, updateNode, deleteNode } from './actions';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { Node } from '@prisma/client';
 
 export default function NodesClient({ initialNodes, dict }: { initialNodes: Node[], dict: any }) {
@@ -9,6 +10,27 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [nodeStatus, setNodeStatus] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch('/api/admin/traffic');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.nodes) {
+            setNodeStatus(data.nodes);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -108,9 +130,9 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
       <div className="mb-4 flex justify-end">
         <button
           onClick={() => openModal()}
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 shadow-lg shadow-emerald-500/20"
         >
-          <span>➕</span>
+          <Plus size={18} />
           <span>{dict.admin.nodes.add_node}</span>
         </button>
       </div>
@@ -120,12 +142,13 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-800/50 text-slate-400 text-sm border-b border-slate-800">
-                <th className="p-4 font-medium">{dict.admin.nodes.table.name}</th>
-                <th className="p-4 font-medium">{dict.admin.nodes.table.address}</th>
-                <th className="p-4 font-medium">{dict.admin.nodes.table.port}</th>
-                <th className="p-4 font-medium">{dict.admin.nodes.table.apiHost}</th>
-                <th className="p-4 font-medium">{dict.admin.nodes.table.status}</th>
-                <th className="p-4 font-medium text-right">{dict.admin.nodes.table.actions}</th>
+                <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.name}</th>
+                <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.address}</th>
+                <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.port}</th>
+                <th className="p-4 font-medium text-slate-400">API Host</th>
+                <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.status}</th>
+                <th className="p-4 font-medium text-slate-400">Connection</th>
+                <th className="p-4 font-medium text-slate-400 text-right">{dict.admin.nodes.table.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
@@ -134,32 +157,40 @@ export default function NodesClient({ initialNodes, dict }: { initialNodes: Node
                   <td className="p-4 text-white font-medium">{node.name}</td>
                   <td className="p-4 text-slate-300">{node.address}</td>
                   <td className="p-4 text-slate-300">{node.port}</td>
-                  <td className="p-4 text-slate-300">{node.apiHost}</td>
+                  <td className="p-4 font-mono text-sm text-slate-400">{node.apiHost}</td>
                   <td className="p-4">
                     {node.isActive ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Active
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
                         Inactive
                       </span>
                     )}
                   </td>
+                  <td className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${nodeStatus[node.id] ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`}></div>
+                      <span className={`text-sm font-medium ${nodeStatus[node.id] ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {nodeStatus[node.id] ? 'Online' : 'Offline'}
+                      </span>
+                    </div>
+                  </td>
                   <td className="p-4 text-right space-x-2">
                     <button
                       onClick={() => openModal(node)}
-                      className="text-slate-400 hover:text-cyan-400 transition-colors px-2 py-1"
+                      className="text-slate-400 hover:text-cyan-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
                       title={dict.admin.nodes.edit_node}
                     >
-                      ✏️
+                      <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(node.id)}
-                      className="text-slate-400 hover:text-red-400 transition-colors px-2 py-1"
+                      className="text-slate-400 hover:text-red-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
                       title={dict.admin.nodes.delete_node}
                     >
-                      🗑️
+                      <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { trafficState, uuidTrafficState } from '@/lib/trafficDaemon';
+import { trafficState, uuidTrafficState, nodeStatusState } from '@/lib/trafficDaemon';
 import { auth } from '@/auth';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,7 @@ export async function GET() {
     return new NextResponse('Unauthorized', { status: 401 });
   }
   const serialized = JSON.stringify(
-    { subscriptions: trafficState, uuids: uuidTrafficState }, 
+    { subscriptions: trafficState, uuids: uuidTrafficState, nodes: nodeStatusState }, 
     (key, value) => typeof value === 'bigint' ? value.toString() : value
   );
   return new NextResponse(serialized, {

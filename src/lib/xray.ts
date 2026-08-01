@@ -174,14 +174,17 @@ export async function queryUserStats(grpcHost: string, emailPrefix: string, rese
  * Query traffic stats for all users
  * Returns a dictionary of email to { up, down }
  */
-export async function queryAllUserStats(grpcHost: string, reset: boolean = false): Promise<Record<string, { up: bigint, down: bigint }>> {
+export async function queryAllUserStats(grpcHost: string, reset: boolean = false): Promise<Record<string, { up: bigint, down: bigint }> | null> {
   return new Promise((resolve) => {
     const { stats } = getClients(grpcHost);
     stats.queryStats({
       pattern: `user>>>`,
       reset: reset
     }, (err: Error, res: any) => {
-      if (err || !res || !res.stat) {
+      if (err) {
+        return resolve(null);
+      }
+      if (!res || !res.stat) {
         return resolve({});
       }
 

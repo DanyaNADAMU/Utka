@@ -38,11 +38,13 @@ const cachedUuidAggregates: Record<string, { h1: {up: bigint, down: bigint}, d1:
 // These are global states for UI (keyed by subId)
 export const trafficState: Record<string, TrafficState> = (globalThis as any).trafficState || {};
 export const uuidTrafficState: Record<string, TrafficState> = (globalThis as any).uuidTrafficState || {};
+export const nodeStatusState: Record<string, boolean> = (globalThis as any).nodeStatusState || {};
 
 (globalThis as any).uncommittedTraffic = uncommittedTraffic;
 (globalThis as any).uncommittedUuidTraffic = uncommittedUuidTraffic;
 (globalThis as any).cachedAggregates = cachedAggregates;
 (globalThis as any).cachedUuidAggregates = cachedUuidAggregates;
+(globalThis as any).nodeStatusState = nodeStatusState;
 (globalThis as any).trafficState = trafficState;
 (globalThis as any).uuidTrafficState = uuidTrafficState;
 
@@ -85,7 +87,12 @@ function updateStateObj(stateMap: Record<string, TrafficState>, id: string, live
   };
 }
 
+let isTicking = false;
+
 async function tick() {
+  if (isTicking) return;
+  isTicking = true;
+  
   try {
     const now = new Date();
     const seconds = now.getSeconds();
@@ -98,6 +105,12 @@ async function tick() {
     
     for (const node of nodes) {
       const allStats = await queryAllUserStats(node.apiHost, true);
+      
+      if (allStats === null) {
+        nodeStatusState[node.id] = false;
+        continue;
+      }
+      nodeStatusState[node.id] = true;
       
       for (const [email, stat] of Object.entries(allStats)) {
         if (stat.up === BigInt(0) && stat.down === BigInt(0)) continue;
