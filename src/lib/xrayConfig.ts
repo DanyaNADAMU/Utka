@@ -101,113 +101,106 @@ export function generateNodeConfigSnippet(node: {
 }) {
   const serverName = node.realityServerName || "biz.mail.ru";
   const internalPort = node.xrayPort || 8443;
-  
-  const config = {
-    log: {
-      loglevel: "warning"
-    },
-    inbounds: [
-      {
-        tag: "api",
-        listen: "/etc/xray/api.sock",
-        port: 1,
-        protocol: "dokodemo-door",
-        settings: {
-          address: "127.0.0.1",
-          port: 1,
-          network: "unix"
-        }
-      },
-      {
-        tag: "vless-in",
-        listen: "127.0.0.1",
-        port: internalPort,
-        protocol: "vless",
-        settings: {
-          clients: [
-            {
-              id: node.adminUuid || "YOUR_ADMIN_UUID",
-              email: "admin@nadamudash"
-            }
-          ],
-          decryption: "none"
-        },
-        streamSettings: {
-          network: "tcp",
-          security: "reality",
-          realitySettings: {
-            show: false,
-            dest: `${serverName}:443`,
-            xver: 0,
-            serverNames: [serverName],
-            privateKey: node.realityPrivKey || "YOUR_REALITY_PRIVATE_KEY_HERE",
-            shortIds: [node.realityShortId || "YOUR_REALITY_SHORT_ID"]
-          },
-          sockopt: {
-            acceptProxyProtocol: false
-          }
-        },
-        sniffing: {
-          enabled: true,
-          destOverride: ["http", "tls", "quic"]
-        }
-      }
-    ],
-    outbounds: [
-      {
-        protocol: "freedom",
-        tag: "direct"
-      },
-      {
-        protocol: "blackhole",
-        tag: "block"
-      }
-    ],
-    routing: {
-      rules: [
-        {
-          type: "field",
-          inboundTag: ["api"],
-          outboundTag: "api"
-        },
-        {
-          type: "field",
-          user: ["admin@nadamudash"],
-          outboundTag: "api"
-        },
-        {
-          type: "field",
-          ip: ["127.0.0.0/8", "::1/128"],
-          outboundTag: "block"
-        }
-      ]
-    },
-    stats: {},
-    api: {
-      tag: "api",
-      services: [
-        "HandlerService",
-        "StatsService",
-        "LoggerService"
-      ]
-    },
-    policy: {
-      levels: {
-        "0": {
-          statsUserUplink: true,
-          statsUserDownlink: true
-        }
-      },
-      system: {
-        statsInboundUplink: true,
-        statsInboundDownlink: true,
-        statsOutboundUplink: true,
-        statsOutboundDownlink: true
-      }
+
+  const apiInbound = {
+    tag: "api",
+    listen: "/etc/xray/api.sock",
+    port: 1,
+    protocol: "dokodemo-door",
+    settings: {
+      address: "127.0.0.1",
+      port: 1,
+      network: "unix"
     }
   };
 
-  return JSON.stringify(config, null, 2);
+  const vlessInbound = {
+    tag: "vless-in",
+    listen: "127.0.0.1",
+    port: internalPort,
+    protocol: "vless",
+    settings: {
+      clients: [
+        {
+          id: node.adminUuid || "YOUR_ADMIN_UUID",
+          email: "admin@nadamudash"
+        }
+      ],
+      decryption: "none"
+    },
+    streamSettings: {
+      network: "tcp",
+      security: "reality",
+      realitySettings: {
+        show: false,
+        dest: `${serverName}:443`,
+        xver: 0,
+        serverNames: [serverName],
+        privateKey: node.realityPrivKey || "YOUR_REALITY_PRIVATE_KEY_HERE",
+        shortIds: [node.realityShortId || "YOUR_REALITY_SHORT_ID"]
+      },
+      sockopt: {
+        acceptProxyProtocol: false
+      }
+    },
+    sniffing: {
+      enabled: true,
+      destOverride: ["http", "tls", "quic"]
+    }
+  };
+
+  const outbounds = [
+    { protocol: "freedom", tag: "direct" },
+    { protocol: "blackhole", tag: "block" }
+  ];
+
+  const routing = {
+    rules: [
+      { type: "field", inboundTag: ["api"], outboundTag: "api" },
+      { type: "field", user: ["admin@nadamudash"], outboundTag: "api" },
+      { type: "field", ip: ["127.0.0.0/8", "::1/128"], outboundTag: "block" }
+    ]
+  };
+
+  const stats = {};
+
+  const api = {
+    tag: "api",
+    services: ["HandlerService", "StatsService", "LoggerService"]
+  };
+
+  const policy = {
+    levels: {
+      "0": { statsUserUplink: true, statsUserDownlink: true }
+    },
+    system: {
+      statsInboundUplink: true,
+      statsInboundDownlink: true,
+      statsOutboundUplink: true,
+      statsOutboundDownlink: true
+    }
+  };
+
+  const fullConfig = {
+    log: { loglevel: "warning" },
+    inbounds: [apiInbound, vlessInbound],
+    outbounds,
+    routing,
+    stats,
+    api,
+    policy,
+  };
+
+  return {
+    apiInbound,
+    vlessInbound,
+    outbounds,
+    routing,
+    stats,
+    api,
+    policy,
+    fullConfig: JSON.stringify(fullConfig, null, 2),
+  };
 }
 
 // Deprecated no-op function kept for backward compatibility (config editing via panel is disabled)

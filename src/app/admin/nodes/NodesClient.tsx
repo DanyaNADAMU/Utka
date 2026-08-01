@@ -511,22 +511,101 @@ export default function NodesClient({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-sm text-slate-300 bg-emerald-950/40 border border-emerald-800/40 rounded-lg p-3">
-                    {dict.admin.nodes.node_desc || "Use this configuration for xray/config.json on Node server:"}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-slate-300 bg-emerald-950/40 border border-emerald-800/40 rounded-lg p-3 flex-1 mr-3">
+                      {dict.admin.nodes.node_desc || "Use this configuration for xray/config.json on Node server:"}
+                    </p>
+                    <button
+                      onClick={() => handleCopy(instructionsData.nodeSnippets.fullConfig, 'nodeConfigFull')}
+                      className="text-xs flex items-center space-x-1 text-slate-400 hover:text-emerald-400 bg-slate-800 px-3 py-2 rounded-lg transition-colors shrink-0"
+                    >
+                      {copiedKey === 'nodeConfigFull' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                      <span>{copiedKey === 'nodeConfigFull' ? (dict.admin.nodes.copied || 'Copied!') : 'Copy full config'}</span>
+                    </button>
+                  </div>
 
+                  {/* API Inbound */}
                   <div className="space-y-2">
-                    <div className="flex justify-end">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-semibold text-slate-200">1. inbounds — API (stats socket):</h4>
                       <button
-                        onClick={() => handleCopy(instructionsData.nodeConfig, 'nodeConfig')}
-                        className="text-xs flex items-center space-x-1 text-slate-400 hover:text-emerald-400 bg-slate-800 px-3 py-1.5 rounded-lg transition-colors"
+                        onClick={() => handleCopy(JSON.stringify(instructionsData.nodeSnippets.apiInbound, null, 2), 'nodeApiInbound')}
+                        className="text-xs flex items-center space-x-1 text-slate-400 hover:text-emerald-400 bg-slate-800 px-2.5 py-1 rounded transition-colors"
                       >
-                        {copiedKey === 'nodeConfig' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                        <span>{copiedKey === 'nodeConfig' ? (dict.admin.nodes.copied || 'Copied!') : (dict.admin.nodes.copy_button || 'Copy')}</span>
+                        {copiedKey === 'nodeApiInbound' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                        <span>{copiedKey === 'nodeApiInbound' ? (dict.admin.nodes.copied || 'Copied!') : (dict.admin.nodes.copy_button || 'Copy')}</span>
                       </button>
                     </div>
                     <pre className="bg-slate-950 p-4 rounded-xl text-xs text-emerald-400 overflow-x-auto border border-slate-800 font-mono">
-                      <code>{instructionsData.nodeConfig}</code>
+                      <code>{JSON.stringify(instructionsData.nodeSnippets.apiInbound, null, 2)}</code>
+                    </pre>
+                  </div>
+
+                  {/* VLESS Inbound */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-semibold text-slate-200">2. inbounds — VLESS REALITY (main):</h4>
+                      <button
+                        onClick={() => handleCopy(JSON.stringify(instructionsData.nodeSnippets.vlessInbound, null, 2), 'nodeVlessInbound')}
+                        className="text-xs flex items-center space-x-1 text-slate-400 hover:text-emerald-400 bg-slate-800 px-2.5 py-1 rounded transition-colors"
+                      >
+                        {copiedKey === 'nodeVlessInbound' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                        <span>{copiedKey === 'nodeVlessInbound' ? (dict.admin.nodes.copied || 'Copied!') : (dict.admin.nodes.copy_button || 'Copy')}</span>
+                      </button>
+                    </div>
+                    <pre className="bg-slate-950 p-4 rounded-xl text-xs text-emerald-400 overflow-x-auto border border-slate-800 font-mono">
+                      <code>{JSON.stringify(instructionsData.nodeSnippets.vlessInbound, null, 2)}</code>
+                    </pre>
+                  </div>
+
+                  {/* Outbounds */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-semibold text-slate-200">3. outbounds:</h4>
+                      <button
+                        onClick={() => handleCopy(JSON.stringify(instructionsData.nodeSnippets.outbounds, null, 2), 'nodeOutbounds')}
+                        className="text-xs flex items-center space-x-1 text-slate-400 hover:text-emerald-400 bg-slate-800 px-2.5 py-1 rounded transition-colors"
+                      >
+                        {copiedKey === 'nodeOutbounds' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                        <span>{copiedKey === 'nodeOutbounds' ? (dict.admin.nodes.copied || 'Copied!') : (dict.admin.nodes.copy_button || 'Copy')}</span>
+                      </button>
+                    </div>
+                    <pre className="bg-slate-950 p-4 rounded-xl text-xs text-emerald-400 overflow-x-auto border border-slate-800 font-mono">
+                      <code>{JSON.stringify(instructionsData.nodeSnippets.outbounds, null, 2)}</code>
+                    </pre>
+                  </div>
+
+                  {/* Routing */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-semibold text-slate-200">4. routing:</h4>
+                      <button
+                        onClick={() => handleCopy(JSON.stringify(instructionsData.nodeSnippets.routing, null, 2), 'nodeRouting')}
+                        className="text-xs flex items-center space-x-1 text-slate-400 hover:text-emerald-400 bg-slate-800 px-2.5 py-1 rounded transition-colors"
+                      >
+                        {copiedKey === 'nodeRouting' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                        <span>{copiedKey === 'nodeRouting' ? (dict.admin.nodes.copied || 'Copied!') : (dict.admin.nodes.copy_button || 'Copy')}</span>
+                      </button>
+                    </div>
+                    <pre className="bg-slate-950 p-4 rounded-xl text-xs text-emerald-400 overflow-x-auto border border-slate-800 font-mono">
+                      <code>{JSON.stringify(instructionsData.nodeSnippets.routing, null, 2)}</code>
+                    </pre>
+                  </div>
+
+                  {/* Stats / API / Policy */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-semibold text-slate-200">5. stats, api, policy:</h4>
+                      <button
+                        onClick={() => handleCopy(JSON.stringify({ stats: instructionsData.nodeSnippets.stats, api: instructionsData.nodeSnippets.api, policy: instructionsData.nodeSnippets.policy }, null, 2), 'nodeExtras')}
+                        className="text-xs flex items-center space-x-1 text-slate-400 hover:text-emerald-400 bg-slate-800 px-2.5 py-1 rounded transition-colors"
+                      >
+                        {copiedKey === 'nodeExtras' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                        <span>{copiedKey === 'nodeExtras' ? (dict.admin.nodes.copied || 'Copied!') : (dict.admin.nodes.copy_button || 'Copy')}</span>
+                      </button>
+                    </div>
+                    <pre className="bg-slate-950 p-4 rounded-xl text-xs text-emerald-400 overflow-x-auto border border-slate-800 font-mono">
+                      <code>{JSON.stringify({ stats: instructionsData.nodeSnippets.stats, api: instructionsData.nodeSnippets.api, policy: instructionsData.nodeSnippets.policy }, null, 2)}</code>
                     </pre>
                   </div>
                 </div>

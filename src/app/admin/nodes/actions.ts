@@ -109,11 +109,11 @@ export async function getNodeConfigInstructions(id: string) {
   if (!node) throw new Error('Node not found');
 
   const masterSnippets = generateMasterNodeConfigSnippet(node);
-  const nodeConfig = generateNodeConfigSnippet(node);
+  const nodeSnippets = generateNodeConfigSnippet(node);
 
   return {
     node,
     masterSnippets,
-    nodeConfig
+    nodeSnippets,
   };
 }
