@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from '@/i18n/LanguageProvider';
 
-export default function GlobalAutoRefresh() {
+export default function GlobalAutoRefresh({ collapsed = false }: { collapsed?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const dict = useTranslation();
@@ -36,17 +36,44 @@ export default function GlobalAutoRefresh() {
     return null;
   }
 
-  const radius = 10;
+  const radius = 8;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
+  if (collapsed) {
+    return (
+      <div 
+        className="flex items-center justify-center p-2 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-300"
+        title={dict.admin.users.profile.auto_update || 'Auto-update'}
+      >
+        <div className="relative w-4 h-4 shrink-0">
+          <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
+            <circle 
+              cx="12" cy="12" r={radius} 
+              stroke="currentColor" strokeWidth="3" fill="transparent" 
+              className="text-slate-800" 
+            />
+            <circle 
+              cx="12" cy="12" r={radius} 
+              stroke="currentColor" strokeWidth="3" fill="transparent" 
+              className="text-emerald-400 transition-all duration-75"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed top-6 right-8 z-50 flex items-center gap-3 bg-slate-900/80 backdrop-blur-md border border-slate-800 px-4 py-2 rounded-full shadow-lg">
-      <span className="text-sm font-medium text-slate-400">
-        {dict.admin.users.profile.auto_update || 'Auto-update'}
-      </span>
-      <div className="relative w-5 h-5">
-        <svg className="w-5 h-5 -rotate-90 transform" viewBox="0 0 24 24">
+    <div 
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-300 transition-colors min-w-0 flex-1"
+      title={dict.admin.users.profile.auto_update || 'Auto-update'}
+    >
+      <div className="relative w-4 h-4 shrink-0">
+        <svg className="w-4 h-4 -rotate-90 transform" viewBox="0 0 24 24">
           <circle 
             cx="12" cy="12" r={radius} 
             stroke="currentColor" strokeWidth="3" fill="transparent" 
@@ -62,6 +89,9 @@ export default function GlobalAutoRefresh() {
           />
         </svg>
       </div>
+      <span className="text-xs font-medium text-slate-300 truncate">
+        {dict.admin.users.profile.auto_update || 'Auto-update'}
+      </span>
     </div>
   );
 }

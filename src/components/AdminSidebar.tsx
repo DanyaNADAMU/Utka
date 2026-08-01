@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import LanguageSwitcher from './LanguageSwitcher';
+import GlobalAutoRefresh from './GlobalAutoRefresh';
 
 export default function AdminSidebar({ userEmail }: { userEmail: string }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -59,7 +60,14 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
       </nav>
       
       <div className={`p-4 border-t border-slate-800 flex flex-col items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-        {!collapsed && <LanguageSwitcher />}
+        {!collapsed ? (
+          <div className="flex items-center justify-between w-full gap-2">
+            <LanguageSwitcher />
+            <GlobalAutoRefresh collapsed={false} />
+          </div>
+        ) : (
+          <GlobalAutoRefresh collapsed={true} />
+        )}
         {!collapsed ? (
           <div className="text-xs font-medium text-slate-500 truncate bg-slate-950 px-3 py-2.5 rounded-lg border border-slate-800/50 w-full text-center">
             {userEmail}

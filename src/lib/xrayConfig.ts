@@ -28,7 +28,7 @@ export function generateMasterNodeConfigSnippet(node: {
     port: 1,
     protocol: "dokodemo-door",
     settings: {
-      address: "/etc/xray/api.sock",
+      address: "127.0.0.1",
       port: 1,
       network: "unix"
     }
