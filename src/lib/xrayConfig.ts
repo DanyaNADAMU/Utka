@@ -118,7 +118,7 @@ export async function regenerateMasterXrayConfig() {
     if (fs.existsSync(xrayDir)) {
       const files = fs.readdirSync(xrayDir);
       for (const f of files) {
-        if (f.endsWith('.sock')) {
+        if (f.startsWith('node-') && f.endsWith('.sock')) {
           try { fs.unlinkSync(path.join(xrayDir, f)); } catch {}
         }
       }

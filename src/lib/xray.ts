@@ -28,6 +28,14 @@ const xrayStats = (grpc.loadPackageDefinition(statsDef) as any).xray.app.stats.c
 
 const clientsCache: Record<string, { handler: any, stats: any }> = {};
 
+export function invalidateClientCache(grpcHost: string) {
+  let host = grpcHost;
+  if (host.includes('xray:8080') || host.includes('xray:7999')) {
+    host = 'unix:///app/xray/api.sock';
+  }
+  delete clientsCache[host];
+}
+
 export function getClients(grpcHost: string) {
   let host = grpcHost;
   // Auto-migrate legacy tcp configurations to unix socket
@@ -95,12 +103,14 @@ export async function addVlessUser(grpcHost: string, inboundTag: string, email: 
       }, (err: Error, res: any) => {
         if (err) {
           console.error("[Xray API] AddUser Error:", err);
+          invalidateClientCache(grpcHost);
           return resolve(false);
         }
         resolve(true);
       });
     } catch (e) {
       console.error("[Xray API] AddUser Exception:", e);
+      invalidateClientCache(grpcHost);
       resolve(false);
     }
   });
