@@ -41,8 +41,7 @@ services:
     container_name: nadamudash-xray
     restart: unless-stopped
     network_mode: "host"
-    command: >
-      /bin/sh -c "while [ ! -f /etc/xray/config.json ]; do sleep 1; done && /usr/bin/xray run -c /etc/xray/config.json"
+    entrypoint: ["/bin/sh", "-c", "while [ ! -f /etc/xray/config.json ]; do sleep 1; done && exec /usr/bin/xray run -c /etc/xray/config.json"]
     volumes:
       - ./xray:/etc/xray
 
