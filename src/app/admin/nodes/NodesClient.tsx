@@ -145,7 +145,7 @@ export default function NodesClient({
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-800/50 text-slate-400 text-sm border-b border-slate-800">
                 <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.name}</th>
