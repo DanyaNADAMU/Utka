@@ -79,7 +79,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         const headers = new Headers();
         headers.set('Content-Type', contentType);
         headers.set('profile-title', profileName);
-        const ext = forceClash ? '.yaml' : '.txt';
+        const ext = forceClash ? '.yaml' : '';
         const encodedName = encodeURIComponent(profileName);
         headers.set('Content-Disposition', `attachment; filename="${encodedName}${ext}"; filename*=utf-8''${encodedName}${ext}`);
         
@@ -298,7 +298,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       'Content-Type': 'text/plain; charset=utf-8',
       'profile-title': profileName,
       'profile-update-interval': '24',
-      'Content-Disposition': `attachment; filename="${encodeURIComponent(profileName)}.txt"; filename*=utf-8''${encodeURIComponent(profileName)}.txt`
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(profileName)}"; filename*=utf-8''${encodeURIComponent(profileName)}`
     }
   });
 }
