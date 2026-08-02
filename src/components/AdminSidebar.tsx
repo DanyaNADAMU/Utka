@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/i18n/LanguageProvider';
@@ -9,6 +9,7 @@ import GlobalAutoRefresh from './GlobalAutoRefresh';
 
 export default function AdminSidebar({ userEmail }: { userEmail: string }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const dict = useTranslation();
 
@@ -20,9 +21,47 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
     { href: '/admin/settings', label: dict.admin.sidebar.settings, icon: '🛠️' },
   ];
 
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   return (
-    <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300 relative shrink-0`}>
-      <div className={`h-20 border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'}`}>
+    <>
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 w-full shrink-0 z-40 relative">
+        <Link href="/">
+          <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent text-xl">
+            NadamuDash
+          </h1>
+        </Link>
+        <button 
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
+          title="Меню"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" 
+          onClick={() => setMobileOpen(false)} 
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`
+        fixed md:relative z-50 h-full inset-y-0 left-0
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${collapsed ? 'md:w-20' : 'md:w-64'} w-64
+        bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300 shrink-0
+      `}>
+        <div className={`h-20 border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'}`}>
         {!collapsed && (
           <Link href="/">
             <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent truncate transition-all duration-300 text-xl">
@@ -79,5 +118,6 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         )}
       </div>
     </aside>
+    </>
   );
 }
