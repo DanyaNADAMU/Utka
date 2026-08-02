@@ -80,7 +80,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         headers.set('Content-Type', contentType);
         headers.set('profile-title', profileName);
         const ext = forceClash ? '.yaml' : '.txt';
-        headers.set('Content-Disposition', `attachment; filename="subscription${ext}"`);
+        const encodedName = encodeURIComponent(profileName);
+        headers.set('Content-Disposition', `attachment; filename="${encodedName}${ext}"; filename*=utf-8''${encodedName}${ext}`);
         
         return new NextResponse(subText, { headers, status: 200 });
       }
@@ -297,7 +298,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       'Content-Type': 'text/plain; charset=utf-8',
       'profile-title': profileName,
       'profile-update-interval': '24',
-      'Content-Disposition': 'attachment; filename="subscription.txt"'
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(profileName)}.txt"; filename*=utf-8''${encodeURIComponent(profileName)}.txt`
     }
   });
 }
