@@ -71,7 +71,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         )}
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors flex-shrink-0"
+          className="hidden md:block text-slate-300 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors flex-shrink-0"
           title="Меню"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
