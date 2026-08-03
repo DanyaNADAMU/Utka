@@ -5,6 +5,30 @@ import crypto from 'crypto';
 import { getSettings } from '@/lib/settings';
 import stripJsonComments from 'strip-json-comments';
 
+function getNodeInboundTags(node: any, masterTags: string[]): string[] {
+  let nodeTags = masterTags;
+  if (node.xrayConfig && typeof node.xrayConfig === 'string') {
+    try {
+      let configText = stripJsonComments(node.xrayConfig);
+      let parsedData = JSON.parse(configText);
+      if (typeof parsedData === 'string') {
+        parsedData = JSON.parse(parsedData);
+      }
+      if (parsedData.inbounds && Array.isArray(parsedData.inbounds)) {
+        const parsedTags = parsedData.inbounds
+          .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
+          .map((i: any) => i.tag);
+        if (parsedTags.length > 0) {
+          nodeTags = parsedTags;
+        }
+      }
+    } catch (e) {
+      console.error(`Failed to parse config for node ${node.name}:`, e);
+    }
+  }
+  return nodeTags;
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const userAgent = request.headers.get('user-agent') || 'unknown';
   const url = request.url;
@@ -50,7 +74,70 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const profileName = sub.name || "NadamuDash";
 
-  // Detect if this request is from a web browser
+  // Active tags and active nodes sync
+  const activeInboundTags = await getClientInboundTags();
+  const activeNodes = await db.node.findMany({ where: { isActive: true } });
+  const activeNodeMap = new Map(activeNodes.map(n => [n.id, n]));
+
+  // 1. Create missing inbounds for active nodes
+  const inboundsToCreate = [];
+  for (const node of activeNodes) {
+    const nodeTags = getNodeInboundTags(node, activeInboundTags);
+    for (const tag of nodeTags) {
+      const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
+      if (!exists) {
+        inboundsToCreate.push({
+          subscriptionId: sub.id,
+          nodeId: node.id,
+          inboundTag: tag,
+          xrayUuid: crypto.randomUUID()
+        });
+      }
+    }
+  }
+
+  if (inboundsToCreate.length > 0) {
+    await db.subscriptionInbound.createMany({
+      data: inboundsToCreate
+    });
+  }
+
+  // 2. Refetch subscription with fresh inbounds
+  const currentSub = await db.subscription.findUnique({
+    where: { id: sub.id },
+    include: { user: true, inbounds: { include: { node: true } } }
+  });
+
+  if (!currentSub) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // 3. Clean up stale inbounds that no longer exist on active nodes
+  const staleInboundIds: string[] = [];
+  for (const inbound of currentSub.inbounds) {
+    if (!inbound.node || !inbound.node.isActive || !activeNodeMap.has(inbound.nodeId)) {
+      staleInboundIds.push(inbound.id);
+      continue;
+    }
+    const validTags = getNodeInboundTags(inbound.node, activeInboundTags);
+    if (!validTags.includes(inbound.inboundTag)) {
+      staleInboundIds.push(inbound.id);
+    }
+  }
+
+  if (staleInboundIds.length > 0) {
+    await db.subscriptionInbound.deleteMany({
+      where: { id: { in: staleInboundIds } }
+    });
+  }
+
+  // 4. Refetch cleaned subscription
+  const updatedSub = await db.subscription.findUnique({
+    where: { id: sub.id },
+    include: { user: true, inbounds: { include: { node: true } } }
+  });
+
+  if (!updatedSub) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Detect browser request vs raw request
   const reqUrl = new URL(request.url);
   const acceptHeader = request.headers.get('accept') || '';
   const isRawRequest = reqUrl.searchParams.get('raw') === 'true';
@@ -74,16 +161,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   if (isBrowserRequest) {
     const { renderSubscriptionHtml, generateQrSvg } = await import('@/lib/subPageTemplate');
-    
-    // Fetch user details for subscription
-    const subWithUser = await db.subscription.findUnique({
-      where: { id: sub.id },
-      include: { user: true, inbounds: { include: { node: true } } }
-    });
 
-    // Aggregate traffic
     const trafficLogs = await db.trafficLog.aggregate({
-      where: { subscriptionId: sub.id },
+      where: { subscriptionId: updatedSub.id },
       _sum: { up: true, down: true }
     });
     const trafficUp = trafficLogs._sum.up || BigInt(0);
@@ -98,46 +178,44 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
     const nodeLinks = [];
 
-    if (subWithUser?.inbounds) {
-      for (const inbound of subWithUser.inbounds) {
-        if (!inbound.node || !inbound.node.isActive) continue;
+    for (const inbound of updatedSub.inbounds) {
+      if (!inbound.node || !inbound.node.isActive) continue;
 
-        const vlessLink = await buildClientLink(
-          inbound.inboundTag,
-          inbound.xrayUuid,
-          `${sub.name || "NadamuDash"} - ${inbound.node.name}`,
-          inbound.node.address,
-          inbound.node.port,
-          {
-            sni: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityServerName,
-            pbk: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityPubKey,
-            sid: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityShortId
-          }
-        );
+      const vlessLink = await buildClientLink(
+        inbound.inboundTag,
+        inbound.xrayUuid,
+        `${updatedSub.name || "NadamuDash"} - ${inbound.node.name}`,
+        inbound.node.address,
+        inbound.node.port,
+        {
+          sni: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityServerName,
+          pbk: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityPubKey,
+          sid: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityShortId
+        }
+      );
 
-        const qrSvg = await generateQrSvg(vlessLink);
+      const qrSvg = await generateQrSvg(vlessLink);
 
-        nodeLinks.push({
-          nodeName: inbound.node.name,
-          address: inbound.node.address,
-          port: inbound.node.port,
-          inboundTag: inbound.inboundTag,
-          vlessLink,
-          qrSvg
-        });
-      }
+      nodeLinks.push({
+        nodeName: inbound.node.name,
+        address: inbound.node.address,
+        port: inbound.node.port,
+        inboundTag: inbound.inboundTag,
+        vlessLink,
+        qrSvg
+      });
     }
 
     const htmlContent = renderSubscriptionHtml({
-      subName: sub.name || "NadamuDash",
-      userName: subWithUser?.user?.name || subWithUser?.user?.email || "Пользователь",
+      subName: updatedSub.name || "NadamuDash",
+      userName: updatedSub.user?.name || updatedSub.user?.email || "Пользователь",
       subUrl,
       subQrSvg,
       trafficUp,
       trafficDown,
       trafficTotal,
-      lastFetched: sub.lastFetched,
-      createdAt: sub.createdAt,
+      lastFetched: updatedSub.lastFetched,
+      createdAt: updatedSub.createdAt,
       nodeLinks
     });
 
@@ -150,9 +228,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     });
   }
 
-  
+  // Detect if this request is from subconverter
   if (!isRawRequest) {
-    // If the client explicitly requested .yaml/.yml, force clash target, otherwise let subconverter auto-detect
     const forceClash = url.includes('.yaml') || url.includes('.yml');
     const target = forceClash ? 'clash' : 'auto';
 
@@ -193,8 +270,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
   console.log(`[VALID SUB REQUEST] Client IP: ${clientIp} | User-Agent: ${userAgent}`);
 
-  const activeInboundTags = await getClientInboundTags();
-
   // Cleanup expired UUIDs across all subscriptions (lazy cleanup)
   try {
     const expiredUuids = await db.expiringUuid.findMany({
@@ -213,66 +288,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     console.error("Failed to cleanup expired UUIDs:", e);
   }
 
-  // Sync inbounds for all nodes
-  const activeNodes = await db.node.findMany({ where: { isActive: true } });
-
-    // (Migration safeguard removed because nodes can now have custom tags independent of Master)
-
-  const inboundsToCreate = [];
-  
-  for (const node of activeNodes) {
-    // Determine the tags for this specific node
-    let nodeTags = activeInboundTags; // Fallback to Master tags
-    if (node.xrayConfig && typeof node.xrayConfig === 'string') {
-      try {
-        let configText = stripJsonComments(node.xrayConfig);
-        let parsedData = JSON.parse(configText);
-        
-        // Handle double-stringified json (from Postgres migration)
-        if (typeof parsedData === 'string') {
-          parsedData = JSON.parse(parsedData);
-        }
-        
-        if (parsedData.inbounds && Array.isArray(parsedData.inbounds)) {
-          const parsedTags = parsedData.inbounds
-            .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
-            .map((i: any) => i.tag);
-          if (parsedTags.length > 0) {
-            nodeTags = parsedTags;
-          }
-        }
-      } catch (e) {
-        console.error(`Failed to parse config for node ${node.name}:`, e);
-      }
-    }
-
-    for (const tag of nodeTags) {
-      const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
-      if (!exists) {
-        inboundsToCreate.push({
-          subscriptionId: sub.id,
-          nodeId: node.id,
-          inboundTag: tag,
-          xrayUuid: crypto.randomUUID()
-        });
-      }
-    }
-  }
-  
-  if (inboundsToCreate.length > 0) {
-    await db.subscriptionInbound.createMany({
-      data: inboundsToCreate
-    });
-  }
-
-  // Refetch to get the latest inbounds with UUIDs
-  const updatedSub = await db.subscription.findUnique({
-    where: { id: sub.id },
-    include: { inbounds: { include: { node: true } } }
-  });
-  
-  if (!updatedSub) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
   const links: string[] = [];
   const expireMinutes = Number(settings.OLD_UUID_EXPIRE_MINUTES) || 2031;
   const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
@@ -284,13 +299,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const masterAddress = process.env.XRAY_SERVER_DOMAIN_OR_IP || process.env.XRAY_SERVER_DOMAIN || request.headers.get('host')?.split(':')[0] || '81.30.105.65';
     for (const tag of activeInboundTags) {
       const masterUuid = crypto.randomUUID();
-      const masterEmail = `${sub.id}_master_${tag}_${masterUuid}`;
+      const masterEmail = `${updatedSub.id}_master_${tag}_${masterUuid}`;
       await addVlessUser('unix:///app/xray/api.sock', tag, masterEmail, masterUuid);
 
       const masterLink = await buildClientLink(
         tag,
         masterUuid,
-        `${sub.name || "NadamuDash"} - Master`,
+        `${updatedSub.name || "NadamuDash"} - Master`,
         masterAddress,
         443
       );
@@ -300,45 +315,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   // 2. Generate proxy link(s) for active Nodes
   for (const inbound of updatedSub.inbounds) {
-    // Only process active inbounds and active nodes
     if (!inbound.node || !inbound.node.isActive) continue;
-
-    // Check if the inbound tag is still valid for this node
-    let nodeTags = activeInboundTags;
-    if (inbound.node.xrayConfig && typeof inbound.node.xrayConfig === 'string') {
-      try {
-        let configText = stripJsonComments(inbound.node.xrayConfig);
-        let parsedData = JSON.parse(configText);
-
-        // Handle double-stringified json (from Postgres migration)
-        if (typeof parsedData === 'string') {
-          parsedData = JSON.parse(parsedData);
-        }
-
-        if (parsedData.inbounds && Array.isArray(parsedData.inbounds)) {
-          const parsedTags = parsedData.inbounds
-            .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
-            .map((i: any) => i.tag);
-          if (parsedTags.length > 0) {
-            nodeTags = parsedTags;
-          }
-        }
-      } catch (e) {
-        console.error(`Failed to parse config for node ${inbound.node.name}:`, e);
-      }
-    }
-
-    if (!nodeTags.includes(inbound.inboundTag)) continue;
 
     const newUuid = crypto.randomUUID();
     const oldUuid = inbound.xrayUuid;
-    const newXrayEmail = `${sub.id}_${inbound.inboundTag}_${newUuid}`;
-    const oldXrayEmail = `${sub.id}_${inbound.inboundTag}_${oldUuid}`;
+    const newXrayEmail = `${updatedSub.id}_${inbound.inboundTag}_${newUuid}`;
+    const oldXrayEmail = `${updatedSub.id}_${inbound.inboundTag}_${oldUuid}`;
 
     // Add old UUID to ExpiringUuid
     await db.expiringUuid.create({
       data: {
-        subscriptionId: sub.id,
+        subscriptionId: updatedSub.id,
         xrayUuid: oldUuid,
         xrayEmail: oldXrayEmail,
         inboundTag: inbound.inboundTag,
@@ -350,7 +337,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     // Add new UUID to UuidHistory
     await db.uuidHistory.create({
       data: {
-        subscriptionId: sub.id,
+        subscriptionId: updatedSub.id,
         inboundTag: inbound.inboundTag,
         xrayUuid: newUuid,
         nodeId: inbound.nodeId
@@ -369,7 +356,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const vlessLink = await buildClientLink(
       inbound.inboundTag,
       newUuid,
-      `${sub.name || "NadamuDash"} - ${inbound.node.name}`,
+      `${updatedSub.name || "NadamuDash"} - ${inbound.node.name}`,
       inbound.node.address,
       inbound.node.port,
       {
@@ -384,7 +371,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   // Update subscription fetch time
   await db.subscription.update({
-    where: { id: sub.id },
+    where: { id: updatedSub.id },
     data: { lastFetched: new Date() }
   });
 
