@@ -318,7 +318,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     }
     .apps-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 0.75rem;
     }
     @media (max-width: 640px) {
@@ -648,6 +648,18 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
               <span>→</span>
             </a>
 
+            <!-- Clash Android -->
+            <a href="${escapeHtml(clashUrl)}" class="app-btn">
+              <div class="app-info">
+                <img src="/icons/clash-android.png" alt="Clash Android" class="app-icon-img">
+                <div>
+                  <div>Clash Android</div>
+                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Android</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
+
             <!-- Karing -->
             <a href="${escapeHtml(karingUrl)}" class="app-btn">
               <div class="app-info">
@@ -793,7 +805,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS-ссылка скопирована!",
         copied_toast: "Скопировано в буфер обмена!",
         android_steps: [
-          "Установите клиенты или из GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> или из <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Установите клиенты или из GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/MetaCubeX/ClashMetaForAndroid/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash Android</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> или из <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
           "Нажмите кнопку нужного приложения выше на этой странице или скопируйте ссылку подписки.",
           "В приложении нажмите <strong>«Новый профиль»</strong> → <strong>«Добавить из буфера обмена»</strong>.",
           "Включите системный прокси / TUN-режим."
@@ -834,7 +846,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS link copied!",
         copied_toast: "Copied to clipboard!",
         android_steps: [
-          "Install clients either from GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> or from <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Install clients either from GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/MetaCubeX/ClashMetaForAndroid/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash Android</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> or from <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
           "Tap the app button above or copy subscription link.",
           "In the app, tap <strong>«New Profile»</strong> → <strong>«Add from Clipboard»</strong>.",
           "Enable system proxy / TUN mode."
