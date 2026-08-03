@@ -43,3 +43,17 @@ next-env.d.ts
 
 # logs
 .logs/
+
+# ai & personal configs
+AGENTS.md
+CLAUDE.md
+plan.md
+walkthrough.md
+implementation_plan.md
+.agents/
+.claude/
+.gemini/
+.vscode/
+.idea/
+.cursor/
+
