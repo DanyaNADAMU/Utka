@@ -105,11 +105,11 @@ async function tick() {
       for (const [email, stat] of Object.entries(allStats)) {
         if (stat.up === BigInt(0) && stat.down === BigInt(0)) continue;
         
-        // email format: subId_tag_uuid
+        // email format: subId_tag_uuid or subId_master_tag_uuid
         const parts = email.split('_');
         if (parts.length >= 3) {
           const subId = parts[0];
-          const uuid = parts.slice(2).join('_'); // Just in case uuid has underscores
+          const uuid = parts[parts.length - 1]; // UUID is always the last component
           
           if (!subLiveStats[subId]) subLiveStats[subId] = { up: BigInt(0), down: BigInt(0) };
           subLiveStats[subId].up += stat.up;
@@ -127,16 +127,31 @@ async function tick() {
       }
     }
     
-    // Process UUIDs
-    for (const [uuid, live] of Object.entries(uuidLiveStats)) {
-      if (!uncommittedUuidTraffic[uuid]) uncommittedUuidTraffic[uuid] = { up: BigInt(0), down: BigInt(0), subId: live.subId, nodeId: live.nodeId };
-      uncommittedUuidTraffic[uuid].up += live.up;
-      uncommittedUuidTraffic[uuid].down += live.down;
+    // Process UUIDs (update state for ALL known UUIDs, resetting live speed to 0 if inactive)
+    const allKnownUuids = new Set<string>([
+      ...Object.keys(cachedUuidAggregates),
+      ...Object.keys(uncommittedUuidTraffic),
+      ...Object.keys(uuidLiveStats)
+    ]);
+    
+    for (const uuid of allKnownUuids) {
+      const live = uuidLiveStats[uuid] || { up: BigInt(0), down: BigInt(0) };
+      
+      if (uuidLiveStats[uuid]) {
+        if (!uncommittedUuidTraffic[uuid]) {
+          uncommittedUuidTraffic[uuid] = { up: BigInt(0), down: BigInt(0), subId: live.subId, nodeId: live.nodeId };
+        }
+        uncommittedUuidTraffic[uuid].up += live.up;
+        uncommittedUuidTraffic[uuid].down += live.down;
+      }
+      
+      const uncommitted = uncommittedUuidTraffic[uuid] || { up: BigInt(0), down: BigInt(0) };
       
       if (!cachedUuidAggregates[uuid]) {
          cachedUuidAggregates[uuid] = { h1: {up: BigInt(0), down: BigInt(0)}, d1: {up: BigInt(0), down: BigInt(0)}, mo1: {up: BigInt(0), down: BigInt(0)}, total: {up: BigInt(0), down: BigInt(0)} };
       }
-      updateStateObj(uuidTrafficState, uuid, live, uncommittedUuidTraffic[uuid].up, uncommittedUuidTraffic[uuid].down, cachedUuidAggregates[uuid]);
+      
+      updateStateObj(uuidTrafficState, uuid, live, uncommitted.up, uncommitted.down, cachedUuidAggregates[uuid]);
     }
     
     // Process Subscriptions (overall UI state + uncommitted node state)
@@ -269,22 +284,37 @@ async function calculateAggregations() {
     };
   }
 
-  const uuids = await db.uuidTrafficLog.findMany({ select: { xrayUuid: true, up: true, down: true } });
+  const inbounds = await db.subscriptionInbound.findMany({ select: { xrayUuid: true } });
+  const histories = await db.uuidHistory.findMany({ select: { xrayUuid: true } });
+  const logs = await db.uuidTrafficLog.findMany({ select: { xrayUuid: true, up: true, down: true } });
   
-  for (const log of uuids) {
+  const uuidSet = new Set<string>([
+    ...inbounds.map(i => i.xrayUuid),
+    ...histories.map(h => h.xrayUuid),
+    ...logs.map(l => l.xrayUuid)
+  ]);
+  
+  const logMap: Record<string, { up: bigint, down: bigint }> = {};
+  for (const log of logs) {
+    logMap[log.xrayUuid] = { up: log.up, down: log.down };
+  }
+
+  for (const xrayUuid of uuidSet) {
     const getSum = async (since: Date) => {
       const result = await db.uuidTrafficHistory.aggregate({
-        where: { xrayUuid: log.xrayUuid, timestamp: { gte: since } },
+        where: { xrayUuid, timestamp: { gte: since } },
         _sum: { up: true, down: true }
       });
       return { up: BigInt(result._sum.up || 0), down: BigInt(result._sum.down || 0) };
     };
 
-    cachedUuidAggregates[log.xrayUuid] = {
+    const total = logMap[xrayUuid] || { up: BigInt(0), down: BigInt(0) };
+
+    cachedUuidAggregates[xrayUuid] = {
       h1: await getSum(h1),
       d1: await getSum(d1),
       mo1: await getSum(mo1),
-      total: { up: log.up, down: log.down }
+      total: { up: total.up, down: total.down }
     };
   }
 }

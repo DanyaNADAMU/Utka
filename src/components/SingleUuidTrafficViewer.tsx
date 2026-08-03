@@ -19,8 +19,45 @@ interface TrafficState {
   totalDown: string;
 }
 
-export default function SingleUuidTrafficViewer({ xrayUuid, trafficState }: { xrayUuid: string, trafficState: TrafficState }) {
+export default function SingleUuidTrafficViewer({ xrayUuid, trafficState: initialTrafficState }: { xrayUuid: string, trafficState: TrafficState }) {
   const dict = useTranslation();
+  const [trafficState, setTrafficState] = useState<any>(initialTrafficState);
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    let isFetching = false;
+    
+    const fetchTraffic = async () => {
+      if (isFetching) return;
+      isFetching = true;
+      try {
+        const res = await fetch('/api/admin/traffic?t=' + Date.now(), { cache: 'no-store' });
+        const data = await res.json();
+        if (data.uuids && data.uuids[xrayUuid]) {
+          setTrafficState(data.uuids[xrayUuid]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch traffic', err);
+      } finally {
+        isFetching = false;
+      }
+    };
+
+    const scheduleNextFetch = () => {
+      const now = Date.now();
+      const delay = 5000 - (now % 5000) + 200;
+      
+      timeoutId = setTimeout(() => {
+        fetchTraffic();
+        scheduleNextFetch();
+      }, delay);
+    };
+
+    fetchTraffic();
+    scheduleNextFetch();
+
+    return () => clearTimeout(timeoutId);
+  }, [xrayUuid]);
 
   const formattedStat = {
     speedUp: Number(trafficState?.speedUp || 0),
