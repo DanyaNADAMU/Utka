@@ -66,6 +66,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
   const hiddifyUrl = `hiddify://import/${subUrl}#${encodedName}`;
   const clashUrl = `clash://install-config?url=${encodedSubUrl}&name=${encodedName}`;
   const karingUrl = `karing://import/${subUrl}#${encodedName}`;
+  const clashmiUrl = `clashmi://install-config?url=${encodedSubUrl}&name=${encodedName}`;
 
   const lastFetchedStr = lastFetched
     ? new Date(lastFetched).toLocaleString('ru-RU', {
@@ -317,7 +318,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     }
     .apps-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 0.75rem;
     }
     @media (max-width: 640px) {
@@ -658,6 +659,18 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
               </div>
               <span>→</span>
             </a>
+
+            <!-- ClashMi -->
+            <a href="${escapeHtml(clashmiUrl)}" class="app-btn">
+              <div class="app-info">
+                <img src="/icons/clashmi.png" alt="ClashMi" class="app-icon-img">
+                <div>
+                  <div>ClashMi</div>
+                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS / Android / Mac</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
           </div>
         </div>
 
@@ -667,7 +680,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           
           <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('androidTab', this)">Android</button>
-            <button class="tab-btn" onclick="switchTab('iosTab', this)">iOS (iPhone)</button>
+            <button class="tab-btn" onclick="switchTab('iosTab', this)">iOS</button>
             <button class="tab-btn" onclick="switchTab('desktopTab', this)" data-i18n="tab_desktop">Windows / macOS / Linux</button>
           </div>
 
@@ -780,19 +793,19 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS-ссылка скопирована!",
         copied_toast: "Скопировано в буфер обмена!",
         android_steps: [
-          "Установите приложение <strong>Hiddify</strong> из Google Play.",
-          "Нажмите кнопку <strong>«Hiddify →»</strong> выше на этой странице или скопируйте ссылку подписки.",
+          "Установите <strong>Hiddify</strong> или <strong>Karing</strong> из <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Hiddify)</a> / <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Karing)</a> или из <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Нажмите кнопку нужного приложения выше на этой странице или скопируйте ссылку подписки.",
           "В приложении нажмите <strong>«Новый профиль»</strong> → <strong>«Добавить из буфера обмена»</strong>.",
-          "Нажмите кнопку подключения для старта VPN."
+          "Включите системный прокси / TUN-режим."
         ],
         ios_steps: [
-          "Установите <strong>Hiddify</strong> или <strong>Karing</strong> из App Store.",
+          "Установите <a href='https://apps.apple.com/us/app/clash-mi/id6744321968' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMI</a>, <a href='https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> или <a href='https://apps.apple.com/us/app/karing/id6472431552' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a> из App Store.",
           "Нажмите кнопку нужного приложения выше на этой странице для автоматического импорта.",
           "Или отсканируйте <strong>QR-код</strong> подписки в приложении.",
           "Разрешите добавление конфигурации VPN и подключитесь."
         ],
         desktop_steps: [
-          "Установите <a href='https://github.com/clash-verge-rev/clash-verge-rev/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> или <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>.",
+          "Установите <a href='https://github.com/clash-verge-rev/clash-verge-rev/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a> или <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a>.",
           "Скопируйте ссылку подписки: <button class='copy-code-btn' onclick='copySubLink()' title='Нажмите для копирования'>${safeHtmlSubUrl} 📋</button> и вставьте в раздел «Подписки / Profiles».",
           "Включите системный прокси / TUN-режим."
         ],
@@ -821,19 +834,19 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS link copied!",
         copied_toast: "Copied to clipboard!",
         android_steps: [
-          "Install <strong>Hiddify</strong> from Google Play.",
-          "Tap <strong>«Hiddify →»</strong> above or copy subscription link.",
+          "Install <strong>Hiddify</strong> or <strong>Karing</strong> from <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Hiddify)</a> / <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Karing)</a> or from <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Tap the app button above or copy subscription link.",
           "In the app, tap <strong>«New Profile»</strong> → <strong>«Add from Clipboard»</strong>.",
-          "Tap the connect button to start VPN."
+          "Enable system proxy / TUN mode."
         ],
         ios_steps: [
-          "Install <strong>Hiddify</strong> or <strong>Karing</strong> from App Store.",
+          "Install <a href='https://apps.apple.com/us/app/clash-mi/id6744321968' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a>, <a href='https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> or <a href='https://apps.apple.com/us/app/karing/id6472431552' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a> from App Store.",
           "Tap the app button above for one-click import.",
           "Or scan the subscription <strong>QR Code</strong> in the app.",
           "Allow VPN configuration and connect."
         ],
         desktop_steps: [
-          "Install <a href='https://github.com/clash-verge-rev/clash-verge-rev/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> or <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>.",
+          "Install <a href='https://github.com/clash-verge-rev/clash-verge-rev/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a> or <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a>.",
           "Copy subscription link: <button class='copy-code-btn' onclick='copySubLink()' title='Click to copy'>${safeHtmlSubUrl} 📋</button> and paste into «Profiles» section.",
           "Enable system proxy / TUN mode."
         ],
