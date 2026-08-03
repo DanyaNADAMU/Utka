@@ -102,26 +102,35 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1.5rem 1rem;
+      padding: 1.5rem 1.5rem;
       background-image: 
         radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
         radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
     }
     .container {
       width: 100%;
-      max-width: 760px;
+      max-width: 1400px;
     }
     .header {
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 2rem;
-      padding-top: 1rem;
+      padding-top: 0.5rem;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
     .logo {
-      font-size: 2.25rem;
+      font-size: 2rem;
       font-weight: 800;
       letter-spacing: -0.025em;
       color: #ffffff;
-      margin-bottom: 0.5rem;
     }
     .logo span {
       color: #38bdf8;
@@ -145,6 +154,63 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       background-color: #22c55e;
       box-shadow: 0 0 8px #22c55e;
     }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lang-switcher {
+      display: flex;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+      border-radius: 0.75rem;
+      padding: 0.25rem;
+      gap: 0.25rem;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-weight: 700;
+      font-size: 0.8125rem;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .lang-btn.active {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+    .user-info-bar {
+      margin-bottom: 1.5rem;
+    }
+    .sub-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .sub-user {
+      font-size: 0.9375rem;
+      color: #94a3b8;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      width: 100%;
+    }
+    @media (min-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1.1fr 0.9fr;
+        align-items: start;
+      }
+    }
+    .grid-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
     .card {
       background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(16px);
@@ -152,7 +218,6 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       border: 1px solid rgba(51, 65, 85, 0.6);
       border-radius: 1.25rem;
       padding: 1.5rem;
-      margin-bottom: 1.5rem;
       box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
     }
     .card-title {
@@ -168,7 +233,6 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 0.75rem;
-      margin-bottom: 0.5rem;
     }
     @media (max-width: 640px) {
       .stats-grid {
@@ -250,9 +314,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       grid-template-columns: repeat(2, 1fr);
       gap: 0.75rem;
     }
-    @media (max-width: 640px) {
+    @media (min-width: 640px) and (max-width: 1023px) {
       .apps-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(4, 1fr);
       }
     }
     .app-btn {
@@ -290,30 +354,30 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       justify-content: center;
       font-size: 1.125rem;
     }
+    .nodes-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    @media (min-width: 640px) {
+      .nodes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      }
+    }
     .node-item {
       background: rgba(30, 41, 59, 0.5);
       border: 1px solid rgba(51, 65, 85, 0.4);
       border-radius: 0.875rem;
       padding: 1rem;
-      margin-bottom: 0.75rem;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: space-between;
-      gap: 1rem;
+      gap: 0.875rem;
     }
-    @media (max-width: 640px) {
-      .node-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .node-actions {
-        width: 100%;
-        display: flex;
-        gap: 0.5rem;
-      }
-      .node-actions .btn {
-        flex: 1;
-      }
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
     }
     .node-title {
       font-weight: 700;
@@ -340,6 +404,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     .node-actions {
       display: flex;
       gap: 0.5rem;
+    }
+    .node-actions .btn {
+      flex: 1;
     }
     .modal-overlay {
       position: fixed;
@@ -441,185 +508,198 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     
     <!-- Header -->
     <header class="header">
-      <div class="logo">nada<span>.mu</span></div>
-      <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 0.5rem;">
-        <span class="badge"><span class="dot"></span> Подписка активна</span>
+      <div class="logo-group">
+        <div class="logo">nada<span>.mu</span></div>
+        <span class="badge"><span class="dot"></span> <span data-i18n="status_active">Подписка активна</span></span>
       </div>
-      <h1 style="font-size: 1.5rem; font-weight: 700; margin-top: 1rem; color: #f8fafc;">
-        ${escapeHtml(subName)}
-      </h1>
-      <p style="font-size: 0.875rem; color: #94a3b8; margin-top: 0.25rem;">
-        Пользователь: ${escapeHtml(userName || 'Пользователь')}
-      </p>
+
+      <div class="header-right">
+        <div class="lang-switcher">
+          <button class="lang-btn active" id="langRuBtn" onclick="setLanguage('ru')">RU</button>
+          <button class="lang-btn" id="langEnBtn" onclick="setLanguage('en')">EN</button>
+        </div>
+      </div>
     </header>
 
-    <!-- Stats Card -->
-    <div class="card">
-      <div class="card-title">
-        <span>📊 Использование трафика</span>
-        <span style="font-size: 0.75rem; font-weight: 500; color: #64748b;">Обновлено: ${lastFetchedStr}</span>
-      </div>
-      
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-label">Всего трафика</div>
-          <div class="stat-value">${formatBytes(trafficTotal)}</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Загружено (Down)</div>
-          <div class="stat-value" style="color: #4ade80;">${formatBytes(trafficDown)}</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Отправлено (Up)</div>
-          <div class="stat-value" style="color: #c084fc;">${formatBytes(trafficUp)}</div>
-        </div>
+    <!-- User Info Bar -->
+    <div class="user-info-bar">
+      <h1 class="sub-title">${escapeHtml(subName)}</h1>
+      <div class="sub-user">
+        <span data-i18n="user_label">Пользователь:</span> ${escapeHtml(userName || 'User')}
       </div>
     </div>
 
-    <!-- Quick Import Card -->
-    <div class="card">
-      <div class="card-title">🚀 Быстрое подключение</div>
+    <!-- Main Responsive Grid -->
+    <div class="main-grid">
       
-      <div class="sub-input-group">
-        <input type="text" readonly value="${escapeHtml(subUrl)}" class="input-field" id="subUrlInput">
-        <button class="btn btn-primary" onclick="copyToClipboard('${escapeJs(subUrl)}', 'Ссылка подписки скопирована!')">
-          📋 Копировать
-        </button>
-        <button class="btn btn-secondary" onclick="openModal('mainQrModal')">
-          📱 QR-код
-        </button>
-      </div>
-
-      <div class="apps-grid">
-        <a href="${escapeHtml(hiddifyUrl)}" class="app-btn">
-          <div class="app-info">
-            <div class="app-icon">🚀</div>
-            <div>
-              <div>Hiddify Next</div>
-              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Multi-platform</div>
+      <!-- Left Column -->
+      <div class="grid-col">
+        
+        <!-- Traffic Stats Card -->
+        <div class="card">
+          <div class="card-title">
+            <span data-i18n="traffic_title">📊 Использование трафика</span>
+            <span style="font-size: 0.75rem; font-weight: 500; color: #64748b;">
+              <span data-i18n="updated_label">Обновлено:</span> ${lastFetchedStr}
+            </span>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label" data-i18n="total_traffic">Всего трафика</div>
+              <div class="stat-value">${formatBytes(trafficTotal)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label" data-i18n="downloaded">Загружено (Down)</div>
+              <div class="stat-value" style="color: #4ade80;">${formatBytes(trafficDown)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label" data-i18n="uploaded">Отправлено (Up)</div>
+              <div class="stat-value" style="color: #c084fc;">${formatBytes(trafficUp)}</div>
             </div>
           </div>
-          <span>→</span>
-        </a>
+        </div>
 
-        <a href="${escapeHtml(clashUrl)}" class="app-btn">
-          <div class="app-info">
-            <div class="app-icon">🐱</div>
-            <div>
-              <div>Clash / Verge</div>
-              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Windows / Mac</div>
-            </div>
-          </div>
-          <span>→</span>
-        </a>
-
-        <a href="${escapeHtml(singboxUrl)}" class="app-btn">
-          <div class="app-info">
-            <div class="app-icon">📦</div>
-            <div>
-              <div>Sing-Box</div>
-              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS / Android / Desktop</div>
-            </div>
-          </div>
-          <span>→</span>
-        </a>
-
-        <a href="${escapeHtml(shadowrocketUrl)}" class="app-btn">
-          <div class="app-info">
-            <div class="app-icon">🚀</div>
-            <div>
-              <div>Shadowrocket</div>
-              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS</div>
-            </div>
-          </div>
-          <span>→</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- Nodes Card -->
-    <div class="card">
-      <div class="card-title">🌐 Доступные локации (${nodeLinks.length})</div>
-
-      ${nodeLinks.map((node, index) => `
-        <div class="node-item">
-          <div>
-            <div class="node-title">${escapeHtml(node.nodeName)}</div>
-            <div class="node-sub">
-              <span class="tag-pill">${escapeHtml(node.inboundTag)}</span>
-              <span>${escapeHtml(node.address)}:${node.port}</span>
-            </div>
-          </div>
-          <div class="node-actions">
-            <button class="btn btn-secondary" style="padding: 0.5rem 0.875rem; font-size: 0.8125rem;" onclick="copyToClipboard('${escapeJs(node.vlessLink)}', 'VLESS-ссылка скопирована!')">
-              📋 VLESS
+        <!-- Quick Import Card -->
+        <div class="card">
+          <div class="card-title" data-i18n="quick_connect">🚀 Быстрое подключение</div>
+          
+          <div class="sub-input-group">
+            <input type="text" readonly value="${escapeHtml(subUrl)}" class="input-field" id="subUrlInput">
+            <button class="btn btn-primary" onclick="copyToClipboard('${escapeJs(subUrl)}', 'copied_sub')">
+              <span data-i18n="copy">📋 Копировать</span>
             </button>
-            <button class="btn btn-secondary" style="padding: 0.5rem 0.875rem; font-size: 0.8125rem;" onclick="openModal('nodeQrModal_${index}')">
-              📱 QR
+            <button class="btn btn-secondary" onclick="openModal('mainQrModal')">
+              <span data-i18n="qr_code">📱 QR-код</span>
             </button>
           </div>
-        </div>
 
-        <!-- Node QR Modal -->
-        <div class="modal-overlay" id="nodeQrModal_${index}">
-          <div class="modal-card">
-            <h3 style="font-size: 1.125rem; font-weight: 700; color: #f8fafc;">${escapeHtml(node.nodeName)}</h3>
-            <p style="font-size: 0.8125rem; color: #94a3b8; margin-top: 0.25rem;">Отсканируйте в приложении VPN</p>
-            <div class="qr-container">${node.qrSvg}</div>
-            <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="closeModal('nodeQrModal_${index}')">Закрыть</button>
+          <div class="apps-grid">
+            <a href="${escapeHtml(hiddifyUrl)}" class="app-btn">
+              <div class="app-info">
+                <div class="app-icon">🚀</div>
+                <div>
+                  <div>Hiddify Next</div>
+                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Multi-platform</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
+
+            <a href="${escapeHtml(clashUrl)}" class="app-btn">
+              <div class="app-info">
+                <div class="app-icon">🐱</div>
+                <div>
+                  <div>Clash / Verge</div>
+                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Windows / Mac</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
+
+            <a href="${escapeHtml(singboxUrl)}" class="app-btn">
+              <div class="app-info">
+                <div class="app-icon">📦</div>
+                <div>
+                  <div>Sing-Box</div>
+                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS / Android</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
+
+            <a href="${escapeHtml(shadowrocketUrl)}" class="app-btn">
+              <div class="app-info">
+                <div class="app-icon">🚀</div>
+                <div>
+                  <div>Shadowrocket</div>
+                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
           </div>
         </div>
-      `).join('')}
+
+        <!-- Setup Instructions Card -->
+        <div class="card">
+          <div class="card-title" data-i18n="how_to_connect">📖 Как настроить подключение</div>
+          
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('androidTab', this)">Android</button>
+            <button class="tab-btn" onclick="switchTab('iosTab', this)">iOS (iPhone)</button>
+            <button class="tab-btn" onclick="switchTab('windowsTab', this)">Windows</button>
+            <button class="tab-btn" onclick="switchTab('macTab', this)">macOS</button>
+          </div>
+
+          <div id="androidTab" class="tab-content instructions-content">
+            <ol id="androidSteps"></ol>
+          </div>
+
+          <div id="iosTab" class="tab-content instructions-content" style="display: none;">
+            <ol id="iosSteps"></ol>
+          </div>
+
+          <div id="windowsTab" class="tab-content instructions-content" style="display: none;">
+            <ol id="windowsSteps"></ol>
+          </div>
+
+          <div id="macTab" class="tab-content instructions-content" style="display: none;">
+            <ol id="macSteps"></ol>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Nodes / Locations -->
+      <div class="grid-col">
+        
+        <div class="card">
+          <div class="card-title">
+            <span><span data-i18n="locations">🌐 Доступные локации</span> (${nodeLinks.length})</span>
+          </div>
+
+          <div class="nodes-grid">
+            ${nodeLinks.map((node, index) => `
+              <div class="node-item">
+                <div class="node-header">
+                  <div>
+                    <div class="node-title">${escapeHtml(node.nodeName)}</div>
+                    <div class="node-sub">
+                      <span class="tag-pill">${escapeHtml(node.inboundTag)}</span>
+                      <span>${escapeHtml(node.address)}:${node.port}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="node-actions">
+                  <button class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;" onclick="copyToClipboard('${escapeJs(node.vlessLink)}', 'copied_vless')">
+                    <span data-i18n="copy_vless">📋 VLESS</span>
+                  </button>
+                  <button class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.8125rem;" onclick="openModal('nodeQrModal_${index}')">
+                    <span data-i18n="qr">📱 QR</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Node QR Modal -->
+              <div class="modal-overlay" id="nodeQrModal_${index}">
+                <div class="modal-card">
+                  <h3 style="font-size: 1.125rem; font-weight: 700; color: #f8fafc;">${escapeHtml(node.nodeName)}</h3>
+                  <p style="font-size: 0.8125rem; color: #94a3b8; margin-top: 0.25rem;" data-i18n="scan_qr_desc">Отсканируйте в приложении VPN</p>
+                  <div class="qr-container">${node.qrSvg}</div>
+                  <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="closeModal('nodeQrModal_${index}')" data-i18n="close">Закрыть</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- Instructions Card -->
-    <div class="card">
-      <div class="card-title">📖 Как настроить подключение</div>
-      
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('androidTab', this)">Android</button>
-        <button class="tab-btn" onclick="switchTab('iosTab', this)">iOS (iPhone)</button>
-        <button class="tab-btn" onclick="switchTab('windowsTab', this)">Windows</button>
-        <button class="tab-btn" onclick="switchTab('macTab', this)">macOS</button>
-      </div>
-
-      <div id="androidTab" class="tab-content instructions-content">
-        <ol>
-          <li>Установите приложение <strong>Hiddify Next</strong> из Google Play.</li>
-          <li>Нажмите кнопку <strong>«Hiddify Next →»</strong> выше на этой странице или скопируйте ссылку подписки.</li>
-          <li>В приложении нажмите <strong>«Новый профиль»</strong> → <strong>«Добавить из буфера обмена»</strong>.</li>
-          <li>Нажмите кнопку подключения для старта VPN.</li>
-        </ol>
-      </div>
-
-      <div id="iosTab" class="tab-content instructions-content" style="display: none;">
-        <ol>
-          <li>Установите <strong>Hiddify</strong>, <strong>Shadowrocket</strong> или <strong>Streisand</strong> из App Store.</li>
-          <li>Нажмите кнопку нужного приложения выше на этой странице для автоматического импорта.</li>
-          <li>Или отсканируйте <strong>QR-код</strong> подписки в приложении.</li>
-          <li>Разрешите добавление конфигурации VPN и подключитесь.</li>
-        </ol>
-      </div>
-
-      <div id="windowsTab" class="tab-content instructions-content" style="display: none;">
-        <ol>
-          <li>Скачайте и установите <strong>Hiddify Next</strong> или <strong>Clash Verge Rev</strong>.</li>
-          <li>Нажмите кнопку импорта на этой странице или скопируйте URL подписки.</li>
-          <li>Вставьте ссылку в раздел «Подписки / Profiles» и нажмите «Обновить».</li>
-          <li>Включите системный прокси / TUN-режим.</li>
-        </ol>
-      </div>
-
-      <div id="macTab" class="tab-content instructions-content" style="display: none;">
-        <ol>
-          <li>Скачайте <strong>Hiddify Next</strong> или <strong>Clash Verge Rev for macOS</strong>.</li>
-          <li>Нажмите кнопку быстрой добавления выше на этой странице.</li>
-          <li>Активируйте TUN-режим или системный прокси для фильтрации трафика.</li>
-        </ol>
-      </div>
-    </div>
-
-    <footer style="text-align: center; font-size: 0.8125rem; color: #64748b; padding: 1.5rem 0;">
+    <!-- Footer -->
+    <footer style="text-align: center; font-size: 0.8125rem; color: #64748b; padding: 2rem 0 1rem 0;" id="footerText">
       nada.mu &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение
     </footer>
 
@@ -628,10 +708,10 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
   <!-- Main QR Modal -->
   <div class="modal-overlay" id="mainQrModal">
     <div class="modal-card">
-      <h3 style="font-size: 1.125rem; font-weight: 700; color: #f8fafc;">QR-код подписки</h3>
-      <p style="font-size: 0.8125rem; color: #94a3b8; margin-top: 0.25rem;">Отсканируйте сканером в VPN-клиенте</p>
+      <h3 style="font-size: 1.125rem; font-weight: 700; color: #f8fafc;" data-i18n="qr_modal_title">QR-код подписки</h3>
+      <p style="font-size: 0.8125rem; color: #94a3b8; margin-top: 0.25rem;" data-i18n="scan_qr_desc">Отсканируйте сканером в VPN-клиенте</p>
       <div class="qr-container">${subQrSvg}</div>
-      <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="closeModal('mainQrModal')">Закрыть</button>
+      <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="closeModal('mainQrModal')" data-i18n="close">Закрыть</button>
     </div>
   </div>
 
@@ -639,9 +719,156 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
   <div class="toast" id="toast">Ссылка скопирована!</div>
 
   <script>
-    function copyToClipboard(text, message) {
+    const i18n = {
+      ru: {
+        status_active: "Подписка активна",
+        user_label: "Пользователь:",
+        traffic_title: "📊 Использование трафика",
+        updated_label: "Обновлено:",
+        total_traffic: "Всего трафика",
+        downloaded: "Загружено (Down)",
+        uploaded: "Отправлено (Up)",
+        quick_connect: "🚀 Быстрое подключение",
+        copy: "📋 Копировать",
+        qr_code: "📱 QR-код",
+        locations: "🌐 Доступные локации",
+        copy_vless: "📋 VLESS",
+        qr: "📱 QR",
+        how_to_connect: "📖 Как настроить подключение",
+        scan_qr_desc: "Отсканируйте в приложении VPN",
+        close: "Закрыть",
+        qr_modal_title: "QR-код подписки",
+        copied_sub: "Ссылка подписки скопирована!",
+        copied_vless: "VLESS-ссылка скопирована!",
+        copied_toast: "Скопировано в буфер обмена!",
+        android_steps: [
+          "Установите приложение <strong>Hiddify Next</strong> из Google Play.",
+          "Нажмите кнопку <strong>«Hiddify Next →»</strong> выше на этой странице или скопируйте ссылку подписки.",
+          "В приложении нажмите <strong>«Новый профиль»</strong> → <strong>«Добавить из буфера обмена»</strong>.",
+          "Нажмите кнопку подключения для старта VPN."
+        ],
+        ios_steps: [
+          "Установите <strong>Hiddify</strong>, <strong>Shadowrocket</strong> или <strong>Streisand</strong> из App Store.",
+          "Нажмите кнопку нужного приложения выше на этой странице для автоматического импорта.",
+          "Или отсканируйте <strong>QR-код</strong> подписки в приложении.",
+          "Разрешите добавление конфигурации VPN и подключитесь."
+        ],
+        windows_steps: [
+          "Скачайте и установите <strong>Hiddify Next</strong> или <strong>Clash Verge Rev</strong>.",
+          "Нажмите кнопку импорта на этой странице или скопируйте URL подписки.",
+          "Вставьте ссылку в раздел «Подписки / Profiles» и нажмите «Обновить».",
+          "Включите системный прокси / TUN-режим."
+        ],
+        mac_steps: [
+          "Скачайте <strong>Hiddify Next</strong> или <strong>Clash Verge Rev for macOS</strong>.",
+          "Нажмите кнопку быстрой добавления выше на этой странице.",
+          "Активируйте TUN-режим или системный прокси для фильтрации трафика."
+        ],
+        footer: "nada.mu &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение"
+      },
+      en: {
+        status_active: "Subscription Active",
+        user_label: "User:",
+        traffic_title: "📊 Traffic Usage",
+        updated_label: "Updated:",
+        total_traffic: "Total Traffic",
+        downloaded: "Downloaded (Down)",
+        uploaded: "Uploaded (Up)",
+        quick_connect: "🚀 Quick Connect",
+        copy: "📋 Copy",
+        qr_code: "📱 QR Code",
+        locations: "🌐 Available Locations",
+        copy_vless: "📋 VLESS",
+        qr: "📱 QR",
+        how_to_connect: "📖 How to Connect",
+        scan_qr_desc: "Scan inside your VPN app",
+        close: "Close",
+        qr_modal_title: "Subscription QR Code",
+        copied_sub: "Subscription link copied!",
+        copied_vless: "VLESS link copied!",
+        copied_toast: "Copied to clipboard!",
+        android_steps: [
+          "Install <strong>Hiddify Next</strong> from Google Play.",
+          "Tap <strong>«Hiddify Next →»</strong> above or copy subscription link.",
+          "In the app, tap <strong>«New Profile»</strong> → <strong>«Add from Clipboard»</strong>.",
+          "Tap the connect button to start VPN."
+        ],
+        ios_steps: [
+          "Install <strong>Hiddify</strong>, <strong>Shadowrocket</strong> or <strong>Streisand</strong> from App Store.",
+          "Tap the app button above for one-click import.",
+          "Or scan the subscription <strong>QR Code</strong> in the app.",
+          "Allow VPN configuration and connect."
+        ],
+        windows_steps: [
+          "Download and install <strong>Hiddify Next</strong> or <strong>Clash Verge Rev</strong>.",
+          "Tap import above or copy subscription URL.",
+          "Paste link into «Profiles» section and click «Update».",
+          "Enable system proxy / TUN mode."
+        ],
+        mac_steps: [
+          "Download <strong>Hiddify Next</strong> or <strong>Clash Verge Rev for macOS</strong>.",
+          "Tap quick import button above.",
+          "Activate TUN mode or system proxy."
+        ],
+        footer: "nada.mu &copy; ${new Date().getFullYear()} &bull; Fast & Secure Connection"
+      }
+    };
+
+    let currentLang = 'ru';
+
+    function initLanguage() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlLang = urlParams.get('lang');
+      const savedLang = localStorage.getItem('sub_lang');
+      
+      if (urlLang === 'en' || urlLang === 'ru') {
+        currentLang = urlLang;
+      } else if (savedLang === 'en' || savedLang === 'ru') {
+        currentLang = savedLang;
+      } else if (navigator.language && navigator.language.startsWith('en')) {
+        currentLang = 'en';
+      }
+
+      setLanguage(currentLang);
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('sub_lang', lang);
+      document.documentElement.lang = lang;
+
+      document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
+      document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+
+      const dict = i18n[lang] || i18n.ru;
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.innerHTML = dict[key];
+        }
+      });
+
+      renderSteps('androidSteps', dict.android_steps);
+      renderSteps('iosSteps', dict.ios_steps);
+      renderSteps('windowsSteps', dict.windows_steps);
+      renderSteps('macSteps', dict.mac_steps);
+
+      document.getElementById('footerText').innerHTML = dict.footer;
+    }
+
+    function renderSteps(elementId, steps) {
+      const el = document.getElementById(elementId);
+      if (!el || !steps) return;
+      el.innerHTML = steps.map(step => \`<li>\${step}</li>\`).join('');
+    }
+
+    function copyToClipboard(text, key) {
+      const dict = i18n[currentLang] || i18n.ru;
+      const message = dict[key] || dict.copied_toast;
+
       navigator.clipboard.writeText(text).then(() => {
-        showToast(message || 'Скопировано в буфер обмена!');
+        showToast(message);
       }).catch(err => {
         console.error('Failed to copy: ', err);
       });
@@ -674,7 +901,6 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       if (btn) btn.classList.add('active');
     }
 
-    // Close modals on overlay click
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -682,6 +908,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         }
       });
     });
+
+    initLanguage();
   </script>
 </body>
 </html>`;
