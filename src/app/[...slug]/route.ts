@@ -50,9 +50,106 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const profileName = sub.name || "NadamuDash";
 
-  // Detect if this request is from our own subconverter container
+  // Detect if this request is from a web browser
   const reqUrl = new URL(request.url);
+  const acceptHeader = request.headers.get('accept') || '';
   const isRawRequest = reqUrl.searchParams.get('raw') === 'true';
+  const isYamlRequest = url.endsWith('.yaml') || url.endsWith('.yml');
+
+  const lowerUA = userAgent.toLowerCase();
+  const isVpnClientUA = lowerUA.includes('clash') || 
+                        lowerUA.includes('hiddify') || 
+                        lowerUA.includes('shadowrocket') || 
+                        lowerUA.includes('v2ray') || 
+                        lowerUA.includes('sing-box') || 
+                        lowerUA.includes('stash') || 
+                        lowerUA.includes('quantumult') || 
+                        lowerUA.includes('subconverter') ||
+                        lowerUA.includes('nekobox') ||
+                        lowerUA.includes('streisand') ||
+                        lowerUA.includes('curl') ||
+                        lowerUA.includes('wget');
+
+  const isBrowserRequest = acceptHeader.includes('text/html') && !isRawRequest && !isYamlRequest && !isVpnClientUA;
+
+  if (isBrowserRequest) {
+    const { renderSubscriptionHtml, generateQrSvg } = await import('@/lib/subPageTemplate');
+    
+    // Fetch user details for subscription
+    const subWithUser = await db.subscription.findUnique({
+      where: { id: sub.id },
+      include: { user: true, inbounds: { include: { node: true } } }
+    });
+
+    // Aggregate traffic
+    const trafficLogs = await db.trafficLog.aggregate({
+      where: { subscriptionId: sub.id },
+      _sum: { up: true, down: true }
+    });
+    const trafficUp = trafficLogs._sum.up || 0n;
+    const trafficDown = trafficLogs._sum.down || 0n;
+    const trafficTotal = trafficUp + trafficDown;
+
+    const host = request.headers.get('host') || 'nada.mu';
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    const subUrl = `${protocol}://${host}/${slug.join('/')}`;
+    const subQrSvg = await generateQrSvg(subUrl);
+
+    const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+    const nodeLinks = [];
+
+    if (subWithUser?.inbounds) {
+      for (const inbound of subWithUser.inbounds) {
+        if (!inbound.node || !inbound.node.isActive) continue;
+
+        const vlessLink = await buildClientLink(
+          inbound.inboundTag,
+          inbound.xrayUuid,
+          `${sub.name || "NadamuDash"} - ${inbound.node.name}`,
+          inbound.node.address,
+          inbound.node.port,
+          {
+            sni: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityServerName,
+            pbk: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityPubKey,
+            sid: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityShortId
+          }
+        );
+
+        const qrSvg = await generateQrSvg(vlessLink);
+
+        nodeLinks.push({
+          nodeName: inbound.node.name,
+          address: inbound.node.address,
+          port: inbound.node.port,
+          inboundTag: inbound.inboundTag,
+          vlessLink,
+          qrSvg
+        });
+      }
+    }
+
+    const htmlContent = renderSubscriptionHtml({
+      subName: sub.name || "NadamuDash",
+      userName: subWithUser?.user?.name || subWithUser?.user?.email || "Пользователь",
+      subUrl,
+      subQrSvg,
+      trafficUp,
+      trafficDown,
+      trafficTotal,
+      lastFetched: sub.lastFetched,
+      createdAt: sub.createdAt,
+      nodeLinks
+    });
+
+    return new NextResponse(htmlContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store, max-age=0'
+      }
+    });
+  }
+
   
   if (!isRawRequest) {
     // If the client explicitly requested .yaml/.yml, force clash target, otherwise let subconverter auto-detect
