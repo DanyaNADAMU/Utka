@@ -4,25 +4,20 @@
 
 ## Изменения
 
-### 1. `public/icons/` [NEW]
-- В папку `public/icons/` добавлены графические PNG-логотипы (`hiddify.png`, `clash.png`, `karing.png`), скопированные из `/home/danya/Projects/icons/ProxyVPN Client Icons/`.
-- Обеспечено 100% надежное отображение иконок в браузере.
+### 1. Добавление клиента ClashMi и обновление логотипов
+- Добавлен клиент **ClashMi** (`clashmi://install-config?...`).
+- В директорию `public/icons/` скопированы иконки высокой четкости из `/home/danya/Projects/icons/ProxyVPN Client Icons/`:
+  - `hiddify.png` (`Hiddify216.png`)
+  - `clash.png` (`Clash256.png`)
+  - `karing.png` (`Karing48.png`)
+  - `clashmi.png` (`ClashMi32.png`)
+- Сетка `.apps-grid` переведена на гибридную адаптивную верстку `repeat(auto-fit, minmax(200px, 1fr))`.
 
-### 2. `src/lib/subPageTemplate.ts` [MODIFY]
-- **Названия клиентов**: Изменены строго на **Hiddify**, **Clash**, **Karing**.
-- **Объединенные ПК-инструкции**:
-  - Вкладки Windows, macOS и Linux объединены в единый раздел **Windows / macOS / Linux**.
-  - В инструкции «Clash Verge Rev» переименован в **Clash**.
-  - Ссылка подписки в тексте второго шага выполнена в виде кликабельной кнопки (`<code>`), при клике на которую вызывает функцию `copySubLink()`.
-- **Исправление синтаксической ошибки JS**:
-  - Точная причина сбоя кликабельности и отображения шагов заключалась в конфликте кавычек `onclick='copyToClipboard("..."'` внутри JS-объекта `i18n`.
-  - Создана специальная вспомогательная функция `copySubLink()`, полностью убирающая вложенные кавычки.
-
-### 3. `src/app/[...slug]/route.ts` [MODIFY]
-- Интеллектуальное автоопределение запросов (`Accept: text/html` vs VPN-клиенты).
-- Автоматическая очистка неактуальных инбаундов из базы данных.
+### 2. Обновление инструкций для Android и iOS
+- **Android**: Указаны прямые кликабельные ссылки на запуск загрузки из [GitHub (Hiddify)](https://github.com/hiddify/hiddify-app/releases/latest), [GitHub (Karing)](https://github.com/KaringX/karing/releases/latest) и [Google Play](https://play.google.com/store/apps/details?id=app.hiddify.com).
+- **iOS**: Название вкладки заменено с `iOS (iPhone)` на **iOS**. Добавлены кликабельные ссылки на App Store для [ClashMI](https://apps.apple.com/us/app/clash-mi/id6744321968), [Hiddify](https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532) и [Karing](https://apps.apple.com/us/app/karing/id6472431552).
 
 ## Верификация
-- Проведен успешный билд проекта (`npm run build`).
-- Запущен проверочный скрипт генерации HTML, синтаксический анализ вывода HTML/JS подтвердил 0 ошибок.
+- Выполнен успешный билд проекта (`npm run build`).
+- Проведен синтаксический анализ вывода HTML/JS.
 - Развертывание на мастер-сервер `moscow-nadamudash` успешно завершено.

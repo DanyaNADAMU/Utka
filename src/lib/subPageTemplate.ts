@@ -793,7 +793,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS-ссылка скопирована!",
         copied_toast: "Скопировано в буфер обмена!",
         android_steps: [
-          "Установите <strong>Hiddify</strong> или <strong>Karing</strong> из <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Hiddify)</a> / <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Karing)</a> или из <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Установите клиенты или из GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> или из <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
           "Нажмите кнопку нужного приложения выше на этой странице или скопируйте ссылку подписки.",
           "В приложении нажмите <strong>«Новый профиль»</strong> → <strong>«Добавить из буфера обмена»</strong>.",
           "Включите системный прокси / TUN-режим."
@@ -834,13 +834,13 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS link copied!",
         copied_toast: "Copied to clipboard!",
         android_steps: [
-          "Install <strong>Hiddify</strong> or <strong>Karing</strong> from <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Hiddify)</a> / <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>GitHub (Karing)</a> or from <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Install clients either from GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> or from <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
           "Tap the app button above or copy subscription link.",
           "In the app, tap <strong>«New Profile»</strong> → <strong>«Add from Clipboard»</strong>.",
           "Enable system proxy / TUN mode."
         ],
         ios_steps: [
-          "Install <a href='https://apps.apple.com/us/app/clash-mi/id6744321968' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a>, <a href='https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> or <a href='https://apps.apple.com/us/app/karing/id6472431552' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a> from App Store.",
+          "Install <a href='https://apps.apple.com/us/app/clash-mi/id6744321968' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMI</a>, <a href='https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> or <a href='https://apps.apple.com/us/app/karing/id6472431552' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a> from App Store.",
           "Tap the app button above for one-click import.",
           "Or scan the subscription <strong>QR Code</strong> in the app.",
           "Allow VPN configuration and connect."
