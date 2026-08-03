@@ -86,8 +86,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       where: { subscriptionId: sub.id },
       _sum: { up: true, down: true }
     });
-    const trafficUp = trafficLogs._sum.up || 0n;
-    const trafficDown = trafficLogs._sum.down || 0n;
+    const trafficUp = trafficLogs._sum.up || BigInt(0);
+    const trafficDown = trafficLogs._sum.down || BigInt(0);
     const trafficTotal = trafficUp + trafficDown;
 
     const host = request.headers.get('host') || 'nada.mu';
