@@ -68,6 +68,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
   const karingUrl = `karing://import/${subUrl}#${encodedName}`;
   const clashmiUrl = `clashmi://install-config?url=${encodedSubUrl}&name=${encodedName}`;
 
+  const displayName = subName || userName || 'Subscription';
+
   const lastFetchedStr = lastFetched
     ? new Date(lastFetched).toLocaleString('ru-RU', {
         day: '2-digit',
@@ -86,11 +88,63 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Подписка - ${escapeHtml(subName)} | nada.mu</title>
+  <title>${escapeHtml(displayName)} | nada.mu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-grad-1: rgba(56, 189, 248, 0.12);
+      --bg-grad-2: rgba(168, 85, 247, 0.08);
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(51, 65, 85, 0.6);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --stat-bg: rgba(30, 41, 59, 0.6);
+      --stat-border: rgba(51, 65, 85, 0.4);
+      --input-bg: #0f172a;
+      --input-border: #334155;
+      --btn-sec-bg: #1e293b;
+      --btn-sec-text: #e2e8f0;
+      --btn-sec-border: #334155;
+      --btn-sec-hover: #334155;
+      --app-btn-bg: rgba(30, 41, 59, 0.7);
+      --app-btn-border: rgba(51, 65, 85, 0.5);
+      --tab-border: #334155;
+      --node-bg: rgba(30, 41, 59, 0.5);
+      --node-border: rgba(51, 65, 85, 0.4);
+      --modal-bg: #0f172a;
+      --modal-border: #334155;
+      --code-btn-bg: rgba(30, 41, 59, 0.9);
+    }
+
+    html.light {
+      --bg-main: #f8fafc;
+      --bg-grad-1: rgba(56, 189, 248, 0.15);
+      --bg-grad-2: rgba(168, 85, 247, 0.12);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(203, 213, 225, 0.8);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --stat-bg: rgba(241, 245, 249, 0.9);
+      --stat-border: rgba(226, 232, 240, 0.9);
+      --input-bg: #ffffff;
+      --input-border: #cbd5e1;
+      --btn-sec-bg: #f1f5f9;
+      --btn-sec-text: #1e293b;
+      --btn-sec-border: #cbd5e1;
+      --btn-sec-hover: #e2e8f0;
+      --app-btn-bg: rgba(248, 250, 252, 0.9);
+      --app-btn-border: rgba(203, 213, 225, 0.8);
+      --tab-border: #e2e8f0;
+      --node-bg: rgba(241, 245, 249, 0.7);
+      --node-border: rgba(226, 232, 240, 0.9);
+      --modal-bg: #ffffff;
+      --modal-border: #cbd5e1;
+      --code-btn-bg: rgba(241, 245, 249, 0.9);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -98,16 +152,17 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     body {
-      background-color: #0b0f19;
-      color: #f8fafc;
+      background-color: var(--bg-main);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1.5rem 1.5rem;
+      padding: 1.25rem 1.25rem;
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
+        radial-gradient(circle at 50% 0%, var(--bg-grad-1) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, var(--bg-grad-2) 0%, transparent 40%);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     .container {
       width: 100%;
@@ -117,22 +172,24 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 2rem;
-      padding-top: 0.5rem;
+      margin-bottom: 1.5rem;
+      padding-top: 0.25rem;
       width: 100%;
-      flex-wrap: wrap;
-      gap: 1rem;
+      flex-wrap: nowrap;
+      gap: 0.5rem;
     }
     .logo-group {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
+      min-width: 0;
     }
     .logo {
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: 800;
       letter-spacing: -0.025em;
-      color: #ffffff;
+      color: var(--text-main);
+      white-space: nowrap;
     }
     .logo span {
       color: #38bdf8;
@@ -141,13 +198,14 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: inline-flex;
       align-items: center;
       gap: 0.375rem;
-      padding: 0.25rem 0.75rem;
+      padding: 0.25rem 0.625rem;
       border-radius: 9999px;
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
       font-weight: 600;
       background: rgba(34, 197, 94, 0.1);
-      color: #4ade80;
-      border: 1px solid rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      white-space: nowrap;
     }
     .dot {
       width: 6px;
@@ -155,43 +213,43 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       border-radius: 50%;
       background-color: #22c55e;
       box-shadow: 0 0 8px #22c55e;
+      flex-shrink: 0;
     }
     .header-right {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.5rem;
+      flex-shrink: 0;
     }
-    /* Language Switcher matching nada.mu landing page style */
-    .lang-switcher-btn {
+    .theme-switcher-btn, .lang-switcher-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.375rem 0.75rem;
-      border-radius: 0.375rem;
-      background: transparent;
-      border: 1px solid rgba(51, 65, 85, 0.5);
-      color: #cbd5e1;
+      justify-content: center;
+      gap: 0.375rem;
+      padding: 0.375rem 0.625rem;
+      border-radius: 0.5rem;
+      background: var(--btn-sec-bg);
+      border: 1px solid var(--btn-sec-border);
+      color: var(--text-main);
       font-weight: 600;
       font-size: 0.875rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      flex-shrink: 0;
     }
-    .lang-switcher-btn:hover {
-      background: rgba(30, 41, 59, 0.8);
-      color: #ffffff;
-      border-color: rgba(51, 65, 85, 0.8);
+    .theme-switcher-btn:hover, .lang-switcher-btn:hover {
+      background: var(--btn-sec-hover);
+      border-color: var(--card-border);
     }
     .user-info-bar {
       margin-bottom: 1.5rem;
+      text-align: center;
     }
     .sub-title {
-      font-size: 1.75rem;
+      font-size: 2rem;
       font-weight: 800;
-      color: #f8fafc;
-    }
-    .sub-user {
-      font-size: 0.9375rem;
-      color: #94a3b8;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
     }
     .main-grid {
       display: grid;
@@ -211,18 +269,19 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       gap: 1.5rem;
     }
     .card {
-      background: rgba(15, 23, 42, 0.75);
+      background: var(--card-bg);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(51, 65, 85, 0.6);
+      border: 1px solid var(--card-border);
       border-radius: 1.25rem;
       padding: 1.5rem;
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
     }
     .card-title {
       font-size: 1.125rem;
       font-weight: 700;
-      color: #f1f5f9;
+      color: var(--text-main);
       margin-bottom: 1.25rem;
       display: flex;
       align-items: center;
@@ -239,8 +298,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       }
     }
     .stat-item {
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid rgba(51, 65, 85, 0.4);
+      background: var(--stat-bg);
+      border: 1px solid var(--stat-border);
       padding: 1rem;
       border-radius: 0.875rem;
       display: flex;
@@ -272,11 +331,11 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     }
     .input-field {
       flex: 1;
-      background: #0f172a;
-      border: 1px solid #334155;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
       border-radius: 0.75rem;
       padding: 0.75rem 1rem;
-      color: #94a3b8;
+      color: var(--text-muted);
       font-family: monospace;
       font-size: 0.875rem;
       outline: none;
@@ -308,13 +367,13 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
     }
     .btn-secondary {
-      background: #1e293b;
-      color: #e2e8f0;
-      border: 1px solid #334155;
+      background: var(--btn-sec-bg);
+      color: var(--btn-sec-text);
+      border: 1px solid var(--btn-sec-border);
     }
     .btn-secondary:hover {
-      background: #334155;
-      color: #ffffff;
+      background: var(--btn-sec-hover);
+      color: var(--text-main);
     }
     .apps-grid {
       display: grid;
@@ -330,18 +389,18 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(30, 41, 59, 0.7);
-      border: 1px solid rgba(51, 65, 85, 0.5);
+      background: var(--app-btn-bg);
+      border: 1px solid var(--app-btn-border);
       border-radius: 0.875rem;
       padding: 0.875rem 1rem;
-      color: #f1f5f9;
+      color: var(--text-main);
       text-decoration: none;
       font-weight: 600;
       font-size: 0.9375rem;
       transition: all 0.2s ease;
     }
     .app-btn:hover {
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(56, 189, 248, 0.12);
       border-color: rgba(56, 189, 248, 0.4);
       color: #38bdf8;
       transform: translateY(-1px);
@@ -369,8 +428,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       }
     }
     .node-item {
-      background: rgba(30, 41, 59, 0.5);
-      border: 1px solid rgba(51, 65, 85, 0.4);
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
       border-radius: 0.875rem;
       padding: 1rem;
       display: flex;
@@ -386,12 +445,12 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     .node-title {
       font-weight: 700;
       font-size: 0.9375rem;
-      color: #f8fafc;
+      color: var(--text-main);
       margin-bottom: 0.25rem;
     }
     .node-sub {
       font-size: 0.75rem;
-      color: #94a3b8;
+      color: var(--text-muted);
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -431,8 +490,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       pointer-events: auto;
     }
     .modal-card {
-      background: #0f172a;
-      border: 1px solid #334155;
+      background: var(--modal-bg);
+      border: 1px solid var(--modal-border);
       border-radius: 1.5rem;
       padding: 1.75rem;
       max-width: 360px;
@@ -473,7 +532,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     .tabs {
       display: flex;
       gap: 0.5rem;
-      border-bottom: 1px solid #334155;
+      border-bottom: 1px solid var(--tab-border);
       padding-bottom: 0.75rem;
       margin-bottom: 1rem;
       overflow-x: auto;
@@ -481,7 +540,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     .tab-btn {
       background: transparent;
       border: none;
-      color: #94a3b8;
+      color: var(--text-muted);
       font-weight: 600;
       font-size: 0.875rem;
       padding: 0.5rem 0.75rem;
@@ -495,7 +554,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     }
     .instructions-content {
       font-size: 0.875rem;
-      color: #cbd5e1;
+      color: var(--text-main);
       line-height: 1.6;
     }
     .instructions-content ol {
@@ -505,7 +564,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       margin-bottom: 0.5rem;
     }
     .copy-code-btn {
-      background: rgba(30, 41, 59, 0.9);
+      background: var(--code-btn-bg);
       border: 1px solid rgba(56, 189, 248, 0.4);
       color: #38bdf8;
       padding: 0.25rem 0.6rem;
@@ -524,7 +583,20 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     .copy-code-btn:hover {
       background: rgba(56, 189, 248, 0.2);
       border-color: #38bdf8;
-      color: #ffffff;
+      color: var(--text-main);
+    }
+    @media (max-width: 480px) {
+      .logo {
+        font-size: 1.35rem;
+      }
+      .badge {
+        font-size: 0.6875rem;
+        padding: 0.15rem 0.45rem;
+      }
+      .theme-switcher-btn, .lang-switcher-btn {
+        padding: 0.25rem 0.45rem;
+        font-size: 0.75rem;
+      }
     }
   </style>
 </head>
@@ -540,20 +612,22 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       </div>
 
       <div class="header-right">
+        <!-- Theme Switcher Button -->
+        <button class="theme-switcher-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Switch Theme">
+          <span id="themeIcon">🌙</span>
+        </button>
+
         <!-- Language Switcher button in exact nada.mu landing style -->
         <button class="lang-switcher-btn" id="langToggleBtn" onclick="toggleLanguage()" title="Switch Language">
-          <span style="font-size: 1.125rem; line-height: 1;" id="langFlag">🇷🇺</span>
+          <span style="font-size: 1rem; line-height: 1;" id="langFlag">🇷🇺</span>
           <span id="langCode">RU</span>
         </button>
       </div>
     </header>
 
-    <!-- User Info Bar -->
+    <!-- User Info Bar (Centered, Single Client Name, No 'User' label) -->
     <div class="user-info-bar">
-      <h1 class="sub-title">${escapeHtml(subName)}</h1>
-      <div class="sub-user">
-        <span data-i18n="user_label">Пользователь:</span> ${escapeHtml(userName || 'User')}
-      </div>
+      <h1 class="sub-title">${escapeHtml(displayName)}</h1>
     </div>
 
     <!-- Main Responsive Grid -->
@@ -566,7 +640,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         <div class="card">
           <div class="card-title">
             <span data-i18n="traffic_title">📊 Использование трафика</span>
-            <span style="font-size: 0.75rem; font-weight: 500; color: #64748b;">
+            <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">
               <span data-i18n="updated_label">Обновлено:</span> ${lastFetchedStr}
             </span>
           </div>
@@ -630,7 +704,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
                 <img src="/icons/hiddify.png" alt="Hiddify" class="app-icon-img">
                 <div>
                   <div>Hiddify</div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Multi-platform</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">Multi-platform</div>
                 </div>
               </div>
               <span>→</span>
@@ -642,7 +716,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
                 <img src="/icons/clash.png" alt="Clash" class="app-icon-img">
                 <div>
                   <div>Clash</div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Windows / Mac / Linux</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">Windows / Mac / Linux</div>
                 </div>
               </div>
               <span>→</span>
@@ -654,7 +728,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
                 <img src="/icons/clash-android.png" alt="Clash Android" class="app-icon-img">
                 <div>
                   <div>Clash Android</div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Android</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">Android</div>
                 </div>
               </div>
               <span>→</span>
@@ -666,7 +740,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
                 <img src="/icons/karing.png" alt="Karing" class="app-icon-img">
                 <div>
                   <div>Karing</div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Multi-platform</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">Multi-platform</div>
                 </div>
               </div>
               <span>→</span>
@@ -678,7 +752,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
                 <img src="/icons/clashmi.png" alt="ClashMi" class="app-icon-img">
                 <div>
                   <div>ClashMi</div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS / Android / Mac</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">iOS / Android / Mac</div>
                 </div>
               </div>
               <span>→</span>
@@ -691,9 +765,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           <div class="card-title" data-i18n="how_to_connect">📖 Как настроить подключение</div>
           
           <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('androidTab', this)">Android</button>
-            <button class="tab-btn" onclick="switchTab('iosTab', this)">iOS</button>
-            <button class="tab-btn" onclick="switchTab('desktopTab', this)" data-i18n="tab_desktop">Windows / macOS / Linux</button>
+            <button class="tab-btn active" id="androidTabBtn" onclick="switchTab('androidTab', this)">Android</button>
+            <button class="tab-btn" id="iosTabBtn" onclick="switchTab('iosTab', this)">iOS</button>
+            <button class="tab-btn" id="desktopTabBtn" onclick="switchTab('desktopTab', this)" data-i18n="tab_desktop">Windows / macOS / Linux</button>
           </div>
 
           <div id="androidTab" class="tab-content instructions-content">
@@ -744,8 +818,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
               <!-- Node QR Modal -->
               <div class="modal-overlay" id="nodeQrModal_${index}">
                 <div class="modal-card">
-                  <h3 style="font-size: 1.125rem; font-weight: 700; color: #f8fafc;">${escapeHtml(node.nodeName)}</h3>
-                  <p style="font-size: 0.8125rem; color: #94a3b8; margin-top: 0.25rem;" data-i18n="scan_qr_desc">Отсканируйте в приложении VPN</p>
+                  <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-main);">${escapeHtml(node.nodeName)}</h3>
+                  <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.25rem;" data-i18n="scan_qr_desc">Отсканируйте в приложении VPN</p>
                   <div class="qr-container">${node.qrSvg}</div>
                   <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="closeModal('nodeQrModal_${index}')" data-i18n="close">Закрыть</button>
                 </div>
@@ -759,7 +833,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     </div>
 
     <!-- Footer -->
-    <footer style="text-align: center; font-size: 0.8125rem; color: #64748b; padding: 2rem 0 1rem 0;" id="footerText">
+    <footer style="text-align: center; font-size: 0.8125rem; color: var(--text-muted); padding: 2rem 0 1rem 0;" id="footerText">
       nada.mu &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение
     </footer>
 
@@ -768,8 +842,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
   <!-- Main QR Modal -->
   <div class="modal-overlay" id="mainQrModal">
     <div class="modal-card">
-      <h3 style="font-size: 1.125rem; font-weight: 700; color: #f8fafc;" data-i18n="qr_modal_title">QR-код подписки</h3>
-      <p style="font-size: 0.8125rem; color: #94a3b8; margin-top: 0.25rem;" data-i18n="scan_qr_desc">Отсканируйте сканером в VPN-клиенте</p>
+      <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-main);" data-i18n="qr_modal_title">QR-код подписки</h3>
+      <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.25rem;" data-i18n="scan_qr_desc">Отсканируйте сканером в VPN-клиенте</p>
       <div class="qr-container">${subQrSvg}</div>
       <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="closeModal('mainQrModal')" data-i18n="close">Закрыть</button>
     </div>
@@ -784,7 +858,6 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     const i18n = {
       ru: {
         status_active: "Подписка активна",
-        user_label: "Пользователь:",
         traffic_title: "📊 Использование трафика",
         updated_label: "Обновлено:",
         downloaded: "Скачано",
@@ -805,7 +878,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS-ссылка скопирована!",
         copied_toast: "Скопировано в буфер обмена!",
         android_steps: [
-          "Установите клиенты или из GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/MetaCubeX/ClashMetaForAndroid/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash Android</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> или из <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Установите клиенты или из GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/MetaCubeX/ClashMetaForAndroid/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> или из <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
           "Нажмите кнопку нужного приложения выше на этой странице или скопируйте ссылку подписки.",
           "В приложении нажмите <strong>«Новый профиль»</strong> → <strong>«Добавить из буфера обмена»</strong>.",
           "Включите системный прокси / TUN-режим."
@@ -825,7 +898,6 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       },
       en: {
         status_active: "Subscription Active",
-        user_label: "User:",
         traffic_title: "📊 Traffic Usage",
         updated_label: "Updated:",
         downloaded: "Downloaded",
@@ -846,7 +918,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         copied_vless: "VLESS link copied!",
         copied_toast: "Copied to clipboard!",
         android_steps: [
-          "Install clients either from GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/MetaCubeX/ClashMetaForAndroid/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash Android</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> or from <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
+          "Install clients either from GitHub: <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a>, <a href='https://github.com/MetaCubeX/ClashMetaForAndroid/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>, <a href='https://github.com/KaringX/clashmi/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>ClashMi</a> or from <a href='https://play.google.com/store/apps/details?id=app.hiddify.com' target='_blank' style='color:#38bdf8; font-weight:600;'>Google Play</a>.",
           "Tap the app button above or copy subscription link.",
           "In the app, tap <strong>«New Profile»</strong> → <strong>«Add from Clipboard»</strong>.",
           "Enable system proxy / TUN mode."
@@ -867,12 +939,64 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     };
 
     let currentLang = 'ru';
+    let currentTheme = 'dark';
 
     function getCookie(name) {
       const value = \`; \${document.cookie}\`;
       const parts = value.split(\`; \${name}=\`);
       if (parts.length === 2) return parts.pop().split(';').shift();
       return null;
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('sub_theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        currentTheme = savedTheme;
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        currentTheme = 'light';
+      }
+      applyTheme(currentTheme);
+    }
+
+    function toggleTheme() {
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(newTheme);
+    }
+
+    function applyTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('sub_theme', theme);
+      const iconEl = document.getElementById('themeIcon');
+
+      if (theme === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        if (iconEl) iconEl.innerText = '☀️';
+      } else {
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+        if (iconEl) iconEl.innerText = '🌙';
+      }
+    }
+
+    function detectAndSetOS() {
+      const ua = navigator.userAgent.toLowerCase();
+      const platform = (navigator.platform || '').toLowerCase();
+
+      let targetTab = 'desktopTab';
+      let targetBtn = document.getElementById('desktopTabBtn');
+
+      if (/android/i.test(ua)) {
+        targetTab = 'androidTab';
+        targetBtn = document.getElementById('androidTabBtn');
+      } else if (/iphone|ipad|ipod/i.test(ua) || (platform.includes('mac') && navigator.maxTouchPoints > 1)) {
+        targetTab = 'iosTab';
+        targetBtn = document.getElementById('iosTabBtn');
+      }
+
+      if (targetBtn) {
+        switchTab(targetTab, targetBtn);
+      }
     }
 
     function initLanguage() {
@@ -982,7 +1106,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       });
     });
 
+    initTheme();
     initLanguage();
+    detectAndSetOS();
   </script>
 </body>
 </html>`;
