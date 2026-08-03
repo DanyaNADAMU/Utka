@@ -218,8 +218,10 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     .header-right {
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       gap: 0.5rem;
       flex-shrink: 0;
+      margin-left: auto;
     }
     .theme-switcher-btn, .lang-switcher-btn {
       display: inline-flex;
@@ -586,12 +588,18 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       color: var(--text-main);
     }
     @media (max-width: 480px) {
+      .header {
+        gap: 0.375rem;
+      }
       .logo {
         font-size: 1.35rem;
       }
       .badge {
         font-size: 0.6875rem;
         padding: 0.15rem 0.45rem;
+      }
+      .header-right {
+        margin-left: auto;
       }
       .theme-switcher-btn, .lang-switcher-btn {
         padding: 0.25rem 0.45rem;
@@ -952,8 +960,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       const savedTheme = localStorage.getItem('sub_theme');
       if (savedTheme === 'light' || savedTheme === 'dark') {
         currentTheme = savedTheme;
-      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        currentTheme = 'light';
+      } else {
+        const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        currentTheme = prefersLight ? 'light' : 'dark';
       }
       applyTheme(currentTheme);
     }
@@ -1011,8 +1020,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         currentLang = cookieLang;
       } else if (savedLang === 'en' || savedLang === 'ru') {
         currentLang = savedLang;
-      } else if (navigator.language && navigator.language.startsWith('en')) {
-        currentLang = 'en';
+      } else {
+        const sysLang = (navigator.language || (navigator.languages && navigator.languages[0]) || '').toLowerCase();
+        currentLang = sysLang.startsWith('ru') ? 'ru' : 'en';
       }
 
       applyLanguage(currentLang);
