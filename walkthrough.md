@@ -4,24 +4,18 @@
 
 ## Изменения
 
-### 1. `src/lib/subPageTemplate.ts` [NEW]
-- **Графические иконки клиентов из `/home/danya/Projects/icons/ProxyVPN Client Icons/`**:
-  - `Hiddify128.png`, `Clash128.png`, `Karing128.png` вшиты в Data URI Base64.
-- **Обновленный список клиентов**:
-  - Удалены Sing-Box и Shadowrocket.
-  - Добавлен клиент **Karing** (`karing://import/...`).
-- **Инструкция для Linux**:
-  - Добавлена новая вкладка **Linux** в инструкции.
-  - Содержит ссылки на актуальные релизы GitHub для Clash Verge Rev, Hiddify и Karing, подсказку по импорту ссылки подписки и включению TUN-режима.
-- **Единый свичор языка (как на nada.mu)**:
-  - Кнопка с флагом `🇷🇺 RU` / `🇬🇧 EN` в стиле лендинга.
-- **Иконки трафика (как в `/admin`)**:
-  - 🟢 **Downloaded** (Зеленый, `ArrowDown`).
-  - 🔵 **Uploaded** (Синий, `ArrowUp`).
-  - 🟣 **Total** (Фиолетовый, `Activity`).
-  - Числа трафика выровнены по центру.
+### 1. `public/icons/` [NEW]
+- В папку `public/icons/` добавлены графические PNG-логотипы (`hiddify.png`, `clash.png`, `karing.png`), скопированные из `/home/danya/Projects/icons/ProxyVPN Client Icons/`.
+- Обеспечено 100% надежное отображение иконок в браузере.
 
-### 2. `src/app/[...slug]/route.ts` [MODIFY]
+### 2. `src/lib/subPageTemplate.ts` [MODIFY]
+- **Названия клиентов**: Изменены строго на **Hiddify**, **Clash**, **Karing**.
+- **Объединенные ПК-инструкции**:
+  - Вкладки Windows, macOS и Linux объединены в единый раздел **Windows / macOS / Linux**.
+  - В инструкции «Clash Verge Rev» переименован в **Clash**.
+  - Ссылка подписки в тексте второго шага выполнена в виде кликабельной интерактивной кнопки (`<code>`), при клике на которую ссылка мгновенно скопируется в буфер обмена с всплывающим тостом.
+
+### 3. `src/app/[...slug]/route.ts` [MODIFY]
 - Интеллектуальное автоопределение запросов (`Accept: text/html` vs VPN-клиенты).
 - Автоматическая очистка неактуальных инбаундов из базы данных.
 
