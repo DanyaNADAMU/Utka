@@ -614,7 +614,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           
           <div class="sub-input-group">
             <input type="text" readonly value="${safeHtmlSubUrl}" class="input-field" id="subUrlInput">
-            <button class="btn btn-primary" onclick="copyToClipboard('${safeJsSubUrl}', 'copied_sub')">
+            <button class="btn btn-primary" onclick="copySubLink()">
               <span data-i18n="copy">📋 Копировать</span>
             </button>
             <button class="btn btn-secondary" onclick="openModal('mainQrModal')">
@@ -754,6 +754,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
   <div class="toast" id="toast">Ссылка скопирована!</div>
 
   <script>
+    const globalSubUrl = "${safeJsSubUrl}";
+
     const i18n = {
       ru: {
         status_active: "Подписка активна",
@@ -791,7 +793,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         ],
         desktop_steps: [
           "Установите <a href='https://github.com/clash-verge-rev/clash-verge-rev/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> или <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>.",
-          "Скопируйте ссылку подписки: <button class='copy-code-btn' onclick='copyToClipboard(\"${safeJsSubUrl}\", \"copied_sub\")' title='Нажмите для копирования'>${safeHtmlSubUrl} 📋</button> и вставьте в раздел «Подписки / Profiles».",
+          "Скопируйте ссылку подписки: <button class='copy-code-btn' onclick='copySubLink()' title='Нажмите для копирования'>${safeHtmlSubUrl} 📋</button> и вставьте в раздел «Подписки / Profiles».",
           "Включите системный прокси / TUN-режим."
         ],
         footer: "nada.mu &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение"
@@ -832,7 +834,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         ],
         desktop_steps: [
           "Install <a href='https://github.com/clash-verge-rev/clash-verge-rev/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Clash</a>, <a href='https://github.com/hiddify/hiddify-app/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Hiddify</a> or <a href='https://github.com/KaringX/karing/releases/latest' target='_blank' style='color:#38bdf8; font-weight:600;'>Karing</a>.",
-          "Copy subscription link: <button class='copy-code-btn' onclick='copyToClipboard(\"${safeJsSubUrl}\", \"copied_sub\")' title='Click to copy'>${safeHtmlSubUrl} 📋</button> and paste into «Profiles» section.",
+          "Copy subscription link: <button class='copy-code-btn' onclick='copySubLink()' title='Click to copy'>${safeHtmlSubUrl} 📋</button> and paste into «Profiles» section.",
           "Enable system proxy / TUN mode."
         ],
         footer: "nada.mu &copy; ${new Date().getFullYear()} &bull; Fast & Secure Connection"
@@ -903,6 +905,10 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       const el = document.getElementById(elementId);
       if (!el || !steps) return;
       el.innerHTML = steps.map(step => \`<li>\${step}</li>\`).join('');
+    }
+
+    function copySubLink() {
+      copyToClipboard(globalSubUrl, 'copied_sub');
     }
 
     function copyToClipboard(text, key) {
