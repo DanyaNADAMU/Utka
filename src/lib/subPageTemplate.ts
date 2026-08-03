@@ -87,7 +87,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
 <html lang="ru" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>${escapeHtml(displayName)} | nada.mu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -151,6 +151,11 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       padding: 0;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
     body {
       background-color: var(--bg-main);
       color: var(--text-main);
@@ -163,7 +168,6 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         radial-gradient(circle at 50% 0%, var(--bg-grad-1) 0%, transparent 50%),
         radial-gradient(circle at 100% 100%, var(--bg-grad-2) 0%, transparent 40%);
       transition: background-color 0.3s ease, color 0.3s ease;
-      overflow-x: hidden;
     }
     .container {
       width: 100%;
@@ -255,6 +259,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       font-weight: 800;
       color: var(--text-main);
       letter-spacing: -0.02em;
+      word-break: break-word;
     }
     .main-grid {
       display: grid;
@@ -272,6 +277,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      min-width: 0;
     }
     .card {
       background: var(--card-bg);
@@ -282,6 +288,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       padding: 1.5rem;
       box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
       transition: background-color 0.3s ease, border-color 0.3s ease;
+      min-width: 0;
+      overflow: hidden;
     }
     .card-title {
       font-size: 1.125rem;
@@ -291,6 +299,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
     .stats-grid {
       display: grid;
@@ -311,6 +321,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       flex-direction: column;
       align-items: center;
       text-align: center;
+      min-width: 0;
     }
     .stat-header {
       display: flex;
@@ -333,6 +344,20 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       gap: 0.5rem;
       margin-bottom: 1.25rem;
+      min-width: 0;
+    }
+    @media (max-width: 640px) {
+      .sub-input-group {
+        flex-direction: column;
+      }
+      .sub-input-group-btns {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      .sub-input-group-btns .btn {
+        flex: 1;
+      }
     }
     .input-field {
       flex: 1;
@@ -347,6 +372,8 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      min-width: 0;
+      width: 100%;
     }
     .btn {
       display: inline-flex;
@@ -403,6 +430,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       font-weight: 600;
       font-size: 0.9375rem;
       transition: all 0.2s ease;
+      min-width: 0;
     }
     .app-btn:hover {
       background: rgba(56, 189, 248, 0.12);
@@ -414,6 +442,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      min-width: 0;
     }
     .app-icon-img {
       width: 2.25rem;
@@ -441,17 +470,20 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       flex-direction: column;
       justify-content: space-between;
       gap: 0.875rem;
+      min-width: 0;
     }
     .node-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      min-width: 0;
     }
     .node-title {
       font-weight: 700;
       font-size: 0.9375rem;
       color: var(--text-main);
       margin-bottom: 0.25rem;
+      word-break: break-word;
     }
     .node-sub {
       font-size: 0.75rem;
@@ -459,6 +491,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
     .tag-pill {
       background: rgba(168, 85, 247, 0.15);
@@ -567,6 +600,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
     }
     .instructions-content li {
       margin-bottom: 0.5rem;
+      word-break: break-word;
     }
     .copy-code-btn {
       background: var(--code-btn-bg);
@@ -584,6 +618,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       align-items: center;
       gap: 0.375rem;
       margin: 0.25rem 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .copy-code-btn:hover {
       background: rgba(56, 189, 248, 0.2);
@@ -604,11 +641,17 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       body {
         padding: 1rem 0.75rem;
       }
+      .card {
+        padding: 1rem;
+      }
       .header {
         gap: 0.375rem;
       }
       .logo {
         font-size: 1.35rem;
+      }
+      .sub-title {
+        font-size: 1.5rem;
       }
       .header-right {
         margin-left: auto;
@@ -709,12 +752,14 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           
           <div class="sub-input-group">
             <input type="text" readonly value="${safeHtmlSubUrl}" class="input-field" id="subUrlInput">
-            <button class="btn btn-primary" onclick="copySubLink()">
-              <span data-i18n="copy">📋 Копировать</span>
-            </button>
-            <button class="btn btn-secondary" onclick="openModal('mainQrModal')">
-              <span data-i18n="qr_code">📱 QR-код</span>
-            </button>
+            <div class="sub-input-group-btns">
+              <button class="btn btn-primary" onclick="copySubLink()">
+                <span data-i18n="copy">📋 Копировать</span>
+              </button>
+              <button class="btn btn-secondary" onclick="openModal('mainQrModal')">
+                <span data-i18n="qr_code">📱 QR-код</span>
+              </button>
+            </div>
           </div>
 
           <div class="apps-grid">
