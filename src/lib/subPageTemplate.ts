@@ -159,28 +159,25 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       align-items: center;
       gap: 1rem;
     }
-    .lang-switcher {
-      display: flex;
-      background: rgba(30, 41, 59, 0.8);
-      border: 1px solid rgba(51, 65, 85, 0.6);
-      border-radius: 0.75rem;
-      padding: 0.25rem;
-      gap: 0.25rem;
-    }
-    .lang-btn {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      font-weight: 700;
-      font-size: 0.8125rem;
+    /* Language Switcher matching nada.mu landing page style */
+    .lang-switcher-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
       padding: 0.375rem 0.75rem;
-      border-radius: 0.5rem;
+      border-radius: 0.375rem;
+      background: transparent;
+      border: 1px solid rgba(51, 65, 85, 0.5);
+      color: #cbd5e1;
+      font-weight: 600;
+      font-size: 0.875rem;
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    .lang-btn.active {
-      background: #38bdf8;
-      color: #0f172a;
+    .lang-switcher-btn:hover {
+      background: rgba(30, 41, 59, 0.8);
+      color: #ffffff;
+      border-color: rgba(51, 65, 85, 0.8);
     }
     .user-info-bar {
       margin-bottom: 1.5rem;
@@ -244,19 +241,27 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       border: 1px solid rgba(51, 65, 85, 0.4);
       padding: 1rem;
       border-radius: 0.875rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
-    .stat-label {
+    .stat-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
       font-size: 0.75rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #94a3b8;
-      margin-bottom: 0.375rem;
     }
     .stat-value {
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: 700;
-      color: #38bdf8;
+      margin-top: 0.5rem;
+      text-align: center;
+      width: 100%;
     }
     .sub-input-group {
       display: flex;
@@ -345,14 +350,18 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       gap: 0.75rem;
     }
     .app-icon {
-      width: 2rem;
-      height: 2rem;
-      border-radius: 0.5rem;
-      background: rgba(56, 189, 248, 0.15);
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 0.625rem;
+      background: rgba(56, 189, 248, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.125rem;
+      flex-shrink: 0;
+    }
+    .app-icon svg {
+      width: 1.35rem;
+      height: 1.35rem;
     }
     .nodes-grid {
       display: grid;
@@ -514,10 +523,11 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       </div>
 
       <div class="header-right">
-        <div class="lang-switcher">
-          <button class="lang-btn active" id="langRuBtn" onclick="setLanguage('ru')">RU</button>
-          <button class="lang-btn" id="langEnBtn" onclick="setLanguage('en')">EN</button>
-        </div>
+        <!-- Language Switcher button in exact nada.mu landing style -->
+        <button class="lang-switcher-btn" id="langToggleBtn" onclick="toggleLanguage()" title="Switch Language">
+          <span style="font-size: 1.125rem; line-height: 1;" id="langFlag">🇷🇺</span>
+          <span id="langCode">RU</span>
+        </button>
       </div>
     </header>
 
@@ -535,7 +545,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
       <!-- Left Column -->
       <div class="grid-col">
         
-        <!-- Traffic Stats Card -->
+        <!-- Traffic Stats Card (Ordered: Downloaded -> Uploaded -> Total, matching /admin) -->
         <div class="card">
           <div class="card-title">
             <span data-i18n="traffic_title">📊 Использование трафика</span>
@@ -545,17 +555,39 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           </div>
           
           <div class="stats-grid">
+            <!-- 1. Downloaded (Green ArrowDown, matching /admin) -->
             <div class="stat-item">
-              <div class="stat-label" data-i18n="total_traffic">Всего трафика</div>
-              <div class="stat-value">${formatBytes(trafficTotal)}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label" data-i18n="downloaded">Загружено (Down)</div>
+              <div class="stat-header" style="color: #4ade80;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+                <span data-i18n="downloaded">Downloaded</span>
+              </div>
               <div class="stat-value" style="color: #4ade80;">${formatBytes(trafficDown)}</div>
             </div>
+
+            <!-- 2. Uploaded (Blue ArrowUp, matching /admin) -->
             <div class="stat-item">
-              <div class="stat-label" data-i18n="uploaded">Отправлено (Up)</div>
-              <div class="stat-value" style="color: #c084fc;">${formatBytes(trafficUp)}</div>
+              <div class="stat-header" style="color: #60a5fa;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+                <span data-i18n="uploaded">Uploaded</span>
+              </div>
+              <div class="stat-value" style="color: #60a5fa;">${formatBytes(trafficUp)}</div>
+            </div>
+
+            <!-- 3. Total (Purple Activity Chart, matching /admin) -->
+            <div class="stat-item">
+              <div class="stat-header" style="color: #c084fc;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+                <span data-i18n="total_traffic">Total</span>
+              </div>
+              <div class="stat-value" style="color: #c084fc;">${formatBytes(trafficTotal)}</div>
             </div>
           </div>
         </div>
@@ -575,9 +607,15 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           </div>
 
           <div class="apps-grid">
+            <!-- Hiddify Official Vector Icon -->
             <a href="${escapeHtml(hiddifyUrl)}" class="app-btn">
               <div class="app-info">
-                <div class="app-icon">🚀</div>
+                <div class="app-icon" style="background: rgba(56, 189, 248, 0.15);">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L3 7V12C3 17.52 7.02 21.74 12 23C16.98 21.74 21 17.52 21 12V7L12 2Z" fill="#38BDF8" fill-opacity="0.2" stroke="#38BDF8" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M12 6L14.5 11H17.5L13.5 14L15 19L12 16L9 19L10.5 14L6.5 11H9.5L12 6Z" fill="#38BDF8"/>
+                  </svg>
+                </div>
                 <div>
                   <div>Hiddify Next</div>
                   <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Multi-platform</div>
@@ -586,9 +624,14 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
               <span>→</span>
             </a>
 
+            <!-- Clash / Verge Official Vector Icon -->
             <a href="${escapeHtml(clashUrl)}" class="app-btn">
               <div class="app-info">
-                <div class="app-icon">🐱</div>
+                <div class="app-icon" style="background: rgba(168, 85, 247, 0.15);">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4C7.58 4 4 7.58 4 12C4 16.42 7.58 20 12 20C16.42 20 20 16.42 20 12C20 7.58 16.42 4 12 4ZM7.5 9.5C8.33 9.5 9 10.17 9 11C9 11.83 8.33 12.5 7.5 12.5C6.67 12.5 6 11.83 6 11C6 10.17 6.67 9.5 7.5 9.5ZM16.5 12.5C15.67 12.5 15 11.83 15 11C15 10.17 15.67 9.5 16.5 9.5C17.33 9.5 18 10.17 18 11C18 11.83 17.33 12.5 16.5 12.5ZM12 17.5C9.67 17.5 7.75 16.03 7.14 14H16.86C16.25 16.03 14.33 17.5 12 17.5Z" fill="#C084FC"/>
+                  </svg>
+                </div>
                 <div>
                   <div>Clash / Verge</div>
                   <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">Windows / Mac</div>
@@ -597,9 +640,14 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
               <span>→</span>
             </a>
 
+            <!-- Sing-Box Official Vector Icon -->
             <a href="${escapeHtml(singboxUrl)}" class="app-btn">
               <div class="app-info">
-                <div class="app-icon">📦</div>
+                <div class="app-icon" style="background: rgba(52, 211, 153, 0.15);">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.41 21.91 12.21 21.96 12.01 21.96C11.81 21.96 11.61 21.91 11.45 21.82L3.55 17.38C3.23 17.21 3.02 16.88 3.02 16.5V7.5C3.02 7.12 3.23 6.79 3.55 6.62L11.45 2.18C11.77 2 12.25 2 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5ZM12 4.15L5.27 7.9L12 11.66L18.73 7.9L12 4.15Z" fill="#34D399"/>
+                  </svg>
+                </div>
                 <div>
                   <div>Sing-Box</div>
                   <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS / Android</div>
@@ -608,9 +656,14 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
               <span>→</span>
             </a>
 
+            <!-- Shadowrocket Official Vector Icon -->
             <a href="${escapeHtml(shadowrocketUrl)}" class="app-btn">
               <div class="app-info">
-                <div class="app-icon">🚀</div>
+                <div class="app-icon" style="background: rgba(251, 146, 60, 0.15);">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2.5C12 2.5 17 6.5 17 13.5C17 16.5 15.5 19.5 15.5 19.5L12 17.5L8.5 19.5C8.5 19.5 7 16.5 7 13.5C7 6.5 12 2.5 12 2.5ZM12 11.5C13.1 11.5 14 10.6 14 9.5C14 8.4 13.1 7.5 12 7.5C10.9 7.5 10 8.4 10 9.5C10 10.6 10.9 11.5 12 11.5Z" fill="#FB923C"/>
+                  </svg>
+                </div>
                 <div>
                   <div>Shadowrocket</div>
                   <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">iOS</div>
@@ -725,9 +778,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         user_label: "Пользователь:",
         traffic_title: "📊 Использование трафика",
         updated_label: "Обновлено:",
-        total_traffic: "Всего трафика",
-        downloaded: "Загружено (Down)",
-        uploaded: "Отправлено (Up)",
+        downloaded: "Скачано",
+        uploaded: "Загружено",
+        total_traffic: "Всего",
         quick_connect: "🚀 Быстрое подключение",
         copy: "📋 Копировать",
         qr_code: "📱 QR-код",
@@ -771,9 +824,9 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
         user_label: "User:",
         traffic_title: "📊 Traffic Usage",
         updated_label: "Updated:",
-        total_traffic: "Total Traffic",
-        downloaded: "Downloaded (Down)",
-        uploaded: "Uploaded (Up)",
+        downloaded: "Downloaded",
+        uploaded: "Uploaded",
+        total_traffic: "Total",
         quick_connect: "🚀 Quick Connect",
         copy: "📋 Copy",
         qr_code: "📱 QR Code",
@@ -816,29 +869,47 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
 
     let currentLang = 'ru';
 
+    function getCookie(name) {
+      const value = \`; \${document.cookie}\`;
+      const parts = value.split(\`; \${name}=\`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
     function initLanguage() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlLang = urlParams.get('lang');
+      const cookieLang = getCookie('NEXT_LOCALE');
       const savedLang = localStorage.getItem('sub_lang');
       
       if (urlLang === 'en' || urlLang === 'ru') {
         currentLang = urlLang;
+      } else if (cookieLang === 'en' || cookieLang === 'ru') {
+        currentLang = cookieLang;
       } else if (savedLang === 'en' || savedLang === 'ru') {
         currentLang = savedLang;
       } else if (navigator.language && navigator.language.startsWith('en')) {
         currentLang = 'en';
       }
 
-      setLanguage(currentLang);
+      applyLanguage(currentLang);
     }
 
-    function setLanguage(lang) {
+    function toggleLanguage() {
+      const newLang = currentLang === 'ru' ? 'en' : 'ru';
+      applyLanguage(newLang);
+    }
+
+    function applyLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('sub_lang', lang);
+      document.cookie = \`NEXT_LOCALE=\${lang}; path=/; max-age=31536000\`;
       document.documentElement.lang = lang;
 
-      document.getElementById('langRuBtn').classList.toggle('active', lang === 'ru');
-      document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+      const flagEl = document.getElementById('langFlag');
+      const codeEl = document.getElementById('langCode');
+      if (flagEl) flagEl.innerText = lang === 'ru' ? '🇷🇺' : '🇬🇧';
+      if (codeEl) codeEl.innerText = lang === 'ru' ? 'RU' : 'EN';
 
       const dict = i18n[lang] || i18n.ru;
 
