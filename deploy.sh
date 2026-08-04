@@ -10,14 +10,13 @@ if [ -f .env ]; then
   export $(cat .env | grep -v '^#' | xargs)
 fi
 
-BUILD_SSH_TARGET=${BUILD_SSH_TARGET:-"berg-nadamudash"}
-DEPLOY_SSH_TARGET=${DEPLOY_SSH_TARGET:-"glacier-nadamudash"}
+SERVER_SSH_TARGET=${SERVER_SSH_TARGET:-${SSH_TARGET:-"berg-nadamudash"}}
 IMAGE_NAME="ghcr.io/danyanadamu/nadamudash:latest"
 BUILD_CMD="sudo /usr/local/bin/build-nadamudash"
 DEPLOY_CMD="sudo /usr/local/bin/deploy-nadamudash"
 
 # Parse arguments
-MODE="--server" # Default mode
+MODE="--server"
 COMMIT_MSG=""
 
 for arg in "$@"; do
@@ -32,54 +31,87 @@ if [ -z "$COMMIT_MSG" ]; then
   echo "❌ Error: A commit message is required."
   echo "Usage: ./deploy.sh [--gha|--local|--server] \"your commit message\""
   echo ""
-  echo "  --server   (Default) Build image on Build Server ($BUILD_SSH_TARGET), push to GHCR, and deploy on Server ($DEPLOY_SSH_TARGET)."
-  echo "  --local    Build image locally, push to GHCR, and deploy on Server ($DEPLOY_SSH_TARGET)."
-  echo "  --gha      Wait for GitHub Actions to build & push image, then deploy on Server ($DEPLOY_SSH_TARGET)."
+  echo "  --server   (Default) Push git -> Build on Berg -> Deploy on Berg"
+  echo "  --local    Build locally -> Push image -> Deploy immediately -> Sync Git"
+  echo "  --gha      Push git -> Wait GHA -> Deploy immediately -> Sync server repo"
   exit 1
 fi
 
-echo "==========================================="
-echo "📦 1. Commit & Push code to GitHub"
-echo "==========================================="
-if [ -n "$(git status --porcelain)" ]; then
-  git add .
-  git commit -m "$COMMIT_MSG"
-else
-  echo "⚠️ No changes to commit, but proceeding with deployment..."
-fi
+sync_git() {
+  echo "==========================================="
+  echo "📦 Git Sync: Commit & Push to GitHub"
+  echo "==========================================="
+  if [ -n "$(git status --porcelain)" ]; then
+    git add .
+    git commit -m "$COMMIT_MSG"
+  fi
+  git pull origin main --rebase || true
+  git push origin main
+  echo "✅ Code synced with GitHub."
+}
 
-echo "🔄 Pulling latest changes from GitHub..."
-git pull origin main --rebase || true
-git push origin main
-echo "✅ Code synced with GitHub."
+trigger_deploy() {
+  echo "==========================================="
+  echo "🚀 Triggering Server Deployment ($SERVER_SSH_TARGET)"
+  echo "==========================================="
+  ssh $SERVER_SSH_TARGET "$DEPLOY_CMD"
+}
 
-echo ""
-echo "==========================================="
-echo "⚙️ 2. Build & Push Image"
-echo "==========================================="
+sync_server_repo() {
+  echo "==========================================="
+  echo "🔄 Syncing Repository on Server (/opt/repos/nadamudash)"
+  echo "==========================================="
+  ssh $SERVER_SSH_TARGET "if [ -d /opt/repos/nadamudash ]; then cd /opt/repos/nadamudash && git pull origin main; fi" || true
+}
+
+# --- Execution Flow based on MODE ---
 
 if [ "$MODE" == "--local" ]; then
-  echo "🚀 Building local Docker image..."
+  echo "⚡ Mode: Local Build (Fastest Deployment)"
+  
+  echo "==========================================="
+  echo "🔨 Building Docker image locally..."
+  echo "==========================================="
   DOCKER_BUILDKIT=1 docker build -t $IMAGE_NAME .
-  echo "📤 Pushing to GHCR..."
+  
+  echo "📤 Pushing image to GHCR..."
   docker push $IMAGE_NAME
+  
+  # 🚀 Deploy immediately after image is pushed!
+  trigger_deploy
+  
+  # Post-deploy git sync
+  sync_git
+  sync_server_repo
+
 elif [ "$MODE" == "--gha" ]; then
-  echo "⏳ GitHub Actions is currently building and pushing the image."
-  echo "👉 Please wait for the GitHub Action to complete on github.com."
-  echo "Press [ENTER] when you are ready to trigger deployment..."
+  echo "⚡ Mode: GitHub Actions Build"
+  
+  sync_git
+  
+  echo "⏳ GitHub Actions is building the image on GitHub..."
+  echo "Press [ENTER] when GHA build finishes to trigger server deployment..."
   read
+  
+  trigger_deploy
+  sync_server_repo
+
 else
-  echo "🚀 Building image on Build Server Berg ($BUILD_SSH_TARGET)..."
-  ssh $BUILD_SSH_TARGET "$BUILD_CMD"
+  echo "⚡ Mode: Server Build on Berg"
+  
+  sync_git
+  
+  echo "==========================================="
+  echo "🔨 Building image on Berg ($SERVER_SSH_TARGET)..."
+  echo "==========================================="
+  ssh $SERVER_SSH_TARGET "$BUILD_CMD"
+  
+  trigger_deploy
 fi
 
 echo ""
 echo "==========================================="
-echo "🔄 3. Trigger Deployment ($DEPLOY_SSH_TARGET)"
+echo "✅ All done! Deployment complete."
 echo "==========================================="
-ssh $DEPLOY_SSH_TARGET "$DEPLOY_CMD"
 
-echo ""
-echo "==========================================="
-echo "✅ Deployment complete!"
-echo "==========================================="
+
