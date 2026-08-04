@@ -168,12 +168,12 @@
         "realityPrivKey": "REALITY Private Key (auto-generated)",
         "realityShortId": "REALITY Short ID (auto-generated)",
         "isActive": "Node is active (participates in traffic distribution)",
-        "reported_config": "Reported Config",
+        "reported_config": "Xray Configuration",
         "basic_info": "Basic Information",
         "reality_settings": "REALITY Settings",
         "raw_format": "Raw File Format",
-        "no_config": "No config reported yet",
-        "no_config_help": "Make sure the Node Agent is running on the node server and has MASTER_URL and NODE_ID set in its .env file."
+        "no_config": "Xray Configuration",
+        "no_config_help": "Copy this configuration into /etc/xray/config.json on the node server."
       },
       "instructions": "Setup Instructions",
       "instructions_title": "Xray Setup Instructions for Node",

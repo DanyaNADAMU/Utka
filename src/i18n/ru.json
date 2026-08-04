@@ -168,12 +168,12 @@
         "realityPrivKey": "REALITY Private Key (автогенерация)",
         "realityShortId": "REALITY Short ID (автогенерация)",
         "isActive": "Узел активен (участвует в распределении трафика)",
-        "reported_config": "Полученный конфиг",
+        "reported_config": "Конфигурация Xray",
         "basic_info": "Основная информация",
         "reality_settings": "Настройки REALITY",
         "raw_format": "Сырой текстовый формат",
-        "no_config": "Конфиг еще не получен",
-        "no_config_help": "Убедитесь, что Node Agent запущен на сервере узла, и в файле .env указаны корректные MASTER_URL и NODE_ID."
+        "no_config": "Конфигурация Xray",
+        "no_config_help": "Скопируйте эту конфигурацию в файл /etc/xray/config.json на сервере ноды."
       },
       "instructions": "Инструкция по настройке",
       "instructions_title": "Инструкции по настройке Xray для узела",

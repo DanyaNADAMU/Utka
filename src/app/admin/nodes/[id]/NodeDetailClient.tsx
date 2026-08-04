@@ -10,15 +10,28 @@ import Link from 'next/link';
 export default function NodeDetailClient({
   node,
   dict,
-  initialIsOnline
+  initialIsOnline,
+  configSnippet
 }: {
   node: Node;
   dict: any;
   initialIsOnline: boolean;
+  configSnippet?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState<'general' | 'config'>('general');
+  const [copied, setCopied] = useState(false);
+
+  const displayConfig = configSnippet || (typeof node.xrayConfig === 'string' ? node.xrayConfig : JSON.stringify(node.xrayConfig, null, 2)) || '';
+
+  const handleCopy = () => {
+    if (displayConfig) {
+      navigator.clipboard.writeText(displayConfig);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: node.name,
@@ -148,7 +161,7 @@ export default function NodeDetailClient({
           }`}
         >
           <Terminal size={18} />
-          <span>{dict.admin.nodes.form?.reported_config || 'Reported Config'}</span>
+          <span>{dict.admin.nodes.form?.reported_config || 'Xray Configuration'}</span>
         </button>
       </div>
 
@@ -213,9 +226,9 @@ export default function NodeDetailClient({
                         value={formData.adminUuid}
                         onChange={(e) => setFormData({ ...formData, adminUuid: e.target.value })}
                         className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-emerald-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono text-sm"
-                        placeholder="UUID for config sync"
+                        placeholder="UUID for gRPC tunnel"
                       />
-                      <p className="text-xs text-slate-500 mt-2">This UUID is used as the shared secret (token) to report the config from the node to the master.</p>
+                      <p className="text-xs text-slate-500 mt-2">This UUID is used for the REALITY gRPC tunnel between Master and Node.</p>
                     </div>
                   </div>
                 </div>
@@ -285,37 +298,30 @@ export default function NodeDetailClient({
           </form>
         ) : (
           <div className="p-0">
-            {node.xrayConfig ? (
-              (() => {
-                let displayConfig = node.xrayConfig as string;
-                try {
-                  const parsed = JSON.parse(displayConfig);
-                  if (typeof parsed === 'string') {
-                    displayConfig = parsed;
-                  } else {
-                    displayConfig = JSON.stringify(parsed, null, 2);
-                  }
-                } catch (e) {}
-
-                return (
-                  <div className="relative">
-                    <div className="absolute top-4 right-4 flex space-x-2">
-                      <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md">
-                        {dict.admin.nodes.form?.raw_format || 'Raw File Format'}
-                      </span>
-                    </div>
-                    <pre className="p-8 bg-slate-950 text-emerald-400 font-mono text-sm overflow-x-auto min-h-[500px]">
-                      <code>{displayConfig}</code>
-                    </pre>
-                  </div>
-                );
-              })()
+            {displayConfig ? (
+              <div className="relative">
+                <div className="absolute top-4 right-4 flex space-x-2 z-10">
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all"
+                  >
+                    {copied ? (dict.admin.nodes?.copied || 'Copied!') : (dict.admin.nodes?.copy_button || 'Copy')}
+                  </button>
+                  <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md">
+                    {dict.admin.nodes.form?.raw_format || 'Raw File Format'}
+                  </span>
+                </div>
+                <pre className="p-8 bg-slate-950 text-emerald-400 font-mono text-sm overflow-x-auto min-h-[500px]">
+                  <code>{displayConfig}</code>
+                </pre>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-32 text-slate-500">
                 <Terminal size={48} className="mb-4 text-slate-700" />
-                <p className="text-lg font-medium text-slate-400">{dict.admin.nodes.form?.no_config || 'No config reported yet'}</p>
+                <p className="text-lg font-medium text-slate-400">{dict.admin.nodes.form?.no_config || 'Xray Configuration'}</p>
                 <p className="text-sm mt-2 max-w-md text-center">
-                  {dict.admin.nodes.form?.no_config_help || 'Make sure the Node Agent is running on the node server and has MASTER_URL and NODE_ID set in its .env file.'}
+                  {dict.admin.nodes.form?.no_config_help || 'Copy this configuration into /etc/xray/config.json on the node server.'}
                 </p>
               </div>
             )}

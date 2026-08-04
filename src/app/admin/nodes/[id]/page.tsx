@@ -3,6 +3,7 @@ import { getDictionary } from '@/i18n/dictionaries';
 import { notFound } from 'next/navigation';
 import NodeDetailClient from './NodeDetailClient';
 import { nodeStatusState } from '@/lib/trafficDaemon';
+import { generateNodeConfigSnippet } from '@/lib/xrayConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,10 +23,12 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
 
   // Status is maintained in nodeStatusState
   const isOnline = nodeStatusState[node.id] || false;
+  const configSnippet = generateNodeConfigSnippet(node).fullConfig;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
-      <NodeDetailClient node={node} dict={dict} initialIsOnline={isOnline} />
+      <NodeDetailClient node={node} dict={dict} initialIsOnline={isOnline} configSnippet={configSnippet} />
     </div>
   );
 }
+
