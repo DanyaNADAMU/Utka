@@ -10,9 +10,11 @@ if [ -f .env ]; then
   export $(cat .env | grep -v '^#' | xargs)
 fi
 
-SSH_TARGET=${SSH_TARGET:-"moscow-nadamudash"}
+BUILD_SSH_TARGET=${BUILD_SSH_TARGET:-"berg-nadamudash"}
+DEPLOY_SSH_TARGET=${DEPLOY_SSH_TARGET:-"glacier-nadamudash"}
 IMAGE_NAME="ghcr.io/danyanadamu/nadamudash:latest"
-SERVER_DEPLOY_CMD="sudo /usr/local/bin/deploy-nadamudash"
+BUILD_CMD="sudo /usr/local/bin/build-nadamudash"
+DEPLOY_CMD="sudo /usr/local/bin/deploy-nadamudash"
 
 # Parse arguments
 MODE="--server" # Default mode
@@ -30,9 +32,9 @@ if [ -z "$COMMIT_MSG" ]; then
   echo "❌ Error: A commit message is required."
   echo "Usage: ./deploy.sh [--gha|--local|--server] \"your commit message\""
   echo ""
-  echo "  --server   (Default) Push to GitHub, then server pulls code, builds image, and deploys."
-  echo "  --local    Push to GitHub, build and push to GHCR locally, then server pulls and deploys."
-  echo "  --gha      Push to GitHub, wait for GitHub Actions to build, then server pulls and deploys."
+  echo "  --server   (Default) Build image on Build Server ($BUILD_SSH_TARGET), push to GHCR, and deploy on Server ($DEPLOY_SSH_TARGET)."
+  echo "  --local    Build image locally, push to GHCR, and deploy on Server ($DEPLOY_SSH_TARGET)."
+  echo "  --gha      Wait for GitHub Actions to build & push image, then deploy on Server ($DEPLOY_SSH_TARGET)."
   exit 1
 fi
 
@@ -64,23 +66,18 @@ if [ "$MODE" == "--local" ]; then
 elif [ "$MODE" == "--gha" ]; then
   echo "⏳ GitHub Actions is currently building and pushing the image."
   echo "👉 Please wait for the GitHub Action to complete on github.com."
-  echo "Press [ENTER] when you are ready to trigger the server deployment..."
+  echo "Press [ENTER] when you are ready to trigger deployment..."
   read
 else
-  echo "⏩ Skipping local build. The server will build the image itself."
+  echo "🚀 Building image on Build Server Berg ($BUILD_SSH_TARGET)..."
+  ssh $BUILD_SSH_TARGET "$BUILD_CMD"
 fi
 
 echo ""
 echo "==========================================="
-echo "🔄 3. Trigger Server Deployment ($SSH_TARGET)"
+echo "🔄 3. Trigger Deployment ($DEPLOY_SSH_TARGET)"
 echo "==========================================="
-if [ "$MODE" == "--server" ]; then
-  ssh $SSH_TARGET "$SERVER_DEPLOY_CMD server"
-elif [ "$MODE" == "--local" ]; then
-  ssh $SSH_TARGET "$SERVER_DEPLOY_CMD local"
-elif [ "$MODE" == "--gha" ]; then
-  ssh $SSH_TARGET "$SERVER_DEPLOY_CMD ghaction"
-fi
+ssh $DEPLOY_SSH_TARGET "$DEPLOY_CMD"
 
 echo ""
 echo "==========================================="
