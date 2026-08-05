@@ -37,15 +37,6 @@ services:
       retries: 10
       start_period: 1s
 
-  xray:
-    image: ghcr.io/xtls/xray-core:latest
-    container_name: nadamudash-xray
-    restart: unless-stopped
-    network_mode: "host"
-    entrypoint: ["sh", "-c", "rm -f /etc/xray/*.sock && exec xray run -c /etc/xray/config.json"]
-    volumes:
-      - ./xray:/etc/xray
-
   subconverter:
     image: metacubex/subconverter:latest
     container_name: nadamudash-subconverter

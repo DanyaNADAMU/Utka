@@ -6,7 +6,7 @@ import { nodeStatusState } from '@/lib/trafficDaemon';
 export const dynamic = 'force-dynamic';
 
 export default async function NodesPage() {
-  const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
   const nodes = await db.node.findMany({
     where: {
       NOT: { apiHost: masterApiHost }

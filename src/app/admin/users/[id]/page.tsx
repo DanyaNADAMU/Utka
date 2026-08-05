@@ -31,7 +31,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 
   const allNodesRaw = await db.node.findMany({ where: { isActive: true }, select: { id: true, name: true, apiHost: true, xrayConfig: true } });
   
-  const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
   let hasMaster = allNodesRaw.some(n => n.apiHost === masterApiHost);
   
   if (!hasMaster) {

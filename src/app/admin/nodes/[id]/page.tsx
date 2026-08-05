@@ -14,7 +14,7 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
     where: { id }
   });
 
-  const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
   if (!node || node.apiHost === masterApiHost) {
     notFound();
   }

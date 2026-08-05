@@ -175,7 +175,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const subUrl = `${protocol}://${host}/${slug.join('/')}`;
     const subQrSvg = await generateQrSvg(subUrl);
 
-    const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+    const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
     const nodeLinks = [];
 
     for (const inbound of updatedSub.inbounds) {
@@ -293,7 +293,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
 
   // 1. Generate proxy link(s) for Master server
-  const masterApiHost = process.env.XRAY_API_URL || 'xray:7999';
+  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
   const hasLocalMasterInDb = activeNodes.some((n: any) => n.apiHost === 'unix:///app/xray/api.sock' || n.address === '127.0.0.1' || n.address === 'localhost' || n.apiHost === masterApiHost);
   if (!hasLocalMasterInDb) {
     const masterAddress = process.env.XRAY_SERVER_DOMAIN_OR_IP || process.env.XRAY_SERVER_DOMAIN || request.headers.get('host')?.split(':')[0] || '81.30.105.65';

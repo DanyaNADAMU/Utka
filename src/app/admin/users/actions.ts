@@ -45,7 +45,7 @@ export async function createUserAction(data: {
           name: 'Main Server',
           address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
           port: 443,
-          apiHost: process.env.XRAY_API_URL || 'xray:7999',
+          apiHost: process.env.XRAY_API_URL || 'unix:///app/xray/api.sock',
         },
       });
     }
