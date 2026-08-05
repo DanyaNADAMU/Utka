@@ -1,5 +1,5 @@
 import db from "@/lib/db";
-import { queryAllUserStats } from "@/lib/xray";
+import { queryAllUserStats, syncNodeUsers } from "@/lib/xray";
 
 // Make BigInt serialize to JSON nicely (as strings)
 if (!(BigInt.prototype as any).toJSON) {
@@ -112,8 +112,13 @@ async function tick() {
         nodeStatusState[node.id] = false;
         continue;
       }
+      const wasOffline = nodeStatusState[node.id] === false;
       console.log(`[Daemon] Node ${node.name} (${node.id}) returned stats (ONLINE)`);
       nodeStatusState[node.id] = true;
+      if (wasOffline) {
+        console.log(`[Daemon] Node ${node.name} (${node.id}) came back ONLINE. Triggering user sync...`);
+        syncNodeUsers(node.id).catch(console.error);
+      }
       
       for (const [email, stat] of Object.entries(allStats)) {
         if (stat.up === BigInt(0) && stat.down === BigInt(0)) continue;

@@ -117,3 +117,12 @@ export async function getNodeConfigInstructions(id: string) {
     nodeSnippets,
   };
 }
+
+import { syncNodeUsers } from '@/lib/xray';
+
+export async function syncNodeUsersAction(id: string) {
+  const result = await syncNodeUsers(id);
+  revalidatePath(`/admin/nodes/${id}`);
+  return result;
+}
+

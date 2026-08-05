@@ -421,3 +421,33 @@ export async function getClientInboundTags(): Promise<string[]> {
   }
 }
 
+/**
+ * Re-adds all active SubscriptionInbound UUIDs to Xray on a specific node via gRPC
+ */
+export async function syncNodeUsers(nodeId: string): Promise<{ total: number; success: number }> {
+  try {
+    const node = await db.node.findUnique({ where: { id: nodeId } });
+    if (!node || !node.isActive) return { total: 0, success: 0 };
+
+    const inbounds = await db.subscriptionInbound.findMany({
+      where: { nodeId: node.id }
+    });
+
+    console.log(`[Sync] Syncing ${inbounds.length} active UUIDs to node ${node.name} (${node.id})...`);
+    let successCount = 0;
+
+    for (const inb of inbounds) {
+      const email = `${inb.subscriptionId}_${inb.inboundTag}_${inb.xrayUuid}`;
+      const ok = await addVlessUser(node.apiHost, inb.inboundTag, email, inb.xrayUuid);
+      if (ok) successCount++;
+    }
+
+    console.log(`[Sync] Node ${node.name}: ${successCount}/${inbounds.length} users synced successfully.`);
+    return { total: inbounds.length, success: successCount };
+  } catch (e) {
+    console.error(`[Sync] Failed to sync users for node ${nodeId}:`, e);
+    return { total: 0, success: 0 };
+  }
+}
+
+

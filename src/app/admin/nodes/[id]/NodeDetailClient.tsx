@@ -3,8 +3,8 @@
 import { useState, useTransition } from 'react';
 import { Node } from '@prisma/client';
 import { useRouter } from 'next/navigation';
-import { updateNode, deleteNode } from '../actions';
-import { ArrowLeft, Save, Trash2, Server, Terminal, Settings } from 'lucide-react';
+import { updateNode, deleteNode, syncNodeUsersAction } from '../actions';
+import { ArrowLeft, Save, Trash2, Server, Terminal, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NodeDetailClient({
@@ -20,6 +20,7 @@ export default function NodeDetailClient({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isSyncing, setIsSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'config'>('general');
   const [copied, setCopied] = useState(false);
 
@@ -30,6 +31,19 @@ export default function NodeDetailClient({
       navigator.clipboard.writeText(displayConfig);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleSyncUsers = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await syncNodeUsersAction(node.id);
+      alert(dict.admin?.nodes?.users_synced || `Synced ${res.success}/${res.total} active UUIDs to Xray.`);
+    } catch (e) {
+      console.error(e);
+      alert(dict.common?.error || 'Failed to sync users');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -128,6 +142,15 @@ export default function NodeDetailClient({
           </div>
         </div>
         <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={handleSyncUsers}
+            disabled={isSyncing}
+            className="flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/20 transition-all disabled:opacity-50 font-medium"
+          >
+            <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
+            <span>{dict.admin?.nodes?.sync_users || 'Sync Users'}</span>
+          </button>
           <button
             onClick={handleDelete}
             disabled={isPending}
