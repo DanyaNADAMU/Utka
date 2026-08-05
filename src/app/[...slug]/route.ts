@@ -294,7 +294,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   // 1. Generate proxy link(s) for Master server
   const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
-  const hasLocalMasterInDb = activeNodes.some((n: any) => n.apiHost === 'unix:///app/xray/api.sock' || n.address === '127.0.0.1' || n.address === 'localhost' || n.apiHost === masterApiHost);
+  const hasLocalMasterInDb = activeNodes.some((n: any) => n.apiHost === 'unix:///app/xray/api.sock' || n.apiHost === 'xray:7999' || n.address === '127.0.0.1' || n.address === 'localhost' || n.apiHost === masterApiHost);
   if (!hasLocalMasterInDb) {
     const masterAddress = process.env.XRAY_SERVER_DOMAIN_OR_IP || process.env.XRAY_SERVER_DOMAIN || request.headers.get('host')?.split(':')[0] || '81.30.105.65';
     for (const tag of activeInboundTags) {

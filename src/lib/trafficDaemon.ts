@@ -97,6 +97,11 @@ async function tick() {
     const now = new Date();
     const seconds = now.getSeconds();
 
+    await db.node.updateMany({
+      where: { apiHost: 'xray:7999' },
+      data: { apiHost: 'unix:///app/xray/api.sock' }
+    });
+
     const nodes = await db.node.findMany({ where: { isActive: true } });
     
     const subLiveStats: Record<string, { up: bigint, down: bigint }> = {}; // Overall for sub
