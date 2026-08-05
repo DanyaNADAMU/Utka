@@ -2,7 +2,6 @@ name: nadamudash
 services:
   nadamudash:
     image: ghcr.io/danyanadamu/nadamudash:latest
-    build: ./repo
     container_name: nadamudash
     restart: unless-stopped
     ports:
