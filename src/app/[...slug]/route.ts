@@ -14,6 +14,16 @@ async function getNodeInboundTags(node: any, masterTags: string[]): Promise<stri
   return masterTags;
 }
 
+function getInboundOverride(node: any, tag: string) {
+  if (!node || !node.inboundSettings) return undefined;
+  try {
+    const settingsObj = JSON.parse(node.inboundSettings);
+    return settingsObj[tag];
+  } catch (e) {
+    return undefined;
+  }
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const userAgent = request.headers.get('user-agent') || 'unknown';
   const url = request.url;
@@ -180,10 +190,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         inbound.node.address,
         inbound.node.port,
         {
-          sni: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityServerName,
-          pbk: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityPubKey,
-          sid: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityShortId
-        }
+          sni: inbound.node.realityServerName,
+          pbk: inbound.node.realityPubKey,
+          sid: inbound.node.realityShortId
+        },
+        getInboundOverride(inbound.node, inbound.inboundTag)
       );
 
       const qrSvg = await generateQrSvg(vlessLink);
@@ -352,10 +363,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       inbound.node.address,
       inbound.node.port,
       {
-        sni: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityServerName,
-        pbk: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityPubKey,
-        sid: inbound.node.apiHost === masterApiHost ? undefined : inbound.node.realityShortId
-      }
+        sni: inbound.node.realityServerName,
+        pbk: inbound.node.realityPubKey,
+        sid: inbound.node.realityShortId
+      },
+      getInboundOverride(inbound.node, inbound.inboundTag)
     );
     console.log(`[Generated VLESS Link for node ${inbound.node.name}]`, vlessLink);
     links.push(vlessLink);

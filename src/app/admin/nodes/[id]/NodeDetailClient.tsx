@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { Node } from '@prisma/client';
 import { useRouter } from 'next/navigation';
-import { updateNode, deleteNode, syncNodeUsersAction } from '../actions';
+import { updateNode, deleteNode, syncNodeUsersAction, saveNodeInboundSettings } from '../actions';
 import { ArrowLeft, Save, Trash2, Server, Terminal, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
@@ -11,12 +11,14 @@ export default function NodeDetailClient({
   node,
   dict,
   initialIsOnline,
-  configSnippet
+  configSnippet,
+  activeInbounds = []
 }: {
   node: Node;
   dict: any;
   initialIsOnline: boolean;
   configSnippet?: string;
+  activeInbounds?: string[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -25,6 +27,24 @@ export default function NodeDetailClient({
   const [copied, setCopied] = useState(false);
 
   const displayConfig = configSnippet || (typeof node.xrayConfig === 'string' ? node.xrayConfig : JSON.stringify(node.xrayConfig, null, 2)) || '';
+
+  const [inboundSettings, setInboundSettings] = useState<Record<string, any>>(() => {
+    try {
+      return (node as any).inboundSettings ? JSON.parse((node as any).inboundSettings) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const updateInboundSetting = (tag: string, key: string, value: any) => {
+    setInboundSettings(prev => ({
+      ...prev,
+      [tag]: {
+        ...(prev[tag] || {}),
+        [key]: value
+      }
+    }));
+  };
 
   const handleCopy = () => {
     if (displayConfig) {
@@ -52,7 +72,6 @@ export default function NodeDetailClient({
     address: node.address,
     port: node.port.toString(),
     xrayPort: (node as any).xrayPort ? (node as any).xrayPort.toString() : '8443',
-    apiHost: node.apiHost,
     adminUuid: node.adminUuid || '',
     realityServerName: node.realityServerName || 'biz.mail.ru',
     realityPubKey: node.realityPubKey || '',
@@ -70,7 +89,6 @@ export default function NodeDetailClient({
           address: formData.address,
           port: parseInt(formData.port) || 443,
           xrayPort: parseInt(formData.xrayPort) || 8443,
-          apiHost: formData.apiHost,
           adminUuid: formData.adminUuid,
           realityServerName: formData.realityServerName,
           realityPubKey: formData.realityPubKey,
@@ -80,6 +98,7 @@ export default function NodeDetailClient({
         };
 
         await updateNode(node.id, payload);
+        await saveNodeInboundSettings(node.id, JSON.stringify(inboundSettings));
         router.refresh();
         alert(dict.common.saved || 'Saved successfully');
       } catch (err) {
@@ -306,6 +325,96 @@ export default function NodeDetailClient({
                   </div>
                 </div>
               </div>
+
+              {activeInbounds.length > 0 && (
+                <div className="space-y-6 pt-6 border-t border-slate-800">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Inbound Settings (Per-Tag)</h3>
+                    <p className="text-xs text-slate-400 mt-1">Configure client metadata per inbound tag for this node (port, flow, network, SNI, keys).</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {activeInbounds.map((tag) => {
+                      const item = inboundSettings[tag] || {};
+                      return (
+                        <div key={tag} className="p-5 border border-slate-800 bg-slate-950/60 rounded-xl space-y-4">
+                          <h4 className="text-sm font-bold text-emerald-400 flex items-center space-x-2">
+                            <span>Tag: {tag}</span>
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-xs font-medium text-slate-400 mb-1">Client Port</label>
+                              <input
+                                type="number"
+                                value={item.port || ''}
+                                onChange={(e) => updateInboundSetting(tag, 'port', e.target.value ? parseInt(e.target.value) : undefined)}
+                                placeholder={`Default (${formData.port})`}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-400 mb-1">Flow</label>
+                              <select
+                                value={item.flow || 'xtls-rprx-vision'}
+                                onChange={(e) => updateInboundSetting(tag, 'flow', e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 appearance-none"
+                              >
+                                <option value="xtls-rprx-vision">xtls-rprx-vision (Recommended)</option>
+                                <option value="xtls-rprx-vision-udp443">xtls-rprx-vision-udp443</option>
+                                <option value="">None (Empty)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-400 mb-1">Network / Transport</label>
+                              <select
+                                value={item.network || 'tcp'}
+                                onChange={(e) => updateInboundSetting(tag, 'network', e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 appearance-none"
+                              >
+                                <option value="tcp">tcp</option>
+                                <option value="ws">ws</option>
+                                <option value="grpc">grpc</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                            <div>
+                              <label className="block text-xs font-medium text-slate-400 mb-1">Custom SNI</label>
+                              <input
+                                type="text"
+                                value={item.sni || ''}
+                                onChange={(e) => updateInboundSetting(tag, 'sni', e.target.value)}
+                                placeholder={`Default (${formData.realityServerName})`}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-400 mb-1">Custom Public Key</label>
+                              <input
+                                type="text"
+                                value={item.pbk || ''}
+                                onChange={(e) => updateInboundSetting(tag, 'pbk', e.target.value)}
+                                placeholder="Default (Node Public Key)"
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-slate-400 mb-1">Custom Short ID</label>
+                              <input
+                                type="text"
+                                value={item.sid || ''}
+                                onChange={(e) => updateInboundSetting(tag, 'sid', e.target.value)}
+                                placeholder={`Default (${formData.realityShortId})`}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="pt-8 border-t border-slate-800 flex justify-end">

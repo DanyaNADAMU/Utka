@@ -299,23 +299,24 @@ export async function buildClientLink(
   nodeName: string, 
   nodeAddress: string, 
   nodePort: number,
-  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null }
+  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null },
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string }
 ): Promise<string> {
   const settings = await getSettings();
   const name = encodeURIComponent(inboundTag);
   
-  // Apply per-inbound settings
-  const customPort = settings[`INBOUND_${inboundTag}_PORT`];
-  const customFlow = settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
+  // Apply per-inbound settings from overrides or global settings
+  const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
+  const customFlow = inboundOverrides?.flow || settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
   
-  const port = customPort ? parseInt(customPort) : nodePort;
+  const port = customPort ? customPort : nodePort;
   const protocol = "vless";
   
-  let pbk = nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
-  let sid = nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  let sni = nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
+  let pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
+  let sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
+  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
   
-  const network = settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
+  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
   const security = pbk ? "reality" : (sni ? "tls" : "none");
 
   if (protocol === "vless") {
@@ -347,18 +348,19 @@ export async function buildClashProxyObject(
   nodeName: string, 
   nodeAddress: string, 
   nodePort: number,
-  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null }
+  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null },
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string }
 ): Promise<any> {
   const settings = await getSettings();
   const name = inboundTag;
-  const customPort = settings[`INBOUND_${inboundTag}_PORT`];
-  const port = customPort ? parseInt(customPort) : nodePort;
+  const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
+  const port = customPort ? customPort : nodePort;
   
-  let pbk = nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
-  let sid = nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  let sni = nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
+  let pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
+  let sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
+  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
   
-  const network = settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
+  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
   const security = pbk ? "reality" : (sni ? "tls" : "none");
 
   const proxy: any = {
@@ -378,7 +380,7 @@ export async function buildClashProxyObject(
   }
 
   if (security === "reality") {
-    proxy.flow = settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
+    proxy.flow = inboundOverrides?.flow || settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
     proxy["reality-opts"] = {
       "public-key": pbk,
       "short-id": sid

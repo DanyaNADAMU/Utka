@@ -7,15 +7,35 @@ export const dynamic = 'force-dynamic';
 
 export default async function NodesPage() {
   const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
-  const nodes = await db.node.findMany({
-    where: {
-      NOT: { apiHost: masterApiHost }
-    },
-    orderBy: {
-      name: 'asc'
-    }
+  
+  let masterNode = await db.node.findFirst({
+    where: { OR: [{ isMaster: true }, { apiHost: masterApiHost }] }
   });
-  console.log("[DB Nodes]", JSON.stringify(nodes));
+
+  if (!masterNode) {
+    masterNode = await db.node.create({
+      data: {
+        name: 'Master',
+        address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
+        port: 443,
+        apiHost: masterApiHost,
+        isMaster: true,
+        isActive: true
+      }
+    });
+  } else if (!masterNode.isMaster) {
+    await db.node.update({
+      where: { id: masterNode.id },
+      data: { isMaster: true }
+    });
+  }
+
+  const nodes = await db.node.findMany({
+    orderBy: [
+      { isMaster: 'desc' },
+      { name: 'asc' }
+    ]
+  });
   
   const dict = await getDictionary();
 

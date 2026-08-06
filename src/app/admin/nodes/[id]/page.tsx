@@ -5,6 +5,8 @@ import NodeDetailClient from './NodeDetailClient';
 import { nodeStatusState } from '@/lib/trafficDaemon';
 import { generateNodeConfigSnippet } from '@/lib/xrayConfig';
 
+import { getXrayInboundTags } from '@/lib/xray';
+
 export const dynamic = 'force-dynamic';
 
 export default async function NodeDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -14,8 +16,7 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
     where: { id }
   });
 
-  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
-  if (!node || node.apiHost === masterApiHost) {
+  if (!node) {
     notFound();
   }
 
@@ -24,10 +25,17 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
   // Status is maintained in nodeStatusState
   const isOnline = nodeStatusState[node.id] || false;
   const configSnippet = generateNodeConfigSnippet(node).fullConfig;
+  const activeInbounds = await getXrayInboundTags(node.apiHost);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
-      <NodeDetailClient node={node} dict={dict} initialIsOnline={isOnline} configSnippet={configSnippet} />
+      <NodeDetailClient 
+        node={node} 
+        dict={dict} 
+        initialIsOnline={isOnline} 
+        configSnippet={configSnippet}
+        activeInbounds={activeInbounds}
+      />
     </div>
   );
 }

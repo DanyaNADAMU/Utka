@@ -100,7 +100,21 @@ export async function updateNode(id: string, data: Partial<z.infer<typeof nodeSc
 }
 
 export async function deleteNode(id: string) {
+  const node = await db.node.findUnique({ where: { id } });
+  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
+  if (node?.isMaster || node?.apiHost === masterApiHost) {
+    throw new Error('Master node cannot be deleted');
+  }
   await db.node.delete({ where: { id } });
+  revalidatePath('/admin/nodes');
+}
+
+export async function saveNodeInboundSettings(id: string, inboundSettingsJson: string) {
+  await db.node.update({
+    where: { id },
+    data: { inboundSettings: inboundSettingsJson }
+  });
+  revalidatePath(`/admin/nodes/${id}`);
   revalidatePath('/admin/nodes');
 }
 

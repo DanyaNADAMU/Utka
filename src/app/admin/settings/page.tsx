@@ -59,48 +59,6 @@ export default async function SettingsPage() {
             </div>
           </div>
 
-          {inbounds.length > 0 && (
-            <div className="pt-6 border-t border-slate-800 space-y-6">
-              <h3 className="text-lg font-semibold text-slate-200">Inbound Settings (Per-Tag)</h3>
-              
-              {inbounds.map((tag) => (
-                <div key={tag} className="space-y-4 p-4 border border-slate-800 bg-slate-900/30 rounded-xl">
-                  <h4 className="text-sm font-medium text-emerald-400">Tag: {tag}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor={`INBOUND_${tag}_PORT`} className="block text-sm font-medium text-slate-300 mb-1">
-                        Client Port
-                      </label>
-                      <input 
-                        type="number" 
-                        id={`INBOUND_${tag}_PORT`}
-                        name={`INBOUND_${tag}_PORT`}
-                        defaultValue={settings[`INBOUND_${tag}_PORT`] || ""}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
-                        placeholder="Leave empty to use node port"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor={`INBOUND_${tag}_FLOW`} className="block text-sm font-medium text-slate-300 mb-1">
-                        Default Flow
-                      </label>
-                      <select 
-                        id={`INBOUND_${tag}_FLOW`}
-                        name={`INBOUND_${tag}_FLOW`}
-                        defaultValue={settings[`INBOUND_${tag}_FLOW`] || "xtls-rprx-vision"}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all appearance-none"
-                      >
-                        <option value="xtls-rprx-vision">xtls-rprx-vision (Recommended)</option>
-                        <option value="xtls-rprx-vision-udp443">xtls-rprx-vision-udp443</option>
-                        <option value="">None (Empty)</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
           <div className="pt-6 border-t border-slate-800 flex justify-end">
             <button 
               type="submit" 

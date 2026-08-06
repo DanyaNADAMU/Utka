@@ -152,20 +152,27 @@ export default function NodesClient({
                 <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.address}</th>
                 <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.port}</th>
                 <th className="p-4 font-medium text-slate-400">Xray Port</th>
-                <th className="p-4 font-medium text-slate-400">API Host</th>
                 <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.status}</th>
                 <th className="p-4 font-medium text-slate-400">Connection</th>
                 <th className="p-4 font-medium text-slate-400 text-right">{dict.admin.nodes.table.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {nodes.map(node => (
+              {nodes.map(node => {
+                const isMasterNode = (node as any).isMaster || node.apiHost?.includes('api.sock');
+                return (
                 <tr key={node.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="p-4 text-white font-medium">{node.name}</td>
+                  <td className="p-4 text-white font-medium flex items-center space-x-2">
+                    <span>{node.name}</span>
+                    {isMasterNode && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        Master
+                      </span>
+                    )}
+                  </td>
                   <td className="p-4 text-slate-300">{node.address}</td>
                   <td className="p-4 text-slate-300">{node.port}</td>
                   <td className="p-4 text-slate-300 font-mono text-sm">{(node as any).xrayPort || 8443}</td>
-                  <td className="p-4 font-mono text-sm text-slate-400">{node.apiHost}</td>
                   <td className="p-4">
                     {node.isActive ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -200,16 +207,27 @@ export default function NodesClient({
                     >
                       <Edit2 size={16} />
                     </Link>
-                    <button
-                      onClick={() => handleDelete(node.id)}
-                      className="text-slate-400 hover:text-red-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
-                      title={dict.admin.nodes.delete_node}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {isMasterNode ? (
+                      <button
+                        disabled
+                        className="text-slate-600 cursor-not-allowed px-2 py-1.5 bg-slate-800/20 rounded-lg inline-flex items-center justify-center opacity-40"
+                        title="Master Node cannot be deleted"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleDelete(node.id)}
+                        className="text-slate-400 hover:text-red-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
+                        title={dict.admin.nodes.delete_node}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
-              ))}
+              );
+              })}
               {nodes.length === 0 && (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-500">
