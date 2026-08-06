@@ -317,7 +317,7 @@ export default function NodesClient({
                     value={formData.realityServerName}
                     onChange={(e) => setFormData({ ...formData, realityServerName: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                    placeholder="e.g. biz.mail.ru"
+                    placeholder="e.g. domain.com"
                   />
                 </div>
 

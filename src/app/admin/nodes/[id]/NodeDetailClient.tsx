@@ -213,122 +213,59 @@ export default function NodeDetailClient({
       <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
         {activeTab === 'general' ? (
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">{dict.admin.nodes.form?.basic_info || 'Basic Information'}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/40 p-6 border border-slate-800 rounded-xl">
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">{dict.admin.nodes.form?.basic_info || 'Basic Information'}</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.name}</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.address}</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                      />
-                    </div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.name}</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.address}</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  />
+                </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.port || "Public Port"}</label>
-                        <input
-                          type="number"
-                          required
-                          value={formData.port}
-                          onChange={(e) => setFormData({ ...formData, port: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.xrayPort || "Internal Xray Port"}</label>
-                        <input
-                          type="number"
-                          required
-                          value={formData.xrayPort}
-                          onChange={(e) => setFormData({ ...formData, xrayPort: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                        />
-                      </div>
-                    </div>
-                    
-                    {!isMasterNode && (
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.adminUuid}</label>
-                        <input
-                          type="text"
-                          value={formData.adminUuid}
-                          onChange={(e) => setFormData({ ...formData, adminUuid: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-emerald-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono text-sm"
-                          placeholder="UUID for gRPC tunnel"
-                        />
-                        <p className="text-xs text-slate-500 mt-2">This UUID is used for the REALITY gRPC tunnel between Master and Node.</p>
-                      </div>
-                    )}
+                {!isMasterNode && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.adminUuid}</label>
+                    <input
+                      type="text"
+                      value={formData.adminUuid}
+                      onChange={(e) => setFormData({ ...formData, adminUuid: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-emerald-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono text-sm"
+                      placeholder="UUID for gRPC tunnel"
+                    />
+                    <p className="text-xs text-slate-500 mt-2">This UUID is used for the REALITY gRPC tunnel between Master and Node.</p>
                   </div>
+                )}
+
+                <div className="md:col-span-2 flex items-center space-x-3 pt-2">
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="w-5 h-5 rounded border-slate-700 text-cyan-500 focus:ring-cyan-500 bg-slate-950 cursor-pointer"
+                  />
+                  <label htmlFor="isActive" className="text-sm font-medium text-slate-300 cursor-pointer select-none">
+                    {dict.admin.nodes.form.isActive}
+                  </label>
                 </div>
               </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">{dict.admin.nodes.form?.reality_settings || 'REALITY Settings'}</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.realityServerName}</label>
-                      <input
-                        type="text"
-                        value={formData.realityServerName}
-                        onChange={(e) => setFormData({ ...formData, realityServerName: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.realityPubKey}</label>
-                      <input
-                        type="text"
-                        value={formData.realityPubKey}
-                        onChange={(e) => setFormData({ ...formData, realityPubKey: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-mono text-xs"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.realityShortId}</label>
-                      <input
-                        type="text"
-                        value={formData.realityShortId}
-                        onChange={(e) => setFormData({ ...formData, realityShortId: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-mono text-sm"
-                      />
-                    </div>
-
-                    <div className="pt-4 border-t border-slate-800 flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        id="isActive"
-                        checked={formData.isActive}
-                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                        className="w-5 h-5 rounded border-slate-700 text-cyan-500 focus:ring-cyan-500 bg-slate-950 cursor-pointer"
-                      />
-                      <label htmlFor="isActive" className="text-sm font-medium text-slate-300 cursor-pointer select-none">
-                        {dict.admin.nodes.form.isActive}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            </div>
 
               {activeInbounds.length > 0 && (
                 <div className="space-y-6 pt-6 border-t border-slate-800">
@@ -419,7 +356,6 @@ export default function NodeDetailClient({
                   </div>
                 </div>
               )}
-            </div>
 
             <div className="pt-8 border-t border-slate-800 flex justify-end">
               <button
