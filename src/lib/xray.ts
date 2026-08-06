@@ -277,7 +277,7 @@ export async function getXrayInboundTags(grpcHost: string): Promise<string[]> {
         }
         const tags: string[] = res.inbounds
           .map((i: any) => i.tag || (typeof i === 'string' ? i : ''))
-          .filter((t: string) => t && t !== 'api' && t !== 'dokodemo-door')
+          .filter((t: string) => t && t !== 'api' && t !== 'dokodemo-door' && !t.startsWith('grpc-in'))
           .sort((a: string, b: string) => a.localeCompare(b));
         resolve(tags);
       });
