@@ -23,11 +23,13 @@ export default async function NodesPage() {
         isActive: true
       }
     });
-  } else if (!masterNode.isMaster) {
+  } else if (!masterNode.isMaster || masterNode.apiHost !== masterApiHost) {
     await db.node.update({
       where: { id: masterNode.id },
-      data: { isMaster: true }
+      data: { isMaster: true, apiHost: masterApiHost }
     });
+    masterNode.apiHost = masterApiHost;
+    masterNode.isMaster = true;
   }
 
   const nodes = await db.node.findMany({

@@ -72,6 +72,10 @@ export async function createNode(data: z.infer<typeof nodeSchema>) {
 }
 
 export async function updateNode(id: string, data: Partial<z.infer<typeof nodeSchema>>) {
+  const existingNode = await db.node.findUnique({ where: { id } });
+  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
+  const isMaster = existingNode?.isMaster || existingNode?.apiHost === masterApiHost;
+
   const parsed = nodeSchema.partial().parse(data);
   const updateData: any = { ...parsed };
 
@@ -84,9 +88,12 @@ export async function updateNode(id: string, data: Partial<z.infer<typeof nodeSc
     updateData.realityPrivKey = keypair.privateKey;
   }
 
-  if (updateData.address) {
+  if (isMaster) {
+    updateData.apiHost = masterApiHost;
+    updateData.isMaster = true;
+  } else if (updateData.address) {
     const isLocal = updateData.address === '127.0.0.1' || updateData.address === 'localhost';
-    updateData.apiHost = isLocal ? 'unix:///app/xray/api.sock' : `unix:///app/xray/node-${id}.sock`;
+    updateData.apiHost = isLocal ? masterApiHost : `unix:///app/xray/node-${id}.sock`;
   }
 
   const node = await db.node.update({
