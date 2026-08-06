@@ -1,36 +1,5 @@
-import { getXrayConfig } from '../actions';
-import { getDictionary } from '@/i18n/dictionaries';
+import { notFound } from 'next/navigation';
 
-export default async function XrayConfigPage() {
-  const dict = await getDictionary();
-  const { success, data, error } = await getXrayConfig();
-
-  return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-100">{dict.admin.xray.title}</h1>
-        <p className="text-slate-400 mt-2">
-          {dict.admin.xray.description}
-        </p>
-      </div>
-
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-6 border-b border-slate-800 bg-slate-900/50">
-          <h2 className="text-lg font-semibold text-slate-200">Raw JSON</h2>
-        </div>
-        
-        <div className="p-6">
-          {!success ? (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400">
-              {dict.admin.xray.file_not_found}: {error}
-            </div>
-          ) : (
-            <pre className="bg-slate-950 p-4 rounded-lg overflow-x-auto text-sm text-emerald-400 border border-slate-800">
-              <code>{data}</code>
-            </pre>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+export default function XrayConfigPage() {
+  notFound();
 }
