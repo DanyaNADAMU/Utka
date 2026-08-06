@@ -118,7 +118,7 @@ model Node {
   xrayPort          Int            @default(8443) // Xray internal port behind HAProxy (e.g. 8443)
   apiHost           String         // Local Agent API Host, e.g., "127.0.0.1:9090"
   adminUuid         String         @default(uuid()) // UUID used for REALITY tunnel
-  realityServerName String         @default("biz.mail.ru") // SNI for REALITY masking
+  realityServerName String         @default("") // SNI for REALITY masking
   realityPubKey     String?        // Public key for REALITY tunnel
   realityPrivKey    String?        // Private key for REALITY tunnel (used on node)
   realityShortId    String?        // ShortId for REALITY tunnel

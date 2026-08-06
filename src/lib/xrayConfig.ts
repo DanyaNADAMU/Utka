@@ -55,7 +55,7 @@ export function generateMasterNodeConfigSnippet(node: {
       network: "tcp",
       security: "reality",
       realitySettings: {
-        serverName: node.realityServerName || "biz.mail.ru",
+        serverName: node.realityServerName || process.env.XRAY_SNI || "",
         fingerprint: "chrome",
         show: false,
         publicKey: node.realityPubKey || "YOUR_REALITY_PUBLIC_KEY",
@@ -99,7 +99,7 @@ export function generateNodeConfigSnippet(node: {
   realityPrivKey?: string | null;
   realityShortId?: string | null;
 }) {
-  const serverName = node.realityServerName || "biz.mail.ru";
+  const serverName = node.realityServerName || process.env.XRAY_SNI || "";
   const internalPort = node.xrayPort || 8443;
 
   const apiInbound = {

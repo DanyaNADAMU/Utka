@@ -67,13 +67,15 @@ export default function NodeDetailClient({
     }
   };
 
+  const isMasterNode = (node as any).isMaster || node.apiHost?.includes('api.sock');
+
   const [formData, setFormData] = useState({
     name: node.name,
     address: node.address,
     port: node.port.toString(),
     xrayPort: (node as any).xrayPort ? (node as any).xrayPort.toString() : '8443',
     adminUuid: node.adminUuid || '',
-    realityServerName: node.realityServerName || 'biz.mail.ru',
+    realityServerName: node.realityServerName || '',
     realityPubKey: node.realityPubKey || '',
     realityPrivKey: (node as any).realityPrivKey || '',
     realityShortId: node.realityShortId || '',
@@ -261,17 +263,19 @@ export default function NodeDetailClient({
                       </div>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.adminUuid}</label>
-                      <input
-                        type="text"
-                        value={formData.adminUuid}
-                        onChange={(e) => setFormData({ ...formData, adminUuid: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-emerald-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono text-sm"
-                        placeholder="UUID for gRPC tunnel"
-                      />
-                      <p className="text-xs text-slate-500 mt-2">This UUID is used for the REALITY gRPC tunnel between Master and Node.</p>
-                    </div>
+                    {!isMasterNode && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-1.5">{dict.admin.nodes.form.adminUuid}</label>
+                        <input
+                          type="text"
+                          value={formData.adminUuid}
+                          onChange={(e) => setFormData({ ...formData, adminUuid: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-emerald-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono text-sm"
+                          placeholder="UUID for gRPC tunnel"
+                        />
+                        <p className="text-xs text-slate-500 mt-2">This UUID is used for the REALITY gRPC tunnel between Master and Node.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

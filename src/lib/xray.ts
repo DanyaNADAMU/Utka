@@ -277,7 +277,8 @@ export async function getXrayInboundTags(grpcHost: string): Promise<string[]> {
         }
         const tags: string[] = res.inbounds
           .map((i: any) => i.tag || (typeof i === 'string' ? i : ''))
-          .filter((t: string) => t && t !== 'api' && t !== 'dokodemo-door');
+          .filter((t: string) => t && t !== 'api' && t !== 'dokodemo-door')
+          .sort((a: string, b: string) => a.localeCompare(b));
         resolve(tags);
       });
     } catch (e) {
@@ -314,7 +315,7 @@ export async function buildClientLink(
   
   let pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   let sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
+  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
   const security = pbk ? "reality" : (sni ? "tls" : "none");
@@ -358,7 +359,7 @@ export async function buildClashProxyObject(
   
   let pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   let sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
+  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
   const security = pbk ? "reality" : (sni ? "tls" : "none");

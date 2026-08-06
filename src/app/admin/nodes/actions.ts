@@ -51,7 +51,7 @@ export async function createNode(data: z.infer<typeof nodeSchema>) {
       xrayPort: parsed.xrayPort,
       apiHost: isLocal ? 'unix:///app/xray/api.sock' : 'pending',
       adminUuid,
-      realityServerName: parsed.realityServerName || 'biz.mail.ru',
+      realityServerName: parsed.realityServerName || '',
       realityPubKey,
       realityPrivKey,
       realityShortId,
@@ -76,7 +76,6 @@ export async function updateNode(id: string, data: Partial<z.infer<typeof nodeSc
   const updateData: any = { ...parsed };
 
   if (updateData.adminUuid === '') updateData.adminUuid = crypto.randomUUID();
-  if (updateData.realityServerName === '') updateData.realityServerName = 'biz.mail.ru';
   if (updateData.realityShortId === '') updateData.realityShortId = crypto.randomBytes(4).toString('hex');
   
   if (updateData.realityPubKey === '' || updateData.realityPrivKey === '') {
