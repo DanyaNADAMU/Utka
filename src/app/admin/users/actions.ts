@@ -2,7 +2,7 @@
 
 import { auth } from '@/auth';
 import db from '@/lib/db';
-import { addVlessUser, removeVlessUser, getClientInboundTags } from '@/lib/xray';
+import { addVlessUser, removeVlessUser, getClientInboundTags, getXrayInboundTags } from '@/lib/xray';
 import crypto from 'crypto';
 import { revalidatePath } from 'next/cache';
 
@@ -58,11 +58,11 @@ export async function createUserAction(data: {
       },
     });
 
-    const activeInboundTags = await getClientInboundTags();
     const activeNodes = await db.node.findMany({ where: { isActive: true } });
 
     for (const node of activeNodes) {
-      for (const tag of activeInboundTags) {
+      const nodeTags = await getXrayInboundTags(node.apiHost);
+      for (const tag of nodeTags) {
         const newUuid = crypto.randomUUID();
 
         await db.subscriptionInbound.create({

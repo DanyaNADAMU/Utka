@@ -259,17 +259,38 @@ export function getX25519PublicKey(privateKeyBase64url: string): string | null {
   }
 }
 
-export async function getInboundConfig(tag: string): Promise<any | null> {
-  try {
-    const configPath = path.join(process.cwd(), 'xray', 'config.json');
-    const data = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(data);
-    if (!config.inbounds || !Array.isArray(config.inbounds)) return null;
-    
-    return config.inbounds.find((i: any) => i.tag === tag) || null;
-  } catch (e) {
-    return null;
-  }
+/**
+ * Queries Xray via gRPC HandlerService ListInbounds to get active inbound tags
+ */
+export async function getXrayInboundTags(grpcHost: string): Promise<string[]> {
+  return new Promise((resolve) => {
+    try {
+      const { handler } = getClients(grpcHost);
+      handler.listInbounds({ isOnlyTags: true }, (err: Error, res: any) => {
+        if (err) {
+          console.error(`[Xray API] ListInbounds Error for ${grpcHost}:`, err);
+          invalidateClientCache(grpcHost);
+          return resolve([]);
+        }
+        if (!res || !res.inbounds || !Array.isArray(res.inbounds)) {
+          return resolve([]);
+        }
+        const tags: string[] = res.inbounds
+          .map((i: any) => i.tag || (typeof i === 'string' ? i : ''))
+          .filter((t: string) => t && t !== 'api' && t !== 'dokodemo-door');
+        resolve(tags);
+      });
+    } catch (e) {
+      console.error(`[Xray API] ListInbounds Exception for ${grpcHost}:`, e);
+      invalidateClientCache(grpcHost);
+      resolve([]);
+    }
+  });
+}
+
+export async function getClientInboundTags(grpcHost?: string): Promise<string[]> {
+  const host = grpcHost || process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
+  return getXrayInboundTags(host);
 }
 
 export async function buildClientLink(
@@ -280,7 +301,6 @@ export async function buildClientLink(
   nodePort: number,
   nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null }
 ): Promise<string> {
-  const conf = await getInboundConfig(inboundTag);
   const settings = await getSettings();
   const name = encodeURIComponent(inboundTag);
   
@@ -289,31 +309,14 @@ export async function buildClientLink(
   const customFlow = settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
   
   const port = customPort ? parseInt(customPort) : nodePort;
-  
-  const protocol = conf?.protocol || "vless";
+  const protocol = "vless";
   
   let pbk = nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   let sid = nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
   let sni = nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
   
-  const stream = conf?.streamSettings || {};
-  const network = stream?.network || "tcp";
-  const security = stream?.security || "reality";
-  
-  if (!nodeReality?.pbk || !nodeReality?.sni) {
-    if (security === "reality" && stream.realitySettings) {
-      const rs = stream.realitySettings;
-      if (!nodeReality?.sni && rs.serverNames && rs.serverNames.length > 0) sni = rs.serverNames[0];
-      if (!nodeReality?.sid && rs.shortIds && rs.shortIds.length > 0) sid = rs.shortIds[0];
-      if (!nodeReality?.pbk && rs.privateKey) {
-        const derivedPbk = getX25519PublicKey(rs.privateKey);
-        if (derivedPbk) pbk = derivedPbk;
-      }
-    } else if (security === "tls" && stream.tlsSettings) {
-      const ts = stream.tlsSettings;
-      if (!nodeReality?.sni && ts.serverName) sni = ts.serverName;
-    }
-  }
+  const network = settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
+  const security = pbk ? "reality" : (sni ? "tls" : "none");
 
   if (protocol === "vless") {
     let link = `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none`;
@@ -343,39 +346,20 @@ export async function buildClashProxyObject(
   xrayUuid: string, 
   nodeName: string, 
   nodeAddress: string, 
-  nodePort: number
+  nodePort: number,
+  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null }
 ): Promise<any> {
-  const conf = await getInboundConfig(inboundTag);
+  const settings = await getSettings();
   const name = inboundTag;
+  const customPort = settings[`INBOUND_${inboundTag}_PORT`];
+  const port = customPort ? parseInt(customPort) : nodePort;
   
-  if (!conf) {
-    return null;
-  }
-
-  const port = conf.port || nodePort;
-  const protocol = conf.protocol || "vless";
-  if (protocol !== "vless") return null;
+  let pbk = nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
+  let sid = nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
+  let sni = nodeReality?.sni || process.env.XRAY_SNI || "biz.mail.ru";
   
-  let pbk = process.env.XRAY_PUBLIC_KEY || "";
-  let sid = process.env.XRAY_SHORT_ID || "";
-  let sni = process.env.XRAY_SNI || "biz.mail.ru";
-  
-  const stream = conf.streamSettings || {};
-  const network = stream.network || "tcp";
-  const security = stream.security || "none";
-  
-  if (security === "reality" && stream.realitySettings) {
-    const rs = stream.realitySettings;
-    if (rs.serverNames && rs.serverNames.length > 0) sni = rs.serverNames[0];
-    if (rs.shortIds && rs.shortIds.length > 0) sid = rs.shortIds[0];
-    if (rs.privateKey) {
-      const derivedPbk = getX25519PublicKey(rs.privateKey);
-      if (derivedPbk) pbk = derivedPbk;
-    }
-  } else if (security === "tls" && stream.tlsSettings) {
-    const ts = stream.tlsSettings;
-    if (ts.serverName) sni = ts.serverName;
-  }
+  const network = settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
+  const security = pbk ? "reality" : (sni ? "tls" : "none");
 
   const proxy: any = {
     name,
@@ -394,7 +378,7 @@ export async function buildClashProxyObject(
   }
 
   if (security === "reality") {
-    proxy.flow = "xtls-rprx-vision";
+    proxy.flow = settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
     proxy["reality-opts"] = {
       "public-key": pbk,
       "short-id": sid
@@ -402,23 +386,6 @@ export async function buildClashProxyObject(
   }
 
   return proxy;
-}
-
-export async function getClientInboundTags(): Promise<string[]> {
-  try {
-    const configPath = path.join(process.cwd(), 'xray', 'config.json');
-    const data = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(data);
-    if (!config.inbounds || !Array.isArray(config.inbounds)) return [];
-    
-    // Filter out API inbound (usually dokodemo-door with tag 'api')
-    return config.inbounds
-      .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
-      .map((i: any) => i.tag);
-  } catch (e) {
-    console.error("Failed to read client inbound tags:", e);
-    return [];
-  }
 }
 
 /**

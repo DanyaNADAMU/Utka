@@ -1,32 +1,17 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { addVlessUser, removeVlessUser, getClientInboundTags, buildClientLink } from '@/lib/xray';
+import { addVlessUser, removeVlessUser, getClientInboundTags, getXrayInboundTags, buildClientLink } from '@/lib/xray';
 import crypto from 'crypto';
 import { getSettings } from '@/lib/settings';
-import stripJsonComments from 'strip-json-comments';
 
-function getNodeInboundTags(node: any, masterTags: string[]): string[] {
-  let nodeTags = masterTags;
-  if (node.xrayConfig && typeof node.xrayConfig === 'string') {
-    try {
-      let configText = stripJsonComments(node.xrayConfig);
-      let parsedData = JSON.parse(configText);
-      if (typeof parsedData === 'string') {
-        parsedData = JSON.parse(parsedData);
-      }
-      if (parsedData.inbounds && Array.isArray(parsedData.inbounds)) {
-        const parsedTags = parsedData.inbounds
-          .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
-          .map((i: any) => i.tag);
-        if (parsedTags.length > 0) {
-          nodeTags = parsedTags;
-        }
-      }
-    } catch (e) {
-      console.error(`Failed to parse config for node ${node.name}:`, e);
+async function getNodeInboundTags(node: any, masterTags: string[]): Promise<string[]> {
+  if (node.apiHost) {
+    const remoteTags = await getXrayInboundTags(node.apiHost);
+    if (remoteTags.length > 0) {
+      return remoteTags;
     }
   }
-  return nodeTags;
+  return masterTags;
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string[] }> }) {
@@ -79,10 +64,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const activeNodes = await db.node.findMany({ where: { isActive: true } });
   const activeNodeMap = new Map(activeNodes.map(n => [n.id, n]));
 
+  // Cache node inbound tags
+  const nodeTagsCache = new Map<string, string[]>();
+  for (const node of activeNodes) {
+    const tags = await getNodeInboundTags(node, activeInboundTags);
+    nodeTagsCache.set(node.id, tags);
+  }
+
   // 1. Create missing inbounds for active nodes
   const inboundsToCreate = [];
   for (const node of activeNodes) {
-    const nodeTags = getNodeInboundTags(node, activeInboundTags);
+    const nodeTags = nodeTagsCache.get(node.id) || activeInboundTags;
     for (const tag of nodeTags) {
       const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
       if (!exists) {
@@ -117,8 +109,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       staleInboundIds.push(inbound.id);
       continue;
     }
-    const validTags = getNodeInboundTags(inbound.node, activeInboundTags);
-    if (!validTags.includes(inbound.inboundTag)) {
+    const validTags = nodeTagsCache.get(inbound.nodeId) || activeInboundTags;
+    if (validTags.length > 0 && !validTags.includes(inbound.inboundTag)) {
       staleInboundIds.push(inbound.id);
     }
   }

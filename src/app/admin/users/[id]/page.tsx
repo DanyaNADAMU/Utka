@@ -11,7 +11,7 @@ import { trafficState } from "@/lib/trafficDaemon";
 import DeleteUserButton from "@/components/DeleteUserButton";
 import RegenerateTokenButton from "@/components/RegenerateTokenButton";
 import EditUserAccessModal from "@/components/EditUserAccessModal";
-import { getClientInboundTags } from "@/lib/xray";
+import { getClientInboundTags, getXrayInboundTags } from "@/lib/xray";
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const dict = await getDictionary();
@@ -58,24 +58,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   }
 
   const allNodes = await Promise.all(allNodesRaw.map(async (n) => {
-    let tags: string[] = [];
-    
-    if (n.apiHost === masterApiHost) {
-      tags = await getClientInboundTags();
-    } else if (n.xrayConfig) {
-      try {
-        const stripJsonComments = (await import('strip-json-comments')).default;
-        const config = JSON.parse(stripJsonComments(n.xrayConfig as string));
-        if (config.inbounds && Array.isArray(config.inbounds)) {
-          tags = config.inbounds
-            .filter((i: any) => i.tag && i.tag !== 'api' && i.protocol !== 'dokodemo-door')
-            .map((i: any) => i.tag);
-        }
-      } catch (e) {
-        console.error(`Failed to parse xrayConfig for node ${n.name}:`, e);
-      }
-    }
-
+    const tags = await getXrayInboundTags(n.apiHost);
     return {
       id: n.id,
       name: n.apiHost === masterApiHost ? `${n.name} (Master)` : n.name,

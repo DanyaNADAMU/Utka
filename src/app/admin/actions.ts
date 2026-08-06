@@ -29,6 +29,8 @@ export async function saveSettings(formData: FormData) {
   revalidatePath('/'); // Revalidate dashboard to update the sub link
 }
 
+import { getClientInboundTags } from '@/lib/xray';
+
 export async function getXrayConfig() {
   const session = await auth();
   
@@ -41,6 +43,11 @@ export async function getXrayConfig() {
     const data = await fs.readFile(configPath, 'utf-8');
     return { success: true, data };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    const tags = await getClientInboundTags();
+    const fallbackData = JSON.stringify({
+      note: "Xray configuration is managed via gRPC API.",
+      activeInboundTags: tags
+    }, null, 2);
+    return { success: true, data: fallbackData };
   }
 }
