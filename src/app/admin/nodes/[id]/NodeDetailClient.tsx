@@ -11,13 +11,15 @@ export default function NodeDetailClient({
   node,
   dict,
   initialIsOnline,
-  configSnippet,
+  masterSnippets,
+  nodeSnippets,
   activeInbounds = []
 }: {
   node: Node;
   dict: any;
   initialIsOnline: boolean;
-  configSnippet?: string;
+  masterSnippets?: any;
+  nodeSnippets?: any;
   activeInbounds?: string[];
 }) {
   const router = useRouter();
@@ -26,7 +28,7 @@ export default function NodeDetailClient({
   const [activeTab, setActiveTab] = useState<'general' | 'config'>('general');
   const [copied, setCopied] = useState(false);
 
-  const displayConfig = configSnippet || (typeof node.xrayConfig === 'string' ? node.xrayConfig : JSON.stringify(node.xrayConfig, null, 2)) || '';
+  const isMasterNode = (node as any).isMaster || node.apiHost?.includes('api.sock');
 
   const [inboundSettings, setInboundSettings] = useState<Record<string, any>>(() => {
     try {
@@ -46,12 +48,10 @@ export default function NodeDetailClient({
     }));
   };
 
-  const handleCopy = () => {
-    if (displayConfig) {
-      navigator.clipboard.writeText(displayConfig);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSyncUsers = async () => {
@@ -66,8 +66,6 @@ export default function NodeDetailClient({
       setIsSyncing(false);
     }
   };
-
-  const isMasterNode = (node as any).isMaster || node.apiHost?.includes('api.sock');
 
   const [formData, setFormData] = useState({
     name: node.name,
@@ -127,28 +125,24 @@ export default function NodeDetailClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between bg-slate-900/50 p-6 rounded-2xl border border-slate-800 backdrop-blur-xl">
-        <div className="flex items-center space-x-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+        <div className="flex items-center space-x-4">
           <Link
             href="/admin/nodes"
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all hover:scale-105 active:scale-95"
+            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors"
           >
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <div className="flex items-center space-x-3 mb-1">
-              <h1 className="text-2xl font-bold text-white tracking-tight">{node.name}</h1>
-              {node.isActive ? (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  Active
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                  Inactive
+            <div className="flex items-center space-x-3">
+              <h1 className="text-2xl font-bold text-white">{node.name}</h1>
+              {isMasterNode && (
+                <span className="px-2.5 py-0.5 text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full">
+                  Master
                 </span>
               )}
             </div>
-            <div className="flex items-center space-x-4 text-sm text-slate-400">
+            <div className="flex items-center space-x-4 text-sm text-slate-400 mt-1">
               <span className="flex items-center space-x-1.5">
                 <Server size={14} className="text-slate-500" />
                 <span className="font-mono">{node.address}:{node.port}</span>
@@ -172,14 +166,16 @@ export default function NodeDetailClient({
             <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
             <span>{dict.admin?.nodes?.sync_users || 'Sync Users'}</span>
           </button>
-          <button
-            onClick={handleDelete}
-            disabled={isPending}
-            className="flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all disabled:opacity-50 font-medium"
-          >
-            <Trash2 size={18} />
-            <span>{dict.admin.nodes.delete_node || 'Delete Node'}</span>
-          </button>
+          {!isMasterNode && (
+            <button
+              onClick={handleDelete}
+              disabled={isPending}
+              className="flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all disabled:opacity-50 font-medium"
+            >
+              <Trash2 size={18} />
+              <span>{dict.admin.nodes.delete_node || 'Delete Node'}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -200,12 +196,12 @@ export default function NodeDetailClient({
           onClick={() => setActiveTab('config')}
           className={`flex items-center space-x-2 px-6 py-3 font-medium transition-colors border-b-2 ${
             activeTab === 'config'
-              ? 'text-purple-400 border-purple-400'
+              ? 'text-emerald-400 border-emerald-400'
               : 'text-slate-400 border-transparent hover:text-slate-300 hover:border-slate-700'
           }`}
         >
           <Terminal size={18} />
-          <span>{dict.admin.nodes.form?.reported_config || 'Xray Configuration'}</span>
+          <span>Setup Instructions</span>
         </button>
       </div>
 
@@ -369,37 +365,110 @@ export default function NodeDetailClient({
             </div>
           </form>
         ) : (
-          <div className="p-0">
-            {displayConfig ? (
-              <div className="relative">
-                <div className="absolute top-4 right-4 flex space-x-2 z-10">
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all"
-                  >
-                    {copied ? (dict.admin.nodes?.copied || 'Copied!') : (dict.admin.nodes?.copy_button || 'Copy')}
-                  </button>
-                  <span className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md">
-                    {dict.admin.nodes.form?.raw_format || 'Raw File Format'}
-                  </span>
+          <div className="p-8 space-y-8">
+            {isMasterNode ? (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-white">Инструкции по настройке Xray на Мастере</h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Скопируйте эти конфигурационные блоки в файл <code className="text-emerald-400">/etc/xray/config.json</code> на сервере Мастера.
+                  </p>
                 </div>
-                <pre className="p-8 bg-slate-950 text-emerald-400 font-mono text-sm overflow-x-auto min-h-[500px]">
-                  <code>{displayConfig}</code>
-                </pre>
+
+                <CodeBlock 
+                  title="1. API Inbound (Unix сокет API)" 
+                  code={nodeSnippets?.masterApiInboundJson || '{}'}
+                  description="Вставьте в массив inbounds в config.json Мастера"
+                />
+
+                <CodeBlock 
+                  title="2. API Routing Rule (Правило маршрутизации API)" 
+                  code={nodeSnippets?.masterApiRoutingRuleJson || '{}'}
+                  description="Вставьте в массив routing.rules в config.json Мастера"
+                />
+
+                <CodeBlock 
+                  title="3. Системные блоки (dns, log, api, stats, policy)" 
+                  code={nodeSnippets?.systemBlocksJson || '{}'}
+                  description="Базовые параметры логирования, API и статистики для Мастера"
+                />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-32 text-slate-500">
-                <Terminal size={48} className="mb-4 text-slate-700" />
-                <p className="text-lg font-medium text-slate-400">{dict.admin.nodes.form?.no_config || 'Xray Configuration'}</p>
-                <p className="text-sm mt-2 max-w-md text-center">
-                  {dict.admin.nodes.form?.no_config_help || 'Copy this configuration into /etc/xray/config.json on the node server.'}
-                </p>
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">1. Конфигурация для сервера Ноды</h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Полная конфигурация для файла <code className="text-emerald-400">/etc/xray/config.json</code> на сервере ноды (<code className="font-mono">{node.address}</code>).
+                    </p>
+                  </div>
+
+                  <CodeBlock 
+                    title={`Полный config.json для Ноды ${node.name}`}
+                    code={nodeSnippets?.fullNodeConfigJson || '{}'}
+                  />
+                </div>
+
+                <div className="pt-6 border-t border-slate-800 space-y-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">2. Блоки для добавления на Мастере</h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Добавьте эти 3 фрагмента в соответствующий <code className="text-emerald-400">/etc/xray/config.json</code> на Мастере для подключения к этой ноде по туннелю.
+                    </p>
+                  </div>
+
+                  <CodeBlock 
+                    title="2.1. Inbound на Мастере (Unix-сокет туннеля)" 
+                    code={masterSnippets?.inboundJson || '{}'}
+                    description="Вставьте в массив inbounds Мастера"
+                  />
+
+                  <CodeBlock 
+                    title="2.2. Outbound на Мастере (VLESS туннель к Ноде)" 
+                    code={masterSnippets?.outboundJson || '{}'}
+                    description="Вставьте в массив outbounds Мастера"
+                  />
+
+                  <CodeBlock 
+                    title="2.3. Routing Rule на Мастере" 
+                    code={masterSnippets?.routingRuleJson || '{}'}
+                    description="Вставьте в массив routing.rules Мастера"
+                  />
+                </div>
               </div>
             )}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function CodeBlock({ title, code, description }: { title: string; code: string; description?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-2 bg-slate-950/60 p-5 border border-slate-800 rounded-xl">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold text-emerald-400">{title}</h4>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="text-xs bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-lg font-medium transition-all"
+        >
+          {copied ? 'Скопировано!' : 'Копировать'}
+        </button>
+      </div>
+      {description && <p className="text-xs text-slate-400">{description}</p>}
+      <pre className="p-4 bg-slate-950 border border-slate-800/80 rounded-lg text-emerald-400 font-mono text-xs overflow-x-auto">
+        <code>{code}</code>
+      </pre>
     </div>
   );
 }

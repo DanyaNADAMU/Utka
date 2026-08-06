@@ -21,10 +21,11 @@ export function generateMasterNodeConfigSnippet(node: {
 }) {
   const inboundTag = `grpc-in-${node.id}`;
   const outboundTag = `vless-out-${node.id}`;
+  const domain = node.realityServerName || process.env.XRAY_SNI || "example.com";
 
   const inbound = {
     tag: inboundTag,
-    listen: `/etc/xray/node-${node.id}.sock`,
+    listen: `/opt/stacks/nadamudash/xray/node-${node.id}.sock`,
     port: 1,
     protocol: "dokodemo-door",
     settings: {
@@ -41,11 +42,12 @@ export function generateMasterNodeConfigSnippet(node: {
       vnext: [
         {
           address: node.address,
-          port: node.port,
+          port: 443,
           users: [
             {
               id: node.adminUuid || "YOUR_ADMIN_UUID",
-              encryption: "none"
+              encryption: "none",
+              flow: "xtls-rprx-vision"
             }
           ]
         }
@@ -55,7 +57,7 @@ export function generateMasterNodeConfigSnippet(node: {
       network: "tcp",
       security: "reality",
       realitySettings: {
-        serverName: node.realityServerName || process.env.XRAY_SNI || "",
+        serverName: domain,
         fingerprint: "chrome",
         show: false,
         publicKey: node.realityPubKey || "YOUR_REALITY_PUBLIC_KEY",
@@ -75,15 +77,9 @@ export function generateMasterNodeConfigSnippet(node: {
     inbound,
     outbound,
     routingRule,
-    masterSnippetsJson: JSON.stringify(
-      {
-        inbound,
-        outbound,
-        routingRule
-      },
-      null,
-      2
-    )
+    inboundJson: JSON.stringify(inbound, null, 2),
+    outboundJson: JSON.stringify(outbound, null, 2),
+    routingRuleJson: JSON.stringify(routingRule, null, 2),
   };
 }
 
@@ -99,79 +95,43 @@ export function generateNodeConfigSnippet(node: {
   realityPrivKey?: string | null;
   realityShortId?: string | null;
 }) {
-  const serverName = node.realityServerName || process.env.XRAY_SNI || "";
-  const internalPort = node.xrayPort || 8443;
+  const domain = node.realityServerName || process.env.XRAY_SNI || "example.com";
+  const nodeTag = node.name || "NodeTag";
+  const port = node.port || 443;
+  const adminUuid = node.adminUuid || "YOUR_ADMIN_UUID";
+  const bridgeUuid = "373087a1-0076-4fbf-9a47-2e450fa285bc";
 
-  const apiInbound = {
+  const dns = {
+    servers: [
+      "1.1.1.1",
+      "8.8.8.8",
+      "localhost"
+    ]
+  };
+
+  const log = {
+    access: "/var/log/xray/access.log",
+    error: "/var/log/xray/error.log",
+    loglevel: "warning"
+  };
+
+  const api = {
     tag: "api",
-    listen: "/etc/xray/api.sock",
-    port: 1,
-    protocol: "dokodemo-door",
-    settings: {
-      address: "127.0.0.1",
-      port: 1,
-      network: "unix"
-    }
-  };
-
-  const vlessInbound = {
-    tag: "vless-in",
-    listen: "127.0.0.1",
-    port: internalPort,
-    protocol: "vless",
-    settings: {
-      clients: [
-        {
-          id: node.adminUuid || "YOUR_ADMIN_UUID",
-          email: "admin@nadamudash"
-        }
-      ],
-      decryption: "none"
-    },
-    streamSettings: {
-      network: "tcp",
-      security: "reality",
-      realitySettings: {
-        show: false,
-        dest: `${serverName}:443`,
-        xver: 0,
-        serverNames: [serverName],
-        privateKey: node.realityPrivKey || "YOUR_REALITY_PRIVATE_KEY_HERE",
-        shortIds: [node.realityShortId || "YOUR_REALITY_SHORT_ID"]
-      },
-      sockopt: {
-        acceptProxyProtocol: false
-      }
-    },
-    sniffing: {
-      enabled: true,
-      destOverride: ["http", "tls", "quic"]
-    }
-  };
-
-  const outbounds = [
-    { protocol: "freedom", tag: "direct" },
-    { protocol: "blackhole", tag: "block" }
-  ];
-
-  const routing = {
-    rules: [
-      { type: "field", inboundTag: ["api"], outboundTag: "api" },
-      { type: "field", user: ["admin@nadamudash"], outboundTag: "api" },
-      { type: "field", ip: ["127.0.0.0/8", "::1/128"], outboundTag: "block" }
+    services: [
+      "HandlerService",
+      "StatsService",
+      "LoggerService"
     ]
   };
 
   const stats = {};
 
-  const api = {
-    tag: "api",
-    services: ["HandlerService", "StatsService", "LoggerService"]
-  };
-
   const policy = {
     levels: {
-      "0": { statsUserUplink: true, statsUserDownlink: true }
+      "0": {
+        statsUserUplink: true,
+        statsUserDownlink: true
+      }
     },
     system: {
       statsInboundUplink: true,
@@ -181,25 +141,141 @@ export function generateNodeConfigSnippet(node: {
     }
   };
 
-  const fullConfig = {
-    log: { loglevel: "warning" },
-    inbounds: [apiInbound, vlessInbound],
-    outbounds,
-    routing,
-    stats,
+  const nodeInbound = {
+    tag: nodeTag,
+    listen: "127.0.0.1",
+    port: port,
+    protocol: "vless",
+    settings: {
+      clients: [
+        {
+          id: adminUuid,
+          email: "admin@nadamudash",
+          flow: "xtls-rprx-vision"
+        },
+        {
+          id: bridgeUuid,
+          email: "bridge@nadamudash",
+          flow: "xtls-rprx-vision"
+        }
+      ],
+      decryption: "none"
+    },
+    streamSettings: {
+      network: "tcp",
+      tcpSettings: {
+        acceptProxyProtocol: true
+      },
+      security: "reality",
+      realitySettings: {
+        show: false,
+        dest: `${domain}:443`,
+        xver: 0,
+        serverNames: [
+          domain
+        ],
+        privateKey: node.realityPrivKey || "YOUR_REALITY_PRIVATE_KEY",
+        shortIds: [
+          node.realityShortId || "YOUR_REALITY_SHORT_ID"
+        ]
+      },
+      sockopt: {
+        acceptProxyProtocol: true
+      }
+    },
+    sniffing: {
+      enabled: true,
+      destOverride: [
+        "http",
+        "tls",
+        "quic"
+      ],
+      routeOnly: true
+    }
+  };
+
+  const outbounds = [
+    {
+      protocol: "freedom",
+      tag: "direct"
+    },
+    {
+      protocol: "blackhole",
+      tag: "block"
+    }
+  ];
+
+  const routing = {
+    domainStrategy: "IPIfNonMatch",
+    rules: [
+      {
+        type: "field",
+        user: [
+          "admin@nadamudash"
+        ],
+        outboundTag: "api"
+      },
+      {
+        type: "field",
+        ip: [
+          "geoip:private"
+        ],
+        outboundTag: "block"
+      },
+      {
+        type: "field",
+        protocol: [
+          "bittorrent"
+        ],
+        outboundTag: "block"
+      },
+      {
+        type: "field",
+        inboundTag: [
+          nodeTag
+        ],
+        outboundTag: "direct"
+      }
+    ]
+  };
+
+  const fullNodeConfig = {
+    dns,
+    log,
     api,
+    stats,
     policy,
+    inbounds: [nodeInbound],
+    outbounds,
+    routing
+  };
+
+  // Master Setup Snippets
+  const masterApiInbound = {
+    tag: "api",
+    listen: "/opt/stacks/nadamudash/xray/api.sock",
+    port: 1,
+    protocol: "dokodemo-door",
+    settings: {
+      address: "127.0.0.1",
+      port: 1,
+      network: "unix"
+    }
+  };
+
+  const masterApiRoutingRule = {
+    type: "field",
+    inboundTag: [
+      "api"
+    ],
+    outboundTag: "api"
   };
 
   return {
-    apiInbound,
-    vlessInbound,
-    outbounds,
-    routing,
-    stats,
-    api,
-    policy,
-    fullConfig: JSON.stringify(fullConfig, null, 2),
+    fullNodeConfigJson: JSON.stringify(fullNodeConfig, null, 2),
+    masterApiInboundJson: JSON.stringify(masterApiInbound, null, 2),
+    masterApiRoutingRuleJson: JSON.stringify(masterApiRoutingRule, null, 2),
+    systemBlocksJson: JSON.stringify({ dns, log, api, stats, policy }, null, 2),
   };
 }
 

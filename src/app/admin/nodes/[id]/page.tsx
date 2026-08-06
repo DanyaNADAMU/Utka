@@ -3,7 +3,7 @@ import { getDictionary } from '@/i18n/dictionaries';
 import { notFound } from 'next/navigation';
 import NodeDetailClient from './NodeDetailClient';
 import { nodeStatusState } from '@/lib/trafficDaemon';
-import { generateNodeConfigSnippet } from '@/lib/xrayConfig';
+import { generateNodeConfigSnippet, generateMasterNodeConfigSnippet } from '@/lib/xrayConfig';
 
 import { getXrayInboundTags } from '@/lib/xray';
 
@@ -41,7 +41,8 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
 
   // Status is maintained in nodeStatusState
   const isOnline = nodeStatusState[node.id] || false;
-  const configSnippet = generateNodeConfigSnippet(node).fullConfig;
+  const masterSnippets = generateMasterNodeConfigSnippet(node);
+  const nodeSnippets = generateNodeConfigSnippet(node);
   const activeInbounds = await getXrayInboundTags(node.apiHost);
 
   return (
@@ -50,7 +51,8 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
         node={node} 
         dict={dict} 
         initialIsOnline={isOnline} 
-        configSnippet={configSnippet}
+        masterSnippets={masterSnippets}
+        nodeSnippets={nodeSnippets}
         activeInbounds={activeInbounds}
       />
     </div>

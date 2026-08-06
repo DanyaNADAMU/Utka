@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createNode, deleteNode, getNodeConfigInstructions } from './actions';
 import { Plus, Edit2, Trash2, FileCode, Copy, Check, X } from 'lucide-react';
 import { Node } from '@prisma/client';
@@ -15,6 +16,7 @@ export default function NodesClient({
   dict: any;
   nodeStatus: Record<string, boolean>;
 }) {
+  const router = useRouter();
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
@@ -154,14 +156,17 @@ export default function NodesClient({
                 <th className="p-4 font-medium text-slate-400">Xray Port</th>
                 <th className="p-4 font-medium text-slate-400">{dict.admin.nodes.table.status}</th>
                 <th className="p-4 font-medium text-slate-400">Connection</th>
-                <th className="p-4 font-medium text-slate-400 text-right">{dict.admin.nodes.table.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
               {nodes.map(node => {
                 const isMasterNode = (node as any).isMaster || node.apiHost?.includes('api.sock');
                 return (
-                <tr key={node.id} className="hover:bg-slate-800/30 transition-colors">
+                <tr 
+                  key={node.id} 
+                  onClick={() => router.push(`/admin/nodes/${node.id}`)}
+                  className="hover:bg-slate-800/40 transition-colors cursor-pointer"
+                >
                   <td className="p-4 text-white font-medium flex items-center space-x-2">
                     <span>{node.name}</span>
                     {isMasterNode && (
@@ -192,45 +197,12 @@ export default function NodesClient({
                       </span>
                     </div>
                   </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => openInstructions(node)}
-                      className="text-slate-400 hover:text-emerald-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
-                      title={dict.admin.nodes.instructions || "Setup Instructions"}
-                    >
-                      <FileCode size={16} />
-                    </button>
-                    <Link
-                      href={`/admin/nodes/${node.id}`}
-                      className="text-slate-400 hover:text-cyan-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
-                      title={dict.admin.nodes.edit_node}
-                    >
-                      <Edit2 size={16} />
-                    </Link>
-                    {isMasterNode ? (
-                      <button
-                        disabled
-                        className="text-slate-600 cursor-not-allowed px-2 py-1.5 bg-slate-800/20 rounded-lg inline-flex items-center justify-center opacity-40"
-                        title="Master Node cannot be deleted"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleDelete(node.id)}
-                        className="text-slate-400 hover:text-red-400 transition-colors px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg inline-flex items-center justify-center"
-                        title={dict.admin.nodes.delete_node}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </td>
                 </tr>
               );
               })}
               {nodes.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">
+                  <td colSpan={6} className="p-8 text-center text-slate-500">
                     No nodes found.
                   </td>
                 </tr>
