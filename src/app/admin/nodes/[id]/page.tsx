@@ -20,6 +20,23 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
+  if (node.realityServerName === 'biz.mail.ru') {
+    await db.node.update({
+      where: { id: node.id },
+      data: { realityServerName: '' }
+    });
+    node.realityServerName = '';
+  }
+
+  if (node.inboundSettings && node.inboundSettings.includes('biz.mail.ru')) {
+    const cleanedSettings = node.inboundSettings.replaceAll('biz.mail.ru', '');
+    await db.node.update({
+      where: { id: node.id },
+      data: { inboundSettings: cleanedSettings }
+    });
+    node.inboundSettings = cleanedSettings;
+  }
+
   const dict = await getDictionary();
 
   // Status is maintained in nodeStatusState

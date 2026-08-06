@@ -32,6 +32,11 @@ export default async function NodesPage() {
     masterNode.isMaster = true;
   }
 
+  await db.node.updateMany({
+    where: { realityServerName: 'biz.mail.ru' },
+    data: { realityServerName: '' }
+  });
+
   const nodes = await db.node.findMany({
     orderBy: [
       { isMaster: 'desc' },
