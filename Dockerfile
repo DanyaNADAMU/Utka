@@ -53,10 +53,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Create start script
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'chmod 750 /app/xray 2>/dev/null || true' >> /app/start.sh && \
-    echo 'chmod 660 /app/xray/*.sock /app/xray/*.lock 2>/dev/null || true' >> /app/start.sh && \
-    echo 'chown root:65532 /app/xray/config.json /app/xray/config.ini 2>/dev/null || true' >> /app/start.sh && \
-    echo 'chmod 640 /app/xray/config.json /app/xray/config.ini 2>/dev/null || true' >> /app/start.sh && \
     echo 'echo "Syncing database..."' >> /app/start.sh && \
     echo 'prisma db push --accept-data-loss --skip-generate' >> /app/start.sh && \
     echo 'echo "Starting NadamuDash..."' >> /app/start.sh && \
