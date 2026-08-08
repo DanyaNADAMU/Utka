@@ -5,6 +5,7 @@ import db from '@/lib/db';
 import { addVlessUser, removeVlessUser, getClientInboundTags, getXrayInboundTags } from '@/lib/xray';
 import crypto from 'crypto';
 import { revalidatePath } from 'next/cache';
+import { sendSubscriptionWebhook } from '@/lib/webhook';
 
 export async function createUserAction(data: {
   email?: string;
@@ -100,6 +101,19 @@ export async function createUserAction(data: {
     }
 
     revalidatePath('/admin/users');
+
+    // Notify external services via webhook
+    sendSubscriptionWebhook({
+      event: 'subscription.created',
+      subscription: {
+        id: newSub.id,
+        name: newSub.name,
+        userId: newUser.id,
+        userName: newUser.name,
+        userEmail: newUser.email,
+      },
+    }).catch(() => {});
+
     return { success: true, userId: newUser.id, subscriptionId: newSub.id };
   } catch (error: any) {
     console.error('Error creating user:', error);
@@ -155,6 +169,15 @@ export async function deleteUserAction(subscriptionId: string) {
     }
 
     revalidatePath('/admin/users');
+
+    // Notify external services via webhook
+    sendSubscriptionWebhook({
+      event: 'subscription.deleted',
+      subscription: {
+        id: subscriptionId,
+      },
+    }).catch(() => {});
+
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
