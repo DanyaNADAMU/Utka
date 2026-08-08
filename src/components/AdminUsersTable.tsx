@@ -33,9 +33,19 @@ interface TrafficState {
   totalDown: string;
 }
 
-export default function AdminUsersTable({ subscriptions, trafficState }: { subscriptions: any[], trafficState: Record<string, TrafficState> }) {
+import { useTrafficStream } from '@/components/TrafficStreamContext';
+
+export default function AdminUsersTable({ subscriptions, trafficState: initialTrafficState }: { subscriptions: any[], trafficState: Record<string, TrafficState> }) {
   const dict = useTranslation();
   const router = useRouter();
+  const { trafficData } = useTrafficStream();
+  const [trafficState, setTrafficState] = useState<Record<string, any>>(initialTrafficState || {});
+
+  useEffect(() => {
+    if (trafficData.subscriptions && Object.keys(trafficData.subscriptions).length > 0) {
+      setTrafficState(prev => ({ ...prev, ...trafficData.subscriptions }));
+    }
+  }, [trafficData]);
 
   return (
     <div className="space-y-4">

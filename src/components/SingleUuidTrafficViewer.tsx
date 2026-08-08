@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import TrafficTableUI from '@/components/TrafficTableUI';
+import { useTrafficStream } from '@/components/TrafficStreamContext';
 
 interface TrafficState {
   speedUp: string;
@@ -21,43 +22,14 @@ interface TrafficState {
 
 export default function SingleUuidTrafficViewer({ xrayUuid, trafficState: initialTrafficState }: { xrayUuid: string, trafficState: TrafficState }) {
   const dict = useTranslation();
+  const { trafficData } = useTrafficStream();
   const [trafficState, setTrafficState] = useState<any>(initialTrafficState);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    let isFetching = false;
-    
-    const fetchTraffic = async () => {
-      if (isFetching) return;
-      isFetching = true;
-      try {
-        const res = await fetch('/api/admin/traffic?t=' + Date.now(), { cache: 'no-store' });
-        const data = await res.json();
-        if (data.uuids && data.uuids[xrayUuid]) {
-          setTrafficState(data.uuids[xrayUuid]);
-        }
-      } catch (err) {
-        console.error('Failed to fetch traffic', err);
-      } finally {
-        isFetching = false;
-      }
-    };
-
-    const scheduleNextFetch = () => {
-      const now = Date.now();
-      const delay = 5000 - (now % 5000) + 200;
-      
-      timeoutId = setTimeout(() => {
-        fetchTraffic();
-        scheduleNextFetch();
-      }, delay);
-    };
-
-    fetchTraffic();
-    scheduleNextFetch();
-
-    return () => clearTimeout(timeoutId);
-  }, [xrayUuid]);
+    if (trafficData.uuids && trafficData.uuids[xrayUuid]) {
+      setTrafficState(trafficData.uuids[xrayUuid]);
+    }
+  }, [trafficData, xrayUuid]);
 
   const formattedStat = {
     speedUp: Number(trafficState?.speedUp || 0),

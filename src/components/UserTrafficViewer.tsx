@@ -3,19 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import TrafficTableUI from '@/components/TrafficTableUI';
-
-const formatBytes = (bytes: string | number) => {
-  const b = Number(bytes);
-  if (b === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(b) / Math.log(k));
-  return parseFloat((b / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-const formatSpeed = (bytesPerSec: string | number) => {
-  return formatBytes(bytesPerSec) + '/s';
-};
+import { useTrafficStream } from '@/components/TrafficStreamContext';
 
 interface TrafficState {
   speedUp: string;
@@ -32,8 +20,16 @@ interface TrafficState {
   totalDown: string;
 }
 
-export default function UserTrafficViewer({ subId, trafficState }: { subId: string, trafficState: TrafficState }) {
+export default function UserTrafficViewer({ subId, trafficState: initialTrafficState }: { subId: string, trafficState: TrafficState }) {
   const dict = useTranslation();
+  const { trafficData } = useTrafficStream();
+  const [trafficState, setTrafficState] = useState<any>(initialTrafficState);
+
+  useEffect(() => {
+    if (trafficData.subscriptions && trafficData.subscriptions[subId]) {
+      setTrafficState(trafficData.subscriptions[subId]);
+    }
+  }, [trafficData, subId]);
 
   const formattedStat = {
     speedUp: Number(trafficState?.speedUp || 0),

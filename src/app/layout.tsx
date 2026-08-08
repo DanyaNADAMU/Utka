@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { getDictionary } from "@/i18n/dictionaries";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
+import { TrafficStreamProvider } from "@/components/TrafficStreamContext";
 
 import { Suspense } from "react";
 import NavigationProgress from "@/components/NavigationProgress";
@@ -27,7 +28,9 @@ export default async function RootLayout({
           <NavigationProgress />
         </Suspense>
         <LanguageProvider dictionary={dictionary}>
-          {children}
+          <TrafficStreamProvider>
+            {children}
+          </TrafficStreamProvider>
         </LanguageProvider>
       </body>
     </html>

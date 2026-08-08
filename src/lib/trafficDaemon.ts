@@ -1,5 +1,10 @@
 import db from "@/lib/db";
 import { queryAllUserStats, syncNodeUsers } from "@/lib/xray";
+import { EventEmitter } from 'events';
+
+export const trafficEventEmitter: EventEmitter = (globalThis as any).trafficEventEmitter || new EventEmitter();
+trafficEventEmitter.setMaxListeners(200);
+(globalThis as any).trafficEventEmitter = trafficEventEmitter;
 
 // Make BigInt serialize to JSON nicely (as strings)
 if (!(BigInt.prototype as any).toJSON) {
@@ -205,6 +210,14 @@ async function tick() {
       }
       updateStateObj(trafficState, subId, live, totalUncommittedUp, totalUncommittedDown, cachedAggregates[subId]);
     }
+
+    // Emit real-time update event via SSE
+    trafficEventEmitter.emit('update', {
+      subscriptions: trafficState,
+      uuids: uuidTrafficState,
+      nodes: nodeStatusState,
+      timestamp: Date.now(),
+    });
     
     // Every minute (at 00s), flush to DB
     if (seconds < 5 && !dbSyncRunning) {
