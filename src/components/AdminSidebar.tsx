@@ -62,16 +62,12 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300 shrink-0
       `}>
         <div className={`h-20 border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'}`}>
-        {!collapsed ? (
+        {!collapsed && (
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
             <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
             <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent truncate transition-all duration-300 text-xl">
               Dash
             </h1>
-          </Link>
-        ) : (
-          <Link href="/" className="flex items-center justify-center" title="Dash">
-            <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
           </Link>
         )}
         <button 
