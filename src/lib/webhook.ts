@@ -1,4 +1,4 @@
-// Helper for pushing real-time subscription webhook updates to trusted services (e.g., NadamuAnalytics)
+import { getSettings } from '@/lib/settings';
 
 interface SubscriptionWebhookPayload {
   event: 'subscription.created' | 'subscription.updated' | 'subscription.deleted';
@@ -13,12 +13,12 @@ interface SubscriptionWebhookPayload {
 }
 
 export async function sendSubscriptionWebhook(payload: SubscriptionWebhookPayload): Promise<void> {
-  const analyticsUrl = process.env.NADAMU_ANALYTICS_URL || 'http://127.0.0.1:8005';
-  const token = (process.env.SERVICE_TOKENS || process.env.API_SERVICE_TOKEN || '').split(',')[0]?.trim();
+  const settings = await getSettings();
+  const endpoint = settings.WEBHOOK_URL ? settings.WEBHOOK_URL.trim() : '';
+  const tokenList = (settings.SERVICE_TOKENS || '').split(/[\n,]+/).map((t) => t.trim()).filter(Boolean);
+  const token = tokenList[0] || '';
 
-  if (!analyticsUrl) return;
-
-  const endpoint = `${analyticsUrl.replace(/\/+$/, '')}/api/v1/subscriptions/webhook`;
+  if (!endpoint) return;
 
   try {
     const headers: Record<string, string> = {

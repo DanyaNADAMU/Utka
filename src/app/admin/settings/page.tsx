@@ -59,6 +59,44 @@ export default async function SettingsPage() {
             </div>
           </div>
 
+          <div className="pt-8 border-t border-slate-800 space-y-4">
+            <h3 className="text-md font-semibold text-slate-200">{dict.admin.settings.webhooks_integrations}</h3>
+
+            <div>
+              <label htmlFor="WEBHOOK_URL" className="block text-sm font-medium text-slate-300 mb-1">
+                {dict.admin.settings.webhook_url}
+              </label>
+              <p className="text-xs text-slate-500 mb-2">
+                {dict.admin.settings.webhook_url_desc}
+              </p>
+              <input 
+                type="text" 
+                id="WEBHOOK_URL" 
+                name="WEBHOOK_URL" 
+                defaultValue={settings.WEBHOOK_URL}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono text-xs"
+                placeholder="http://127.0.0.1:8005/api/v1/subscriptions/webhook"
+              />
+            </div>
+
+            <div className="pt-2">
+              <label htmlFor="SERVICE_TOKENS" className="block text-sm font-medium text-slate-300 mb-1">
+                {dict.admin.settings.service_tokens}
+              </label>
+              <p className="text-xs text-slate-500 mb-2">
+                {dict.admin.settings.service_tokens_desc}
+              </p>
+              <textarea 
+                id="SERVICE_TOKENS" 
+                name="SERVICE_TOKENS" 
+                rows={3}
+                defaultValue={settings.SERVICE_TOKENS}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono text-xs"
+                placeholder="secret_service_token_1&#10;secret_service_token_2"
+              />
+            </div>
+          </div>
+
           <div className="pt-6 border-t border-slate-800 flex justify-end">
             <button 
               type="submit" 

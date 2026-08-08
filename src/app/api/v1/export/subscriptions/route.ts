@@ -3,10 +3,13 @@ import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+import { getSettings } from '@/lib/settings';
+
 // Helper to validate Bearer or X-Service-Token header
-function validateAuth(req: NextRequest): boolean {
-  const serviceTokens = (process.env.SERVICE_TOKENS || process.env.API_SERVICE_TOKEN || '')
-    .split(',')
+async function validateAuth(req: NextRequest): Promise<boolean> {
+  const settings = await getSettings();
+  const serviceTokens = (settings.SERVICE_TOKENS || process.env.SERVICE_TOKENS || process.env.API_SERVICE_TOKEN || '')
+    .split(/[\n,]+/)
     .map((t) => t.trim())
     .filter(Boolean);
 
@@ -22,7 +25,7 @@ function validateAuth(req: NextRequest): boolean {
 }
 
 export async function GET(req: NextRequest) {
-  if (!validateAuth(req)) {
+  if (!(await validateAuth(req))) {
     return new NextResponse(JSON.stringify({ error: 'Unauthorized service token' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },

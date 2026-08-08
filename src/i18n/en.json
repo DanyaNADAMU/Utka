@@ -128,12 +128,17 @@
     },
     "settings": {
       "title": "Panel Settings",
-      "description": "Manage base system configurations and Xray integration.",
+      "description": "Manage base system configurations, webhooks, and Xray integration.",
       "routing_xray": "Routing and Xray",
       "sub_path": "Subscription Link Path",
       "sub_path_desc": "URL template for generating links. Use `[token]` as a placeholder. Example: `/[token]` or `/sub/[token]`.",
       "old_uuid_expire": "Old Keys Expiration (minutes)",
       "old_uuid_expire_desc": "How many minutes an old UUID will work after the client requests a new one.",
+      "webhooks_integrations": "Integrations & Webhooks",
+      "webhook_url": "Webhook Endpoint URL",
+      "webhook_url_desc": "URL endpoint for sending subscription creation, update, and deletion webhooks (e.g. http://127.0.0.1:8005/api/v1/subscriptions/webhook).",
+      "service_tokens": "Service Authentication Tokens",
+      "service_tokens_desc": "Tokens used by trusted services to access `/api/v1/export/subscriptions` and authorize outgoing webhooks.",
       "save_button": "Save Settings"
     },
     "xray": {
