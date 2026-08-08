@@ -3,7 +3,7 @@ import db from '@/lib/db';
 export const DEFAULT_SETTINGS = {
   SUB_PATH: '/[token]',
   OLD_UUID_EXPIRE_MINUTES: '2031',
-  WEBHOOK_URL: process.env.WEBHOOK_URL || (process.env.NADAMU_ANALYTICS_URL ? `${process.env.NADAMU_ANALYTICS_URL.replace(/\/+$/, '')}/api/v1/subscriptions/webhook` : 'http://127.0.0.1:8005/api/v1/subscriptions/webhook'),
+  WEBHOOK_URL: process.env.WEBHOOK_URL || (process.env.NADAMU_ANALYTICS_URL ? `${process.env.NADAMU_ANALYTICS_URL.replace(/\/+$/, '')}/api/v1/subscriptions/webhook` : 'https://example.com/api/v1/subscriptions/webhook'),
   SERVICE_TOKENS: process.env.SERVICE_TOKENS || process.env.API_SERVICE_TOKEN || '',
 } as const;
 

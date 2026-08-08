@@ -75,7 +75,7 @@ export default async function SettingsPage() {
                 name="WEBHOOK_URL" 
                 defaultValue={settings.WEBHOOK_URL}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono text-xs"
-                placeholder="http://127.0.0.1:8005/api/v1/subscriptions/webhook"
+                placeholder="https://example.com/api/v1/subscriptions/webhook"
               />
             </div>
 

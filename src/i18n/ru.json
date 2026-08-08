@@ -136,7 +136,7 @@
       "old_uuid_expire_desc": "Сколько минут старый UUID будет работать после того, как клиентская программа запросит новый.",
       "webhooks_integrations": "Интеграции и Webhooks",
       "webhook_url": "URL эндпоинта вебхуков",
-      "webhook_url_desc": "URL адрес для отправки уведомлений о создании и удалении подписок (например: http://127.0.0.1:8005/api/v1/subscriptions/webhook).",
+      "webhook_url_desc": "URL адрес для отправки уведомлений о создании и удалении подписок (например: https://example.com/api/v1/subscriptions/webhook).",
       "service_tokens": "Сервисные токены авторизации",
       "service_tokens_desc": "Токены для доступа доверенных сервисов к экспорту подписок (/api/v1/export/subscriptions) и авторизации отправляемых вебхуков.",
       "save_button": "Сохранить настройки"
