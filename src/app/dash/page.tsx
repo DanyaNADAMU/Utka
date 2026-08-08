@@ -73,7 +73,7 @@ export default async function Dashboard() {
           <div className="flex items-center gap-2.5 ml-0 md:ml-2">
             <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              NadamuDash
+              Dash
             </h1>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full md:w-auto">

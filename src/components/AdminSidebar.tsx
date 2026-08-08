@@ -32,7 +32,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         <Link href="/" className="flex items-center gap-2.5">
           <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
           <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent text-xl">
-            NadamuDash
+            Dash
           </h1>
         </Link>
         <button 
@@ -66,11 +66,11 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
             <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
             <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent truncate transition-all duration-300 text-xl">
-              NadamuDash
+              Dash
             </h1>
           </Link>
         ) : (
-          <Link href="/" className="flex items-center justify-center" title="NadamuDash">
+          <Link href="/" className="flex items-center justify-center" title="Dash">
             <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
           </Link>
         )}
