@@ -137,7 +137,9 @@
       "webhooks_integrations": "Интеграции и Webhooks",
       "webhook_url": "URL эндпоинта вебхуков",
       "webhook_url_desc": "URL адрес для отправки уведомлений о создании и удалении подписок (например: https://example.com/api/v1/subscriptions/webhook).",
-      "service_tokens": "Сервисные токены авторизации",
+      "webhook_token": "Токен авторизации вебхуков",
+      "webhook_token_desc": "Bearer токен для авторизации запросов вебхука на стороне приёмника (NadamuAnalytics).",
+      "service_tokens": "Сервисные токены авторизации (Incoming)",
       "service_tokens_desc": "Токены для доступа доверенных сервисов к экспорту подписок (/api/v1/export/subscriptions) и авторизации отправляемых вебхуков.",
       "save_button": "Сохранить настройки"
     },

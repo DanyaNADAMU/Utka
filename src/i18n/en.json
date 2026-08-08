@@ -137,7 +137,9 @@
       "webhooks_integrations": "Integrations & Webhooks",
       "webhook_url": "Webhook Endpoint URL",
       "webhook_url_desc": "URL endpoint for sending subscription creation, update, and deletion webhooks (e.g. https://example.com/api/v1/subscriptions/webhook).",
-      "service_tokens": "Service Authentication Tokens",
+      "webhook_token": "Webhook Authorization Token",
+      "webhook_token_desc": "Bearer token used to authorize outgoing webhook requests on NadamuAnalytics.",
+      "service_tokens": "Service Authentication Tokens (Incoming)",
       "service_tokens_desc": "Tokens used by trusted services to access `/api/v1/export/subscriptions` and authorize outgoing webhooks.",
       "save_button": "Save Settings"
     },

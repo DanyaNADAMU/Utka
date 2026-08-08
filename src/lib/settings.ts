@@ -4,6 +4,7 @@ export const DEFAULT_SETTINGS = {
   SUB_PATH: '/[token]',
   OLD_UUID_EXPIRE_MINUTES: '2031',
   WEBHOOK_URL: process.env.WEBHOOK_URL || (process.env.NADAMU_ANALYTICS_URL ? `${process.env.NADAMU_ANALYTICS_URL.replace(/\/+$/, '')}/api/v1/subscriptions/webhook` : 'https://example.com/api/v1/subscriptions/webhook'),
+  WEBHOOK_TOKEN: process.env.WEBHOOK_TOKEN || process.env.NADAMU_ANALYTICS_TOKEN || '',
   SERVICE_TOKENS: process.env.SERVICE_TOKENS || process.env.API_SERVICE_TOKEN || '',
 } as const;
 

@@ -80,6 +80,23 @@ export default async function SettingsPage() {
             </div>
 
             <div className="pt-2">
+              <label htmlFor="WEBHOOK_TOKEN" className="block text-sm font-medium text-slate-300 mb-1">
+                {dict.admin.settings.webhook_token}
+              </label>
+              <p className="text-xs text-slate-500 mb-2">
+                {dict.admin.settings.webhook_token_desc}
+              </p>
+              <input 
+                type="text" 
+                id="WEBHOOK_TOKEN" 
+                name="WEBHOOK_TOKEN" 
+                defaultValue={settings.WEBHOOK_TOKEN}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono text-xs"
+                placeholder="secret_webhook_token"
+              />
+            </div>
+
+            <div className="pt-2">
               <label htmlFor="SERVICE_TOKENS" className="block text-sm font-medium text-slate-300 mb-1">
                 {dict.admin.settings.service_tokens}
               </label>

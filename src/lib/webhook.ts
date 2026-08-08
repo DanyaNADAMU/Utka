@@ -15,7 +15,7 @@ interface SubscriptionWebhookPayload {
 export async function sendSubscriptionWebhook(payload: SubscriptionWebhookPayload): Promise<void> {
   const settings = await getSettings();
   const endpoint = settings.WEBHOOK_URL ? settings.WEBHOOK_URL.trim() : '';
-  const tokenList = (settings.SERVICE_TOKENS || '').split(/[\n,]+/).map((t) => t.trim()).filter(Boolean);
+  const tokenList = (settings.WEBHOOK_TOKEN || settings.SERVICE_TOKENS || '').split(/[\n,]+/).map((t) => t.trim()).filter(Boolean);
   const token = tokenList[0] || '';
 
   if (!endpoint) return;
