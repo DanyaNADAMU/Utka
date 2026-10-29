@@ -11,21 +11,31 @@ export const DEFAULT_SETTINGS = {
 export type SettingKey = keyof typeof DEFAULT_SETTINGS | string;
 
 export async function getSetting(key: SettingKey): Promise<string> {
-  const setting = await db.setting.findUnique({ where: { key } });
-  return setting?.value ?? (DEFAULT_SETTINGS as any)[key] ?? '';
+  try {
+    const setting = await db.setting.findUnique({ where: { key } });
+    return setting?.value ?? (DEFAULT_SETTINGS as any)[key] ?? '';
+  } catch {
+    return (DEFAULT_SETTINGS as any)[key] ?? '';
+  }
 }
 
 export async function getSettings(): Promise<Record<string, string>> {
-  const settings = await db.setting.findMany();
-  const settingsMap = settings.reduce((acc, curr) => {
-    acc[curr.key] = curr.value;
-    return acc;
-  }, {} as Record<string, string>);
+  try {
+    const settings = await db.setting.findMany();
+    const settingsMap = settings.reduce((acc, curr) => {
+      acc[curr.key] = curr.value;
+      return acc;
+    }, {} as Record<string, string>);
 
-  return {
-    ...DEFAULT_SETTINGS,
-    ...settingsMap,
-  };
+    return {
+      ...DEFAULT_SETTINGS,
+      ...settingsMap,
+    };
+  } catch {
+    return {
+      ...DEFAULT_SETTINGS,
+    };
+  }
 }
 
 export async function setSetting(key: SettingKey, value: string): Promise<void> {

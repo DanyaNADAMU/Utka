@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import db from '@/lib/db';
 import { checkWorkerHealth } from '@/lib/trafficClient';
+import { checkSubHealth } from '@/lib/subClient';
 
 export async function GET() {
   const startTime = Date.now();
@@ -31,6 +32,9 @@ export async function GET() {
   // Check Worker health
   const workerInfo = await checkWorkerHealth();
 
+  // Check Sub service health
+  const subInfo = await checkSubHealth();
+
   const isHealthy = dbStatus === 'connected';
   const statusCode = isHealthy ? 200 : 503;
 
@@ -51,6 +55,7 @@ export async function GET() {
           status: socketExists ? 'available' : 'unavailable',
         },
         worker: workerInfo || { status: 'unknown' },
+        sub: subInfo || { status: 'unknown' },
       },
     },
     { status: statusCode }

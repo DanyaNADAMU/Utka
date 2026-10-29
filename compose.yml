@@ -11,12 +11,16 @@ services:
     environment:
       - NODE_ENV=production
       - WORKER_URL=http://nadamudash-worker:8007
+      - SUB_URL=http://nadamudash-sub:8008
+      - SUB_INTERNAL_URL=http://nadamudash-sub:8008
     volumes:
       - ./xray:/app/xray
     depends_on:
       postgres:
         condition: service_healthy
       nadamudash-worker:
+        condition: service_started
+      nadamudash-sub:
         condition: service_started
 
   nadamudash-worker:
@@ -29,6 +33,25 @@ services:
     environment:
       - NODE_ENV=production
       - WORKER_PORT=8007
+    volumes:
+      - ./xray:/app/xray
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nadamudash-sub:
+    image: ghcr.io/danyanadamu/nadamudash:latest
+    container_name: nadamudash-sub
+    command: ["/app/start-sub.sh"]
+    restart: unless-stopped
+    ports:
+      - "${SUB_PORT:-127.0.0.1:8008}:8008"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - SUB_PORT=8008
+      - SUB_HOST=0.0.0.0
     volumes:
       - ./xray:/app/xray
     depends_on:
@@ -60,4 +83,3 @@ services:
     restart: unless-stopped
     volumes:
       - ./xray:/base/xray
-

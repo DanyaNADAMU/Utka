@@ -60,8 +60,11 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '#!/bin/sh' > /app/start-worker.sh && \
     echo 'echo "Starting NadamuDash Worker..."' >> /app/start-worker.sh && \
     echo 'exec node worker.js' >> /app/start-worker.sh && \
-    chown nextjs:nodejs /app/start.sh /app/start-worker.sh && \
-    chmod +x /app/start.sh /app/start-worker.sh
+    echo '#!/bin/sh' > /app/start-sub.sh && \
+    echo 'echo "Starting NadamuDash Subscription Service..."' >> /app/start-sub.sh && \
+    echo 'exec node sub.js' >> /app/start-sub.sh && \
+    chown nextjs:nodejs /app/start.sh /app/start-worker.sh /app/start-sub.sh && \
+    chmod +x /app/start.sh /app/start-worker.sh /app/start-sub.sh
 
 USER nextjs
 
