@@ -53,7 +53,7 @@ export function getClients(grpcHost: string) {
 }
 
 // Load protobufjs root for encoding TypedMessages
-let root = new protobuf.Root();
+const root = new protobuf.Root();
 try {
   root.resolvePath = function(origin, target) {
     if (target.match(/^(app|common|proxy|transport|core)\//)) {
@@ -313,9 +313,9 @@ export async function buildClientLink(
   const port = customPort ? customPort : nodePort;
   const protocol = "vless";
   
-  let pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
-  let sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
+  const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
+  const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
+  const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
   const security = pbk ? "reality" : (sni ? "tls" : "none");
@@ -357,9 +357,9 @@ export async function buildClashProxyObject(
   const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
   const port = customPort ? customPort : nodePort;
   
-  let pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
-  let sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  let sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
+  const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
+  const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
+  const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
   const security = pbk ? "reality" : (sni ? "tls" : "none");

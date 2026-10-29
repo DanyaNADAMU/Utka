@@ -7,7 +7,7 @@ import Link from "next/link";
 import UserTrafficViewer from "@/components/UserTrafficViewer";
 import CopyButton from "@/components/CopyButton";
 import UuidHistoryViewer from "@/components/UuidHistoryViewer";
-import { trafficState } from "@/lib/trafficDaemon";
+import { fetchTrafficState } from "@/lib/trafficClient";
 import DeleteUserButton from "@/components/DeleteUserButton";
 import RegenerateTokenButton from "@/components/RegenerateTokenButton";
 import EditUserAccessModal from "@/components/EditUserAccessModal";
@@ -32,7 +32,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   const allNodesRaw = await db.node.findMany({ where: { isActive: true }, select: { id: true, name: true, apiHost: true, xrayConfig: true } });
   
   const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
-  let hasMaster = allNodesRaw.some(n => n.apiHost === masterApiHost);
+  const hasMaster = allNodesRaw.some(n => n.apiHost === masterApiHost);
   
   if (!hasMaster) {
     let masterNode = await db.node.findFirst({ where: { apiHost: masterApiHost } });
@@ -47,7 +47,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
         }
       });
     } else {
-      let updateData: any = {};
+      const updateData: any = {};
       if (!masterNode.isActive) updateData.isActive = true;
       if (masterNode.name === 'Master Server') updateData.name = 'Master';
       if (Object.keys(updateData).length > 0) {
@@ -181,8 +181,9 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {(() => {
-        const myTrafficState = trafficState[sub.id] || {
+      {await (async () => {
+        const trafficData = await fetchTrafficState();
+        const myTrafficState = trafficData.subscriptions[sub.id] || {
           speedUp: 0, speedDown: 0,
           last5sUp: 0, last5sDown: 0,
           last1mUp: 0, last1mDown: 0,

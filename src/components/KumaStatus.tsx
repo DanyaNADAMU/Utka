@@ -12,7 +12,7 @@ export default function KumaStatus({ dict }: { dict: any }) {
         if (!response.ok) throw new Error('Status page fetch failed');
         const data = await response.json();
 
-        let monitorIds: number[] = [];
+        const monitorIds: number[] = [];
         if (data.publicGroupList) {
           for (const group of data.publicGroupList) {
             for (const monitor of group.monitorList) {

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import CopyButton from "@/components/CopyButton";
 import SingleUuidTrafficViewer from "@/components/SingleUuidTrafficViewer";
-import { uuidTrafficState } from "@/lib/trafficDaemon";
+import { fetchTrafficState } from "@/lib/trafficClient";
 
 export default async function UuidDetailPage({ params }: { params: Promise<{ xrayUuid: string }> }) {
   const dict = await getDictionary();
@@ -43,7 +43,7 @@ export default async function UuidDetailPage({ params }: { params: Promise<{ xra
 
   let status: 'ACTIVE' | 'EXPIRING' | 'EXPIRED' = 'EXPIRED';
   let expiresAt: Date | null = null;
-  let inboundTag = activeInbound?.inboundTag || uuidHistoryItem?.inboundTag || expiringItem?.inboundTag || 'unknown';
+  const inboundTag = activeInbound?.inboundTag || uuidHistoryItem?.inboundTag || expiringItem?.inboundTag || 'unknown';
 
   if (activeInbound) {
     status = 'ACTIVE';
@@ -133,8 +133,9 @@ export default async function UuidDetailPage({ params }: { params: Promise<{ xra
         </div>
       </div>
 
-      {(() => {
-        const state = uuidTrafficState[xrayUuid] || {
+      {await (async () => {
+        const trafficData = await fetchTrafficState();
+        const state = trafficData.uuids[xrayUuid] || {
           speedUp: 0, speedDown: 0,
           last5sUp: 0, last5sDown: 0,
           last1mUp: 0, last1mDown: 0,

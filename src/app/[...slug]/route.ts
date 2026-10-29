@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { addVlessUser, removeVlessUser, getClientInboundTags, getXrayInboundTags, buildClientLink } from '@/lib/xray';
+import { addVlessUser, getClientInboundTags, getXrayInboundTags, buildClientLink } from '@/lib/xray';
 import crypto from 'crypto';
 import { getSettings } from '@/lib/settings';
 
@@ -272,24 +272,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
   console.log(`[VALID SUB REQUEST] Client IP: ${clientIp} | User-Agent: ${userAgent}`);
-
-  // Cleanup expired UUIDs across all subscriptions (lazy cleanup)
-  try {
-    const expiredUuids = await db.expiringUuid.findMany({
-      where: { expiresAt: { lte: new Date() } },
-      include: { node: true }
-    });
-
-    for (const exp of expiredUuids) {
-      const apiHost = exp.node ? exp.node.apiHost : 'unix:///app/xray/api.sock';
-      const success = await removeVlessUser(apiHost, exp.inboundTag, exp.xrayEmail);
-      if (success || !success) { 
-        await db.expiringUuid.delete({ where: { id: exp.id } });
-      }
-    }
-  } catch (e) {
-    console.error("Failed to cleanup expired UUIDs:", e);
-  }
 
   const links: string[] = [];
   const expireMinutes = Number(settings.OLD_UUID_EXPIRE_MINUTES) || 2031;

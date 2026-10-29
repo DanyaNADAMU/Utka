@@ -9,7 +9,33 @@ env:
   IMAGE_NAME: danyanadamu/nadamudash
 
 jobs:
+  test:
+    name: Quality Gate (Lint, Types, Tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Lint, Typecheck & Tests
+        run: |
+          npm run lint
+          npm run type-check
+          npm test
+
   build-and-push-image:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read

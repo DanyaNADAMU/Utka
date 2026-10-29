@@ -3,7 +3,7 @@ import { getSettings } from "@/lib/settings";
 import AdminUsersTable from "@/components/AdminUsersTable";
 import AddUserModal from "@/components/AddUserModal";
 import { getDictionary } from "@/i18n/dictionaries";
-import { trafficState } from "@/lib/trafficDaemon";
+import { fetchTrafficState } from "@/lib/trafficClient";
 
 export default async function AdminUsersPage() {
   const dict = await getDictionary();
@@ -34,6 +34,8 @@ export default async function AdminUsersPage() {
     };
   });
 
+  const trafficData = await fetchTrafficState();
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -46,7 +48,7 @@ export default async function AdminUsersPage() {
         </div>
       </div>
       
-      <AdminUsersTable subscriptions={subs} trafficState={trafficState as any} />
+      <AdminUsersTable subscriptions={subs} trafficState={trafficData.subscriptions as any} />
       
     </div>
   );

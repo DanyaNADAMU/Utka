@@ -51,14 +51,17 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Create start script
+# Create start scripts
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "Syncing database..."' >> /app/start.sh && \
     echo 'prisma db push --accept-data-loss --skip-generate' >> /app/start.sh && \
     echo 'echo "Starting NadamuDash..."' >> /app/start.sh && \
     echo 'exec node server.js' >> /app/start.sh && \
-    chown nextjs:nodejs /app/start.sh && \
-    chmod +x /app/start.sh
+    echo '#!/bin/sh' > /app/start-worker.sh && \
+    echo 'echo "Starting NadamuDash Worker..."' >> /app/start-worker.sh && \
+    echo 'exec node worker.js' >> /app/start-worker.sh && \
+    chown nextjs:nodejs /app/start.sh /app/start-worker.sh && \
+    chmod +x /app/start.sh /app/start-worker.sh
 
 USER nextjs
 

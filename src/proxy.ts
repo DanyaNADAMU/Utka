@@ -11,7 +11,7 @@ export const proxy = auth((req) => {
     res = NextResponse.redirect(new URL("/api/auth/signin", req.url))
   }
   
-  let locale = req.cookies.get('NEXT_LOCALE')?.value;
+  const locale = req.cookies.get('NEXT_LOCALE')?.value;
   if (!locale) {
     res.cookies.set('NEXT_LOCALE', 'ru');
   }

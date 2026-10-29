@@ -18,10 +18,13 @@ DEPLOY_CMD="sudo /usr/local/bin/deploy-nadamudash"
 # Parse arguments
 MODE="--server"
 COMMIT_MSG=""
+SKIP_TESTS=false
 
 for arg in "$@"; do
   if [[ "$arg" == "--gha" || "$arg" == "--local" || "$arg" == "--server" ]]; then
     MODE="$arg"
+  elif [[ "$arg" == "--skip-tests" ]]; then
+    SKIP_TESTS=true
   else
     COMMIT_MSG="$arg"
   fi
@@ -29,13 +32,32 @@ done
 
 if [ -z "$COMMIT_MSG" ]; then
   echo "❌ Error: A commit message is required."
-  echo "Usage: ./deploy.sh [--gha|--local|--server] \"your commit message\""
+  echo "Usage: ./deploy.sh [--gha|--local|--server] [--skip-tests] \"your commit message\""
   echo ""
-  echo "  --server   (Default) Push git -> Build on Berg -> Deploy on Berg"
-  echo "  --local    Build locally -> Push image -> Deploy immediately -> Sync Git"
-  echo "  --gha      Push git -> Wait GHA -> Deploy immediately -> Sync server repo"
+  echo "  --server       (Default) Push git -> Build on Berg -> Deploy on Berg"
+  echo "  --local        Build locally -> Push image -> Deploy immediately -> Sync Git"
+  echo "  --gha          Push git -> Wait GHA -> Deploy immediately -> Sync server repo"
+  echo "  --skip-tests   Bypass local lint, type-check and automated test suite"
   exit 1
 fi
+
+run_checks() {
+  if [ "$SKIP_TESTS" = true ]; then
+    echo "⚠️  Skipping tests as requested by --skip-tests"
+    return 0
+  fi
+  echo "==========================================="
+  echo "🧪 Running Quality Gates (Lint, Types, Tests)"
+  echo "==========================================="
+  npm run lint
+  npm run type-check
+  npm test
+  echo "✅ All automated checks passed!"
+}
+
+# Run quality checks before initiating deployment
+run_checks
+
 
 sync_git() {
   echo "==========================================="

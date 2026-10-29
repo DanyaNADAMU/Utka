@@ -2,11 +2,12 @@ import { auth } from "@/auth"
 import db from "@/lib/db"
 import { buildClientLink } from "@/lib/xray";
 import { getSettings } from "@/lib/settings";
-import { trafficState } from "@/lib/trafficDaemon";
+import { fetchTrafficState } from "@/lib/trafficClient";
 import { getDictionary } from "@/i18n/dictionaries";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { QRCodeSVG } from 'qrcode.react'
 import { notFound } from "next/navigation"
+import Link from "next/link";
 
 export default async function Dashboard() {
   const session = await auth();
@@ -31,12 +32,13 @@ export default async function Dashboard() {
 
   const sub = dbUser.subscriptions[0];
   
-  // Fetch total traffic from daemon state or fallback to DB
-  const stat = trafficState[sub.id];
+  // Fetch total traffic from worker state or fallback to DB
+  const trafficData = await fetchTrafficState();
+  const stat = trafficData.subscriptions[sub.id];
   const dbUp = sub.traffic?.reduce((acc: bigint, t: any) => acc + t.up, BigInt(0)) || BigInt(0);
   const dbDown = sub.traffic?.reduce((acc: bigint, t: any) => acc + t.down, BigInt(0)) || BigInt(0);
-  const totalUp = stat ? stat.totalUp : dbUp;
-  const totalDown = stat ? stat.totalDown : dbDown;
+  const totalUp = stat ? BigInt(stat.totalUp || 0) : dbUp;
+  const totalDown = stat ? BigInt(stat.totalDown || 0) : dbDown;
   
   // Format bytes helper
   const formatBytes = (bytes: bigint) => {
@@ -79,9 +81,9 @@ export default async function Dashboard() {
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full md:w-auto">
             <LanguageSwitcher />
             <span className="text-sm font-medium text-slate-400 truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">{session.user.email}</span>
-            <a href="/api/auth/signout" className="px-5 py-2 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 ml-auto md:ml-0">
+            <Link href="/api/auth/signout" className="px-5 py-2 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 ml-auto md:ml-0">
               Выйти
-            </a>
+            </Link>
           </div>
         </header>
 

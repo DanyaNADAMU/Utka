@@ -1,7 +1,7 @@
 import os from 'os';
 import db from '@/lib/db';
 import AdminDashboardClient from '@/components/AdminDashboardClient';
-import { trafficState } from '@/lib/trafficDaemon';
+import { fetchTrafficState } from '@/lib/trafficClient';
 
 export default async function AdminDashboardPage() {
   const totalUsers = await db.user.count({ where: { role: 'USER' } });
@@ -64,7 +64,7 @@ export default async function AdminDashboardPage() {
     history: chartData
   };
 
-  let gt = {
+  const gt = {
     speedUp: 0, speedDown: 0, 
     last5sUp: 0, last5sDown: 0, 
     last1mUp: 0, last1mDown: 0, 
@@ -73,7 +73,9 @@ export default async function AdminDashboardPage() {
     totalUp: 0, totalDown: 0 
   };
 
-  Object.values(trafficState || {}).forEach((t: any) => {
+  const trafficData = await fetchTrafficState();
+
+  Object.values(trafficData.subscriptions || {}).forEach((t: any) => {
     gt.speedUp += Number(t.speedUp || 0);
     gt.speedDown += Number(t.speedDown || 0);
     gt.last5sUp += Number(t.last5sUp || 0);
