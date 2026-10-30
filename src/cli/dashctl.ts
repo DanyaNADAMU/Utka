@@ -21,6 +21,18 @@ function formatBytes(bytes: bigint | number): string {
   return `${(Number(b) / Math.pow(Number(k), i)).toFixed(2)} ${sizes[i]}`;
 }
 
+function stripAnsi(str: string): string {
+  return str.replace(/\x1b\[[0-9;]*m/g, '');
+}
+
+function col(str: string | number, width: number, alignRight: boolean = false): string {
+  const s = String(str);
+  const plainLength = stripAnsi(s).length;
+  if (plainLength >= width) return s;
+  const padding = ' '.repeat(width - plainLength);
+  return alignRight ? padding + s : s + padding;
+}
+
 async function renderQr(text: string): Promise<string> {
   return new Promise((resolve) => {
     QRCode.toString(text, { type: 'terminal', small: true }, (err, str) => {
@@ -124,26 +136,30 @@ async function handleUserList() {
   }
 
   console.log(
-    `\x1b[1m%-16s %-24s %-38s %-12s %-12s\x1b[0m`,
-    'NAME',
-    'EMAIL',
-    'TOKEN',
-    'TRAFFIC',
-    'ROLE'
+    '\x1b[1m' +
+    [
+      col('NAME', 16),
+      col('EMAIL', 26),
+      col('TOKEN', 38),
+      col('TRAFFIC', 12),
+      col('ROLE', 10),
+    ].join(' ') +
+    '\x1b[0m'
   );
-  console.log('─'.repeat(105));
+  console.log('─'.repeat(106));
 
   for (const u of users) {
     const token = u.subscriptions[0]?.token || 'no-subscription';
     const trafficStr = formatBytes(u.totalBytes);
 
     console.log(
-      `%-16s %-24s %-38s %-12s %-12s`,
-      u.name.slice(0, 15),
-      u.email.slice(0, 23),
-      token,
-      trafficStr,
-      u.role
+      [
+        col(u.name || '—', 16),
+        col(u.email || '—', 26),
+        col(token, 38),
+        col(trafficStr, 12),
+        col(u.role, 10),
+      ].join(' ')
     );
   }
 }
@@ -273,25 +289,30 @@ async function handleNodeList() {
   }
 
   console.log(
-    `\x1b[1m%-16s %-22s %-8s %-8s %-10s %-10s\x1b[0m`,
-    'NAME',
-    'ADDRESS',
-    'PORT',
-    'INTERNAL',
-    'STATUS',
-    'USERS'
+    '\x1b[1m' +
+    [
+      col('NAME', 18),
+      col('ADDRESS', 24),
+      col('PORT', 8),
+      col('INTERNAL', 10),
+      col('STATUS', 12),
+      col('USERS', 8),
+    ].join(' ') +
+    '\x1b[0m'
   );
-  console.log('─'.repeat(85));
+  console.log('─'.repeat(84));
 
   for (const n of nodes) {
+    const statusStr = n.isActive ? '\x1b[32mActive\x1b[0m' : '\x1b[31mDisabled\x1b[0m';
     console.log(
-      `%-16s %-22s %-8d %-8d %-10s %-10d`,
-      n.name.slice(0, 15),
-      n.address.slice(0, 21),
-      n.port,
-      n.xrayPort,
-      n.isActive ? '\x1b[32mActive\x1b[0m' : '\x1b[31mDisabled\x1b[0m',
-      n._count.subscriptions
+      [
+        col(n.name, 18),
+        col(n.address, 24),
+        col(n.port, 8),
+        col(n.xrayPort, 10),
+        col(statusStr, 12),
+        col(n._count.subscriptions, 8),
+      ].join(' ')
     );
   }
 }

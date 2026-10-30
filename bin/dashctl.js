@@ -209,19 +209,19 @@ var require_bit_matrix = __commonJS({
       this.data = new Uint8Array(size * size);
       this.reservedBit = new Uint8Array(size * size);
     }
-    BitMatrix.prototype.set = function(row, col, value, reserved) {
-      const index = row * this.size + col;
+    BitMatrix.prototype.set = function(row, col2, value, reserved) {
+      const index = row * this.size + col2;
       this.data[index] = value;
       if (reserved) this.reservedBit[index] = true;
     };
-    BitMatrix.prototype.get = function(row, col) {
-      return this.data[row * this.size + col];
+    BitMatrix.prototype.get = function(row, col2) {
+      return this.data[row * this.size + col2];
     };
-    BitMatrix.prototype.xor = function(row, col, value) {
-      this.data[row * this.size + col] ^= value;
+    BitMatrix.prototype.xor = function(row, col2, value) {
+      this.data[row * this.size + col2] ^= value;
     };
-    BitMatrix.prototype.isReserved = function(row, col) {
-      return this.reservedBit[row * this.size + col];
+    BitMatrix.prototype.isReserved = function(row, col2) {
+      return this.reservedBit[row * this.size + col2];
     };
     module2.exports = BitMatrix;
   }
@@ -316,8 +316,8 @@ var require_mask_pattern = __commonJS({
       for (let row = 0; row < size; row++) {
         sameCountCol = sameCountRow = 0;
         lastCol = lastRow = null;
-        for (let col = 0; col < size; col++) {
-          let module3 = data.get(row, col);
+        for (let col2 = 0; col2 < size; col2++) {
+          let module3 = data.get(row, col2);
           if (module3 === lastCol) {
             sameCountCol++;
           } else {
@@ -325,7 +325,7 @@ var require_mask_pattern = __commonJS({
             lastCol = module3;
             sameCountCol = 1;
           }
-          module3 = data.get(col, row);
+          module3 = data.get(col2, row);
           if (module3 === lastRow) {
             sameCountRow++;
           } else {
@@ -343,8 +343,8 @@ var require_mask_pattern = __commonJS({
       const size = data.size;
       let points = 0;
       for (let row = 0; row < size - 1; row++) {
-        for (let col = 0; col < size - 1; col++) {
-          const last = data.get(row, col) + data.get(row, col + 1) + data.get(row + 1, col) + data.get(row + 1, col + 1);
+        for (let col2 = 0; col2 < size - 1; col2++) {
+          const last = data.get(row, col2) + data.get(row, col2 + 1) + data.get(row + 1, col2) + data.get(row + 1, col2 + 1);
           if (last === 4 || last === 0) points++;
         }
       }
@@ -357,11 +357,11 @@ var require_mask_pattern = __commonJS({
       let bitsRow = 0;
       for (let row = 0; row < size; row++) {
         bitsCol = bitsRow = 0;
-        for (let col = 0; col < size; col++) {
-          bitsCol = bitsCol << 1 & 2047 | data.get(row, col);
-          if (col >= 10 && (bitsCol === 1488 || bitsCol === 93)) points++;
-          bitsRow = bitsRow << 1 & 2047 | data.get(col, row);
-          if (col >= 10 && (bitsRow === 1488 || bitsRow === 93)) points++;
+        for (let col2 = 0; col2 < size; col2++) {
+          bitsCol = bitsCol << 1 & 2047 | data.get(row, col2);
+          if (col2 >= 10 && (bitsCol === 1488 || bitsCol === 93)) points++;
+          bitsRow = bitsRow << 1 & 2047 | data.get(col2, row);
+          if (col2 >= 10 && (bitsRow === 1488 || bitsRow === 93)) points++;
         }
       }
       return points * PenaltyScores.N3;
@@ -397,10 +397,10 @@ var require_mask_pattern = __commonJS({
     }
     exports2.applyMask = function applyMask(pattern, data) {
       const size = data.size;
-      for (let col = 0; col < size; col++) {
+      for (let col2 = 0; col2 < size; col2++) {
         for (let row = 0; row < size; row++) {
-          if (data.isReserved(row, col)) continue;
-          data.xor(row, col, getMaskAt(pattern, row, col));
+          if (data.isReserved(row, col2)) continue;
+          data.xor(row, col2, getMaskAt(pattern, row, col2));
         }
       }
     };
@@ -1607,15 +1607,15 @@ var require_qrcode = __commonJS({
       const pos = FinderPattern.getPositions(version);
       for (let i = 0; i < pos.length; i++) {
         const row = pos[i][0];
-        const col = pos[i][1];
+        const col2 = pos[i][1];
         for (let r = -1; r <= 7; r++) {
           if (row + r <= -1 || size <= row + r) continue;
           for (let c = -1; c <= 7; c++) {
-            if (col + c <= -1 || size <= col + c) continue;
+            if (col2 + c <= -1 || size <= col2 + c) continue;
             if (r >= 0 && r <= 6 && (c === 0 || c === 6) || c >= 0 && c <= 6 && (r === 0 || r === 6) || r >= 2 && r <= 4 && c >= 2 && c <= 4) {
-              matrix.set(row + r, col + c, true, true);
+              matrix.set(row + r, col2 + c, true, true);
             } else {
-              matrix.set(row + r, col + c, false, true);
+              matrix.set(row + r, col2 + c, false, true);
             }
           }
         }
@@ -1633,13 +1633,13 @@ var require_qrcode = __commonJS({
       const pos = AlignmentPattern.getPositions(version);
       for (let i = 0; i < pos.length; i++) {
         const row = pos[i][0];
-        const col = pos[i][1];
+        const col2 = pos[i][1];
         for (let r = -2; r <= 2; r++) {
           for (let c = -2; c <= 2; c++) {
             if (r === -2 || r === 2 || c === -2 || c === 2 || r === 0 && c === 0) {
-              matrix.set(row + r, col + c, true, true);
+              matrix.set(row + r, col2 + c, true, true);
             } else {
-              matrix.set(row + r, col + c, false, true);
+              matrix.set(row + r, col2 + c, false, true);
             }
           }
         }
@@ -1648,13 +1648,13 @@ var require_qrcode = __commonJS({
     function setupVersionInfo(matrix, version) {
       const size = matrix.size;
       const bits = Version.getEncodedBits(version);
-      let row, col, mod;
+      let row, col2, mod;
       for (let i = 0; i < 18; i++) {
         row = Math.floor(i / 3);
-        col = i % 3 + size - 8 - 3;
+        col2 = i % 3 + size - 8 - 3;
         mod = (bits >> i & 1) === 1;
-        matrix.set(row, col, mod, true);
-        matrix.set(col, row, mod, true);
+        matrix.set(row, col2, mod, true);
+        matrix.set(col2, row, mod, true);
       }
     }
     function setupFormatInfo(matrix, errorCorrectionLevel, maskPattern) {
@@ -1686,16 +1686,16 @@ var require_qrcode = __commonJS({
       let row = size - 1;
       let bitIndex = 7;
       let byteIndex = 0;
-      for (let col = size - 1; col > 0; col -= 2) {
-        if (col === 6) col--;
+      for (let col2 = size - 1; col2 > 0; col2 -= 2) {
+        if (col2 === 6) col2--;
         while (true) {
           for (let c = 0; c < 2; c++) {
-            if (!matrix.isReserved(row, col - c)) {
+            if (!matrix.isReserved(row, col2 - c)) {
               let dark = false;
               if (byteIndex < data.length) {
                 dark = (data[byteIndex] >>> bitIndex & 1) === 1;
               }
-              matrix.set(row, col - c, dark);
+              matrix.set(row, col2 - c, dark);
               bitIndex--;
               if (bitIndex === -1) {
                 byteIndex++;
@@ -4257,17 +4257,17 @@ var require_svg_tag = __commonJS({
       let newRow = false;
       let lineLength = 0;
       for (let i = 0; i < data.length; i++) {
-        const col = Math.floor(i % size);
+        const col2 = Math.floor(i % size);
         const row = Math.floor(i / size);
-        if (!col && !newRow) newRow = true;
+        if (!col2 && !newRow) newRow = true;
         if (data[i]) {
           lineLength++;
-          if (!(i > 0 && col > 0 && data[i - 1])) {
-            path2 += newRow ? svgCmd("M", col + margin, 0.5 + row + margin) : svgCmd("m", moveBy, 0);
+          if (!(i > 0 && col2 > 0 && data[i - 1])) {
+            path2 += newRow ? svgCmd("M", col2 + margin, 0.5 + row + margin) : svgCmd("m", moveBy, 0);
             moveBy = 0;
             newRow = false;
           }
-          if (!(col + 1 < size && data[i + 1])) {
+          if (!(col2 + 1 < size && data[i + 1])) {
             path2 += svgCmd("h", lineLength);
             lineLength = 0;
           }
@@ -35391,6 +35391,9 @@ async function addVlessUser(grpcHost, inboundTag, email, uuid) {
         }
       }, (err, res) => {
         if (err) {
+          if (err.message && err.message.toLowerCase().includes("already exists")) {
+            return resolve(true);
+          }
           console.error("[Xray API] AddUser Error:", err);
           invalidateClientCache(grpcHost);
           return resolve(false);
@@ -35421,6 +35424,9 @@ async function removeVlessUser(grpcHost, inboundTag, email) {
         }
       }, (err, res) => {
         if (err) {
+          if (err.message && (err.message.toLowerCase().includes("not found") || err.message.toLowerCase().includes("does not exist"))) {
+            return resolve(true);
+          }
           console.error("[Xray API] RemoveUser Error:", err);
           return resolve(false);
         }
@@ -35781,6 +35787,16 @@ function formatBytes(bytes) {
   const i = Math.floor(Math.log(Number(b)) / Math.log(Number(k)));
   return `${(Number(b) / Math.pow(Number(k), i)).toFixed(2)} ${sizes[i]}`;
 }
+function stripAnsi(str) {
+  return str.replace(/\x1b\[[0-9;]*m/g, "");
+}
+function col(str, width, alignRight = false) {
+  const s = String(str);
+  const plainLength = stripAnsi(s).length;
+  if (plainLength >= width) return s;
+  const padding = " ".repeat(width - plainLength);
+  return alignRight ? padding + s : s + padding;
+}
 async function renderQr(text) {
   return new Promise((resolve) => {
     import_qrcode.default.toString(text, { type: "terminal", small: true }, (err, str) => {
@@ -35870,24 +35886,26 @@ async function handleUserList() {
     return;
   }
   console.log(
-    `\x1B[1m%-16s %-24s %-38s %-12s %-12s\x1B[0m`,
-    "NAME",
-    "EMAIL",
-    "TOKEN",
-    "TRAFFIC",
-    "ROLE"
+    "\x1B[1m" + [
+      col("NAME", 16),
+      col("EMAIL", 26),
+      col("TOKEN", 38),
+      col("TRAFFIC", 12),
+      col("ROLE", 10)
+    ].join(" ") + "\x1B[0m"
   );
-  console.log("\u2500".repeat(105));
+  console.log("\u2500".repeat(106));
   for (const u of users) {
     const token = u.subscriptions[0]?.token || "no-subscription";
     const trafficStr = formatBytes(u.totalBytes);
     console.log(
-      `%-16s %-24s %-38s %-12s %-12s`,
-      u.name.slice(0, 15),
-      u.email.slice(0, 23),
-      token,
-      trafficStr,
-      u.role
+      [
+        col(u.name || "\u2014", 16),
+        col(u.email || "\u2014", 26),
+        col(token, 38),
+        col(trafficStr, 12),
+        col(u.role, 10)
+      ].join(" ")
     );
   }
 }
@@ -35999,24 +36017,27 @@ async function handleNodeList() {
     return;
   }
   console.log(
-    `\x1B[1m%-16s %-22s %-8s %-8s %-10s %-10s\x1B[0m`,
-    "NAME",
-    "ADDRESS",
-    "PORT",
-    "INTERNAL",
-    "STATUS",
-    "USERS"
+    "\x1B[1m" + [
+      col("NAME", 18),
+      col("ADDRESS", 24),
+      col("PORT", 8),
+      col("INTERNAL", 10),
+      col("STATUS", 12),
+      col("USERS", 8)
+    ].join(" ") + "\x1B[0m"
   );
-  console.log("\u2500".repeat(85));
+  console.log("\u2500".repeat(84));
   for (const n of nodes) {
+    const statusStr = n.isActive ? "\x1B[32mActive\x1B[0m" : "\x1B[31mDisabled\x1B[0m";
     console.log(
-      `%-16s %-22s %-8d %-8d %-10s %-10d`,
-      n.name.slice(0, 15),
-      n.address.slice(0, 21),
-      n.port,
-      n.xrayPort,
-      n.isActive ? "\x1B[32mActive\x1B[0m" : "\x1B[31mDisabled\x1B[0m",
-      n._count.subscriptions
+      [
+        col(n.name, 18),
+        col(n.address, 24),
+        col(n.port, 8),
+        col(n.xrayPort, 10),
+        col(statusStr, 12),
+        col(n._count.subscriptions, 8)
+      ].join(" ")
     );
   }
 }

@@ -102,6 +102,9 @@ export async function addVlessUser(grpcHost: string, inboundTag: string, email: 
         }
       }, (err: Error, res: any) => {
         if (err) {
+          if (err.message && err.message.toLowerCase().includes("already exists")) {
+            return resolve(true);
+          }
           console.error("[Xray API] AddUser Error:", err);
           invalidateClientCache(grpcHost);
           return resolve(false);
@@ -137,6 +140,9 @@ export async function removeVlessUser(grpcHost: string, inboundTag: string, emai
         }
       }, (err: Error, res: any) => {
         if (err) {
+          if (err.message && (err.message.toLowerCase().includes("not found") || err.message.toLowerCase().includes("does not exist"))) {
+            return resolve(true);
+          }
           console.error("[Xray API] RemoveUser Error:", err);
           return resolve(false);
         }

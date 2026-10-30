@@ -58,33 +58,39 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
 
   // 1. Fetch dynamic settings
   const settings = await getSettings();
-  const subPathParts = settings.SUB_PATH.split('/').filter(Boolean);
-
-  // 2. Validate URL against configured SUB_PATH
-  if (slug.length !== subPathParts.length) {
-    return {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Not found' })
-    };
-  }
+  const subPathParts = (settings.SUB_PATH || '/[token]').split('/').filter(Boolean);
 
   let token: string | null = null;
 
-  for (let i = 0; i < subPathParts.length; i++) {
-    if (subPathParts[i] === '[token]') {
-      token = slug[i];
-      if (token.endsWith('.yaml')) {
-        token = token.slice(0, -5);
-      } else if (token.endsWith('.yml')) {
-        token = token.slice(0, -4);
+  // 2. Try matching configured SUB_PATH
+  if (slug.length === subPathParts.length) {
+    let matches = true;
+    for (let i = 0; i < subPathParts.length; i++) {
+      if (subPathParts[i] === '[token]') {
+        token = slug[i];
+      } else if (subPathParts[i] !== slug[i]) {
+        matches = false;
+        break;
       }
-    } else if (subPathParts[i] !== slug[i]) {
-      return {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Not found' })
-      };
+    }
+    if (!matches) token = null;
+  }
+
+  // 3. Fallback: allow standard subscription route conventions:
+  // /<token> (length 1) or /s/<token> or /sub/<token> (length 2)
+  if (!token) {
+    if (slug.length === 1) {
+      token = slug[0];
+    } else if (slug.length === 2 && (slug[0] === 's' || slug[0] === 'sub')) {
+      token = slug[1];
+    }
+  }
+
+  if (token) {
+    if (token.endsWith('.yaml')) {
+      token = token.slice(0, -5);
+    } else if (token.endsWith('.yml')) {
+      token = token.slice(0, -4);
     }
   }
 
