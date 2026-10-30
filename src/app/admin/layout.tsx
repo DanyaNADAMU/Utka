@@ -1,17 +1,13 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import AdminSidebar from '@/components/AdminSidebar';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
-  // Redirect if not authenticated or not admin
-  if (!session?.user) {
-    redirect('/api/auth/signin');
-  }
-
-  if ((session.user as any).role !== 'ADMIN') {
-    redirect('/'); // Redirect non-admins to the user dashboard
+  // Stealth: if not authenticated or not admin, return 404
+  if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    notFound();
   }
 
   return (
