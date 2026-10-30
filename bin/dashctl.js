@@ -35264,7 +35264,7 @@ var require_protobufjs2 = __commonJS({
   }
 });
 
-// src/cli/dashctl.ts
+// src/cli/utkactl.ts
 var import_qrcode = __toESM(require_lib());
 
 // src/lib/db.ts
@@ -35778,7 +35778,7 @@ async function syncAllNodesService() {
   return results;
 }
 
-// src/cli/dashctl.ts
+// src/cli/utkactl.ts
 function formatBytes(bytes) {
   const b = typeof bytes === "bigint" ? bytes : BigInt(bytes || 0);
   if (b === BigInt(0)) return "0 B";
@@ -35807,11 +35807,12 @@ async function renderQr(text) {
 }
 function printHelp() {
   console.log(`
-\x1B[1m\x1B[36m\u26A1 NadamuDash Control CLI (dashctl)\x1B[0m
-Minimalistic, headless Xray control plane
+\x1B[1m\x1B[36m\u26A1 Utka Control CLI (utkactl)\x1B[0m
+Minimalistic, modular Xray control suite (utka-core, utka-sub, utka-web, utka-cli)
 
 \x1B[1mUSAGE:\x1B[0m
-  dashctl <command> [subcommand] [arguments]
+  utkactl <command> [subcommand] [arguments]
+  utka    <command> [subcommand] [arguments]
 
 \x1B[1mCOMMANDS:\x1B[0m
   \x1B[32mstatus\x1B[0m                       Check database and Xray gRPC socket status
@@ -35833,7 +35834,7 @@ Minimalistic, headless Xray control plane
 `);
 }
 async function handleStatus() {
-  console.log("\x1B[1m\x1B[36m--- NadamuDash System Status ---\x1B[0m");
+  console.log("\x1B[1m\x1B[36m--- Utka System Status ---\x1B[0m");
   try {
     const start = Date.now();
     await db_default.$queryRaw`SELECT 1`;

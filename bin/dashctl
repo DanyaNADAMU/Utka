@@ -3,12 +3,14 @@
 const path = require('path');
 const fs = require('fs');
 
-// Try running bundled JS first, or compile on the fly if in development
-const bundledPath = path.join(__dirname, 'dashctl.js');
+const utkaPath = path.join(__dirname, 'utkactl.js');
+const dashPath = path.join(__dirname, 'dashctl.js');
 
-if (fs.existsSync(bundledPath)) {
-  require(bundledPath);
+if (fs.existsSync(utkaPath)) {
+  require(utkaPath);
+} else if (fs.existsSync(dashPath)) {
+  require(dashPath);
 } else {
-  console.error("dashctl.js not found. Please run 'npm run build:cli' first.");
+  console.error("utkactl.js not found. Please run 'npm run build:cli' first.");
   process.exit(1);
 }

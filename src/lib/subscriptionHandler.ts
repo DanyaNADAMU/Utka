@@ -115,7 +115,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
     };
   }
 
-  const profileName = sub.name || 'NadamuDash';
+  const profileName = sub.name || 'Utka';
 
   // Active tags and active nodes sync
   const activeInboundTags = await getClientInboundTags();
@@ -247,7 +247,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
       const vlessLink = await buildClientLink(
         inbound.inboundTag,
         inbound.xrayUuid,
-        `${updatedSub.name || 'NadamuDash'} - ${inbound.node.name}`,
+        `${updatedSub.name || 'Utka'} - ${inbound.node.name}`,
         inbound.node.address,
         inbound.node.port,
         {
@@ -271,7 +271,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
     }
 
     const htmlContent = renderSubscriptionHtml({
-      subName: updatedSub.name || 'NadamuDash',
+      subName: updatedSub.name || 'Utka',
       userName: updatedSub.user?.name || updatedSub.user?.email || 'Пользователь',
       subUrl,
       subQrSvg,
@@ -368,7 +368,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
       const masterLink = await buildClientLink(
         tag,
         masterUuid,
-        `${updatedSub.name || 'NadamuDash'} - Master`,
+        `${updatedSub.name || 'Utka'} - Master`,
         masterAddress,
         443
       );
@@ -419,7 +419,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
     const vlessLink = await buildClientLink(
       inbound.inboundTag,
       newUuid,
-      `${updatedSub.name || 'NadamuDash'} - ${inbound.node.name}`,
+      `${updatedSub.name || 'Utka'} - ${inbound.node.name}`,
       inbound.node.address,
       inbound.node.port,
       {

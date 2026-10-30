@@ -21,7 +21,7 @@ export function createSubServer() {
           JSON.stringify({
             status: 'ok',
             uptime: Math.floor(process.uptime()),
-            service: 'dash-sub',
+            service: 'utka-sub',
             timestamp: Date.now(),
           })
         );
@@ -64,7 +64,7 @@ export function createSubServer() {
  * Starts the standalone dash-sub subscription server
  */
 export function startSubServer() {
-  console.log('[Sub] Starting NadamuDash Subscription Service...');
+  console.log('[Utka-Sub] Starting Utka Subscription Service...');
   const port = Number(process.env.SUB_PORT) || 8008;
   const host = process.env.SUB_HOST || '0.0.0.0';
 

@@ -51,28 +51,25 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/bin ./bin
-RUN ln -s /app/bin/dashctl /usr/local/bin/dashctl
+COPY --from=builder --chown=nextjs:nodejs /app/entrypoint.sh /app/entrypoint.sh
 
-# Create start scripts
-RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "Syncing database..."' >> /app/start.sh && \
-    echo 'prisma db push --accept-data-loss --skip-generate' >> /app/start.sh && \
-    echo 'echo "Starting NadamuDash..."' >> /app/start.sh && \
-    echo 'exec node server.js' >> /app/start.sh && \
-    echo '#!/bin/sh' > /app/start-worker.sh && \
-    echo 'echo "Starting NadamuDash Worker..."' >> /app/start-worker.sh && \
-    echo 'exec node worker.js' >> /app/start-worker.sh && \
-    echo '#!/bin/sh' > /app/start-sub.sh && \
-    echo 'echo "Starting NadamuDash Subscription Service..."' >> /app/start-sub.sh && \
-    echo 'exec node sub.js' >> /app/start-sub.sh && \
+RUN chmod +x /app/bin/* /app/entrypoint.sh && \
+    ln -sf /app/bin/utkactl /usr/local/bin/utkactl && \
+    ln -sf /app/bin/utka /usr/local/bin/utka && \
+    ln -sf /app/bin/dashctl /usr/local/bin/dashctl
+
+# Backwards compatible legacy scripts
+RUN echo '#!/bin/sh\nexec /app/entrypoint.sh' > /app/start.sh && \
+    echo '#!/bin/sh\nexec /app/entrypoint.sh' > /app/start-worker.sh && \
+    echo '#!/bin/sh\nexec /app/entrypoint.sh' > /app/start-sub.sh && \
     chown nextjs:nodejs /app/start.sh /app/start-worker.sh /app/start-sub.sh && \
     chmod +x /app/start.sh /app/start-worker.sh /app/start-sub.sh
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 3000 8008
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["/app/start.sh"]
+CMD ["/app/entrypoint.sh"]
