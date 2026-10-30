@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import LanguageSwitcher from './LanguageSwitcher';
 import GlobalAutoRefresh from './GlobalAutoRefresh';
+import { ShieldCheck } from 'lucide-react';
 
 export default function AdminSidebar({ userEmail }: { userEmail: string }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -30,7 +31,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 w-full shrink-0 z-40 relative">
         <Link href="/" className="flex items-center gap-2.5">
-          <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
+          <ShieldCheck className="w-7 h-7 text-emerald-400 shrink-0" />
           <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent text-xl">
             Dash
           </h1>
@@ -64,7 +65,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string }) {
         <div className={`h-20 border-b border-slate-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'}`}>
         {!collapsed && (
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
-            <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
+            <ShieldCheck className="w-7 h-7 text-emerald-400 shrink-0" />
             <h1 className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent truncate transition-all duration-300 text-xl">
               Dash
             </h1>

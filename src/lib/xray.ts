@@ -203,7 +203,7 @@ export async function queryAllUserStats(grpcHost: string, reset: boolean = false
       const results: Record<string, { up: bigint, down: bigint }> = {};
 
       res.stat.forEach((statObj: any) => {
-        // name looks like: "user>>>danya_vless_uuid>>>traffic>>>downlink"
+        // name looks like: "user>>>subId_inboundTag_uuid>>>traffic>>>downlink"
         const parts = statObj.name.split('>>>');
         if (parts.length >= 4) {
           const email = parts[1];

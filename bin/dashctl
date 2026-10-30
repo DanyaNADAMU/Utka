@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const fs = require('fs');
+
+// Try running bundled JS first, or compile on the fly if in development
+const bundledPath = path.join(__dirname, 'dashctl.js');
+
+if (fs.existsSync(bundledPath)) {
+  require(bundledPath);
+} else {
+  console.error("dashctl.js not found. Please run 'npm run build:cli' first.");
+  process.exit(1);
+}

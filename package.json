@@ -2,14 +2,19 @@
   "name": "nadamu-dash",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "dashctl": "bin/dashctl"
+  },
   "scripts": {
     "dev": "next dev",
     "build:worker": "esbuild src/worker.ts --bundle --platform=node --target=node24 --external:@prisma/client --outfile=.next/standalone/worker.js",
     "build:sub": "esbuild src/sub.ts --bundle --platform=node --target=node24 --external:@prisma/client --outfile=.next/standalone/sub.js",
-    "build": "next build && npm run build:worker && npm run build:sub",
+    "build:cli": "esbuild src/cli/dashctl.ts --bundle --platform=node --target=node24 --external:@prisma/client --outfile=bin/dashctl.js",
+    "build": "next build && npm run build:worker && npm run build:sub && npm run build:cli",
     "start": "next start",
     "worker": "node .next/standalone/worker.js",
     "sub": "node .next/standalone/sub.js",
+    "cli": "node bin/dashctl.js",
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "test": "vitest run",

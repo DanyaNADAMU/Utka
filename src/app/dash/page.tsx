@@ -8,6 +8,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { QRCodeSVG } from 'qrcode.react'
 import { notFound } from "next/navigation"
 import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 
 export default async function Dashboard() {
   const session = await auth();
@@ -73,7 +74,7 @@ export default async function Dashboard() {
         {/* Header */}
         <header className="flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-900/50 p-4 rounded-2xl border border-slate-800 backdrop-blur-md">
           <div className="flex items-center gap-2.5 ml-0 md:ml-2">
-            <img src="/duck.png" alt="Duck" className="w-8 h-8 object-contain shrink-0" />
+            <ShieldCheck className="w-8 h-8 text-emerald-400 shrink-0" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
               Dash
             </h1>

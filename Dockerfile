@@ -50,6 +50,8 @@ RUN chown nextjs:nodejs .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/bin ./bin
+RUN ln -s /app/bin/dashctl /usr/local/bin/dashctl
 
 # Create start scripts
 RUN echo '#!/bin/sh' > /app/start.sh && \
