@@ -35264,7 +35264,7 @@ var require_protobufjs2 = __commonJS({
   }
 });
 
-// src/cli/utkactl.ts
+// src/cli/utka.ts
 var import_qrcode = __toESM(require_lib());
 
 // src/lib/db.ts
@@ -35778,7 +35778,7 @@ async function syncAllNodesService() {
   return results;
 }
 
-// src/cli/utkactl.ts
+// src/cli/utka.ts
 function formatBytes(bytes) {
   const b = typeof bytes === "bigint" ? bytes : BigInt(bytes || 0);
   if (b === BigInt(0)) return "0 B";
@@ -35807,12 +35807,11 @@ async function renderQr(text) {
 }
 function printHelp() {
   console.log(`
-\x1B[1m\x1B[36m\u26A1 Utka Control CLI (utkactl)\x1B[0m
+\x1B[1m\x1B[36m\u26A1 Utka Control CLI (utka)\x1B[0m
 Minimalistic, modular Xray control suite (utka-core, utka-sub, utka-web, utka-cli)
 
 \x1B[1mUSAGE:\x1B[0m
-  utkactl <command> [subcommand] [arguments]
-  utka    <command> [subcommand] [arguments]
+  utka <command> [subcommand] [arguments]
 
 \x1B[1mCOMMANDS:\x1B[0m
   \x1B[32mstatus\x1B[0m                       Check database and Xray gRPC socket status
@@ -35883,7 +35882,7 @@ async function handleSync() {
 async function handleUserList() {
   const users = await listUsersService();
   if (users.length === 0) {
-    console.log("No users found. Create one using: \x1B[32mdashctl user add <name>\x1B[0m");
+    console.log("No users found. Create one using: \x1B[32mutka user add <name>\x1B[0m");
     return;
   }
   console.log(
@@ -35913,7 +35912,7 @@ async function handleUserList() {
 async function handleUserAdd(args) {
   const name = args[0];
   if (!name) {
-    console.error("\x1B[31mError:\x1B[0m Name argument is required. Usage: dashctl user add <name> [--email <email>]");
+    console.error("\x1B[31mError:\x1B[0m Name argument is required. Usage: utka user add <name> [--email <email>]");
     process.exit(1);
   }
   let email;

@@ -1,1 +1,13 @@
-utkactl
+#!/usr/bin/env node
+
+const path = require('path');
+const fs = require('fs');
+
+const bundledPath = path.join(__dirname, 'utka.js');
+
+if (fs.existsSync(bundledPath)) {
+  require(bundledPath);
+} else {
+  console.error("utka.js not found. Please run 'npm run build:cli' first.");
+  process.exit(1);
+}

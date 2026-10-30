@@ -44,12 +44,11 @@ async function renderQr(text: string): Promise<string> {
 
 function printHelp() {
   console.log(`
-\x1b[1m\x1b[36m⚡ Utka Control CLI (utkactl)\x1b[0m
+\x1b[1m\x1b[36m⚡ Utka Control CLI (utka)\x1b[0m
 Minimalistic, modular Xray control suite (utka-core, utka-sub, utka-web, utka-cli)
 
 \x1b[1mUSAGE:\x1b[0m
-  utkactl <command> [subcommand] [arguments]
-  utka    <command> [subcommand] [arguments]
+  utka <command> [subcommand] [arguments]
 
 \x1b[1mCOMMANDS:\x1b[0m
   \x1b[32mstatus\x1b[0m                       Check database and Xray gRPC socket status
@@ -132,7 +131,7 @@ async function handleUserList() {
   const users = await listUsersService();
 
   if (users.length === 0) {
-    console.log('No users found. Create one using: \x1b[32mdashctl user add <name>\x1b[0m');
+    console.log('No users found. Create one using: \x1b[32mutka user add <name>\x1b[0m');
     return;
   }
 
@@ -168,7 +167,7 @@ async function handleUserList() {
 async function handleUserAdd(args: string[]) {
   const name = args[0];
   if (!name) {
-    console.error('\x1b[31mError:\x1b[0m Name argument is required. Usage: dashctl user add <name> [--email <email>]');
+    console.error('\x1b[31mError:\x1b[0m Name argument is required. Usage: utka user add <name> [--email <email>]');
     process.exit(1);
   }
 

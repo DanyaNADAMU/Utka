@@ -54,16 +54,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/bin ./bin
 COPY --from=builder --chown=nextjs:nodejs /app/entrypoint.sh /app/entrypoint.sh
 
 RUN chmod +x /app/bin/* /app/entrypoint.sh && \
-    ln -sf /app/bin/utkactl /usr/local/bin/utkactl && \
-    ln -sf /app/bin/utka /usr/local/bin/utka && \
-    ln -sf /app/bin/dashctl /usr/local/bin/dashctl
-
-# Backwards compatible legacy scripts
-RUN echo '#!/bin/sh\nexec /app/entrypoint.sh' > /app/start.sh && \
-    echo '#!/bin/sh\nexec /app/entrypoint.sh' > /app/start-worker.sh && \
-    echo '#!/bin/sh\nexec /app/entrypoint.sh' > /app/start-sub.sh && \
-    chown nextjs:nodejs /app/start.sh /app/start-worker.sh /app/start-sub.sh && \
-    chmod +x /app/start.sh /app/start-worker.sh /app/start-sub.sh
+    ln -sf /app/bin/utka /usr/local/bin/utka
 
 USER nextjs
 

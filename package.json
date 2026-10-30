@@ -4,22 +4,20 @@
   "description": "Utka: modular, stealth proxy management suite (utka-core, utka-sub, utka-web, utka-cli)",
   "private": true,
   "bin": {
-    "utkactl": "bin/utkactl",
-    "utka": "bin/utka",
-    "dashctl": "bin/dashctl"
+    "utka": "bin/utka"
   },
   "scripts": {
     "dev": "next dev",
     "build:core": "esbuild src/core.ts --bundle --platform=node --target=node24 --external:@prisma/client --outfile=.next/standalone/core.js",
     "build:worker": "npm run build:core && cp .next/standalone/core.js .next/standalone/worker.js",
     "build:sub": "esbuild src/sub.ts --bundle --platform=node --target=node24 --external:@prisma/client --outfile=.next/standalone/sub.js",
-    "build:cli": "esbuild src/cli/utkactl.ts --bundle --platform=node --target=node24 --external:@prisma/client --outfile=bin/utkactl.js && cp bin/utkactl.js bin/dashctl.js",
+    "build:cli": "esbuild src/cli/utka.ts --bundle --platform=node --target=node24 --external:@prisma/client --outfile=bin/utka.js",
     "build": "next build && npm run build:core && cp .next/standalone/core.js .next/standalone/worker.js && npm run build:sub && npm run build:cli",
     "start": "next start",
     "core": "node .next/standalone/core.js",
     "worker": "node .next/standalone/worker.js",
     "sub": "node .next/standalone/sub.js",
-    "cli": "node bin/utkactl.js",
+    "cli": "node bin/utka.js",
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
