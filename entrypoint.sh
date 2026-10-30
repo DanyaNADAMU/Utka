@@ -5,28 +5,22 @@
 # ==============================================================================
 set -e
 
+# Ignore SIGHUP so terminal disconnects or conmon socket events do not terminate PID 1
+trap '' HUP
+
 echo "[Utka] Syncing PostgreSQL database schema..."
 prisma db push --accept-data-loss --skip-generate
 
-PIDS=""
-
-shutdown() {
-    echo ""
-    echo "[Utka] Signal received. Shutting down active components gracefully..."
-    for pid in $PIDS; do
-        if kill -0 "$pid" 2>/dev/null; then
-            kill -TERM "$pid" 2>/dev/null
-        fi
-    done
-    wait
-    echo "[Utka] All components exited. Container stopping."
-    exit 0
-}
-
-trap shutdown INT TERM
-
-# 1. utka-core (Background sync daemon and Xray traffic collector)
 ENABLE_CORE="${UTKA_ENABLE_CORE:-${ENABLE_WORKER:-true}}"
+ENABLE_SUB="${UTKA_ENABLE_SUB:-${ENABLE_SUB:-true}}"
+ENABLE_WEB="${UTKA_ENABLE_WEB:-${ENABLE_UI:-false}}"
+
+if [ "$ENABLE_CORE" != "true" ] && [ "$ENABLE_SUB" != "true" ] && [ "$ENABLE_WEB" != "true" ]; then
+    echo "[Utka] Error: No components enabled. At least one of CORE, SUB, or WEB must be enabled."
+    exit 1
+fi
+
+# 1. Start utka-core in the background if enabled
 if [ "$ENABLE_CORE" = "true" ]; then
     echo "[Utka] Starting utka-core (background stats & sync engine)..."
     if [ -f /app/core.js ]; then
@@ -34,34 +28,21 @@ if [ "$ENABLE_CORE" = "true" ]; then
     else
         node /app/worker.js &
     fi
-    PIDS="$PIDS $!"
+    CORE_PID=$!
 fi
 
-# 2. utka-sub (Subscription delivery data plane on port 8008)
-ENABLE_SUB="${UTKA_ENABLE_SUB:-${ENABLE_SUB:-true}}"
-if [ "$ENABLE_SUB" = "true" ]; then
-    echo "[Utka] Starting utka-sub (subscription delivery engine on port 8008)..."
-    node /app/sub.js &
-    PIDS="$PIDS $!"
-fi
-
-# 3. utka-web (Next.js administrative web UI on port 3000)
-ENABLE_WEB="${UTKA_ENABLE_WEB:-${ENABLE_UI:-false}}"
+# 2. Select foreground process based on hierarchy (WEB > SUB > CORE)
 if [ "$ENABLE_WEB" = "true" ]; then
+    if [ "$ENABLE_SUB" = "true" ]; then
+        echo "[Utka] Starting utka-sub (subscription delivery engine on port 8008)..."
+        node /app/sub.js &
+    fi
     echo "[Utka] Starting utka-web (administrative UI on port 3000)..."
-    node /app/server.js &
-    PIDS="$PIDS $!"
+    exec node /app/server.js
+elif [ "$ENABLE_SUB" = "true" ]; then
+    echo "[Utka] Starting utka-sub (subscription delivery engine on port 8008)..."
+    exec node /app/sub.js
+else
+    echo "[Utka] Running utka-core in foreground..."
+    exec wait $CORE_PID
 fi
-
-if [ -z "$PIDS" ]; then
-    echo "[Utka] Error: No components enabled. At least one of CORE, SUB, or WEB must be enabled."
-    exit 1
-fi
-
-echo "[Utka] Active components running (PIDs:$PIDS). Ready."
-
-# Wait for any child process to exit. If any critical child fails, exit container.
-wait -n
-EXIT_STATUS=$?
-echo "[Utka] A core process exited with status $EXIT_STATUS. Terminating container..."
-shutdown
