@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createNode, deleteNode, getNodeConfigInstructions } from './actions';
 import { Plus, Edit2, Trash2, FileCode, Copy, Check, X } from 'lucide-react';
 import { Node } from '@prisma/client';
+import { useTrafficStream } from '@/components/TrafficStreamContext';
 
 export default function NodesClient({ 
   initialNodes, 
@@ -17,6 +18,8 @@ export default function NodesClient({
   nodeStatus: Record<string, boolean>;
 }) {
   const router = useRouter();
+  const { trafficData } = useTrafficStream();
+  const currentStatus = { ...nodeStatus, ...(trafficData.nodes || {}) };
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
@@ -191,9 +194,9 @@ export default function NodesClient({
                   </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${nodeStatus[node.id] ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`}></div>
-                      <span className={`text-sm font-medium ${nodeStatus[node.id] ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {nodeStatus[node.id] ? 'Online' : 'Offline'}
+                      <div className={`w-2 h-2 rounded-full ${currentStatus[node.id] ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`}></div>
+                      <span className={`text-sm font-medium ${currentStatus[node.id] ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {currentStatus[node.id] ? 'Online' : 'Offline'}
                       </span>
                     </div>
                   </td>

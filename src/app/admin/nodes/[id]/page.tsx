@@ -2,7 +2,7 @@ import db from '@/lib/db';
 import { getDictionary } from '@/i18n/dictionaries';
 import { notFound } from 'next/navigation';
 import NodeDetailClient from './NodeDetailClient';
-import { nodeStatusState } from '@/lib/trafficDaemon';
+import { fetchTrafficState } from '@/lib/trafficClient';
 import { generateNodeConfigSnippet, generateMasterNodeConfigSnippet } from '@/lib/xrayConfig';
 
 import { getXrayInboundTags } from '@/lib/xray';
@@ -39,8 +39,8 @@ export default async function NodeDetailPage({ params }: { params: Promise<{ id:
 
   const dict = await getDictionary();
 
-  // Status is maintained in nodeStatusState
-  const isOnline = nodeStatusState[node.id] || false;
+  const trafficState = await fetchTrafficState();
+  const isOnline = Boolean(trafficState.nodes?.[node.id]);
   const masterSnippets = generateMasterNodeConfigSnippet(node);
   const nodeSnippets = generateNodeConfigSnippet(node);
   const activeInbounds = await getXrayInboundTags(node.apiHost);

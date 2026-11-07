@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { updateNode, deleteNode, syncNodeUsersAction, saveNodeInboundSettings } from '../actions';
 import { ArrowLeft, Save, Trash2, Server, Terminal, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { useTrafficStream } from '@/components/TrafficStreamContext';
 
 export default function NodeDetailClient({
   node,
@@ -23,6 +24,10 @@ export default function NodeDetailClient({
   activeInbounds?: string[];
 }) {
   const router = useRouter();
+  const { trafficData } = useTrafficStream();
+  const isOnline = trafficData.nodes?.[node.id] !== undefined
+    ? Boolean(trafficData.nodes[node.id])
+    : initialIsOnline;
   const [isPending, startTransition] = useTransition();
   const [isSyncing, setIsSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'config'>('general');
@@ -148,9 +153,9 @@ export default function NodeDetailClient({
                 <span className="font-mono">{node.address}:{node.port}</span>
               </span>
               <span className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${initialIsOnline ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`}></div>
-                <span className={initialIsOnline ? 'text-emerald-400' : 'text-red-400'}>
-                  {initialIsOnline ? 'Online' : 'Offline'}
+                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`}></div>
+                <span className={isOnline ? 'text-emerald-400' : 'text-red-400'}>
+                  {isOnline ? 'Online' : 'Offline'}
                 </span>
               </span>
             </div>

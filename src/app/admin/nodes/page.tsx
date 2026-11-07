@@ -1,12 +1,12 @@
 import db from '@/lib/db';
 import NodesClient from './NodesClient';
 import { getDictionary } from '@/i18n/dictionaries';
-import { nodeStatusState } from '@/lib/trafficDaemon';
+import { fetchTrafficState } from '@/lib/trafficClient';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NodesPage() {
-  const masterApiHost = process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
+  const masterApiHost = process.env.XRAY_API_URL || 'unix:///run/xray/xray-api.sock';
   
   let masterNode = await db.node.findFirst({
     where: { OR: [{ isMaster: true }, { apiHost: masterApiHost }] }
@@ -45,6 +45,7 @@ export default async function NodesPage() {
   });
   
   const dict = await getDictionary();
+  const trafficState = await fetchTrafficState();
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -55,7 +56,7 @@ export default async function NodesPage() {
         </p>
       </div>
       
-      <NodesClient initialNodes={nodes} dict={dict} nodeStatus={nodeStatusState} />
+      <NodesClient initialNodes={nodes} dict={dict} nodeStatus={trafficState.nodes || {}} />
     </div>
   );
 }

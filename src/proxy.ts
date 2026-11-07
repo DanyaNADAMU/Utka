@@ -19,8 +19,17 @@ const NOT_FOUND_HTML = `<!DOCTYPE html>
 export const proxy = auth((req) => {
   const pathname = req.nextUrl.pathname;
 
+  // Subscription delivery endpoints (UUID tokens, /s/, /sub/) must be accessible without web session
+  const isSubscriptionPath =
+    pathname.startsWith('/s/') ||
+    pathname.startsWith('/sub/') ||
+    /^\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(\.(ya?ml|json|txt))?$/i.test(pathname);
+
   // Unauthenticated visitors to web routes: redirect to sign-in
   if (!req.auth) {
+    if (isSubscriptionPath) {
+      return NextResponse.next();
+    }
     const signinUrl = new URL("/api/auth/signin", req.url);
     signinUrl.searchParams.set("callbackUrl", req.url);
     return NextResponse.redirect(signinUrl);
