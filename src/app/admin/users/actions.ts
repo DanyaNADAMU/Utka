@@ -60,10 +60,14 @@ export async function createUserAction(data: {
     });
 
     const activeNodes = await db.node.findMany({ where: { isActive: true } });
+    const isAdmin = newUser.role === 'ADMIN';
 
     for (const node of activeNodes) {
       const nodeTags = await getXrayInboundTags(node.apiHost);
       for (const tag of nodeTags) {
+        if (!isAdmin && (!node.isMaster || tag !== 'vless-frankfurt')) {
+          continue;
+        }
         const newUuid = crypto.randomUUID();
 
         await db.subscriptionInbound.create({

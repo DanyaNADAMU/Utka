@@ -116,7 +116,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
 
   const sub = await db.subscription.findUnique({
     where: { token },
-    include: { inbounds: { include: { node: true } } }
+    include: { user: true, inbounds: { include: { node: true } } }
   });
 
   if (!sub) {
@@ -128,6 +128,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
   }
 
   const profileName = sub.name || 'Utka';
+  const isAdmin = sub.user?.role === 'ADMIN';
 
   // Active tags and active nodes sync
   const activeInboundTags = await getClientInboundTags();
@@ -143,17 +144,33 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
 
   // 1. Create missing inbounds for active nodes
   const inboundsToCreate = [];
-  for (const node of activeNodes) {
-    const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
-    const nodeTags = nodeTagsCache.get(node.id) || activeInboundTags;
-    for (const tag of nodeTags) {
-      const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
+  if (isAdmin) {
+    for (const node of activeNodes) {
+      const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
+      const nodeTags = nodeTagsCache.get(node.id) || activeInboundTags;
+      for (const tag of nodeTags) {
+        const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
+        if (!exists) {
+          inboundsToCreate.push({
+            subscriptionId: sub.id,
+            nodeId: node.id,
+            inboundTag: tag,
+            xrayUuid: (isStaticNode && node.adminUuid) ? node.adminUuid : crypto.randomUUID()
+          });
+        }
+      }
+    }
+  } else {
+    // Non-admin users: only get 'vless-frankfurt' on the Master node (Glacier -> Floe -> WARP)
+    const masterNode = activeNodes.find(n => n.isMaster) || activeNodes[0];
+    if (masterNode) {
+      const exists = sub.inbounds.find((i: any) => i.inboundTag === 'vless-frankfurt' && i.nodeId === masterNode.id);
       if (!exists) {
         inboundsToCreate.push({
           subscriptionId: sub.id,
-          nodeId: node.id,
-          inboundTag: tag,
-          xrayUuid: (isStaticNode && node.adminUuid) ? node.adminUuid : crypto.randomUUID()
+          nodeId: masterNode.id,
+          inboundTag: 'vless-frankfurt',
+          xrayUuid: crypto.randomUUID()
         });
       }
     }
@@ -179,9 +196,13 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
     };
   }
 
-  // 3. Clean up stale inbounds that no longer exist on active nodes
+  // 3. Clean up stale inbounds that no longer exist on active nodes or not allowed for regular users
   const staleInboundIds: string[] = [];
   for (const inbound of currentSub.inbounds) {
+    if (!isAdmin && (inbound.inboundTag !== 'vless-frankfurt' || !inbound.node?.isMaster)) {
+      staleInboundIds.push(inbound.id);
+      continue;
+    }
     if (!inbound.node || !inbound.node.isActive || !activeNodeMap.has(inbound.nodeId)) {
       staleInboundIds.push(inbound.id);
       continue;

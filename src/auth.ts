@@ -68,12 +68,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           });
 
-          // Push new user to all Xray inbounds on ALL active nodes!
+          // Push new user to Xray inbounds (Admins get all nodes; regular users get only Frankfurt)
           const activeInboundTags = await getClientInboundTags();
           const activeNodes = await db.node.findMany({ where: { isActive: true } });
+          const isAdmin = dbUser.role === 'ADMIN';
           
           for (const node of activeNodes) {
             for (const tag of activeInboundTags) {
+              if (!isAdmin && (!node.isMaster || tag !== 'vless-frankfurt')) {
+                continue;
+              }
               const newUuid = crypto.randomUUID();
               await db.subscriptionInbound.create({
                 data: {
