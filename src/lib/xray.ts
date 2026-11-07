@@ -307,9 +307,11 @@ export async function buildClientLink(
 ): Promise<string> {
   const settings = await getSettings();
   const isFloe = nodeAddress.includes("cloud") || nodeAddress.includes("floe");
-  const defaultName = inboundTag.includes("direct")
-    ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
-    : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP");
+  const defaultName = inboundTag.includes("frankfurt")
+    ? "Frankfurt"
+    : (inboundTag.includes("direct")
+      ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
+      : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP"));
   const displayName = inboundOverrides?.name || defaultName;
   const name = encodeURIComponent(displayName);
   
@@ -322,8 +324,12 @@ export async function buildClientLink(
   
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
-  const defaultWsPath = (inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events";
+  const defaultSni = inboundTag.includes("frankfurt") ? "auth.nada.mu" : (process.env.XRAY_SNI || "");
+  const sni = inboundOverrides?.sni || nodeReality?.sni || defaultSni;
+  const hostAddress = inboundOverrides?.address || (inboundTag.includes("frankfurt") ? "auth.nada.mu" : nodeAddress);
+  const defaultWsPath = inboundTag.includes("frankfurt")
+    ? "/api/v3/events"
+    : ((inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events");
   const wsPath = inboundOverrides?.path || nodeReality?.path || settings[`INBOUND_${inboundTag}_PATH`] || defaultWsPath;
   const serviceName = inboundOverrides?.serviceName || inboundOverrides?.path || settings[`INBOUND_${inboundTag}_SERVICE_NAME`] || "cloud-sync";
   
@@ -331,7 +337,7 @@ export async function buildClientLink(
   const security = pbk ? "reality" : (sni ? "tls" : "none");
 
   if (protocol === "vless") {
-    let link = `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none`;
+    let link = `vless://${xrayUuid}@${hostAddress}:${port}?encryption=none`;
     if (network === "tcp") link += `&type=tcp`;
     if (network === "ws") link += `&type=ws&path=${encodeURIComponent(wsPath)}`;
     if (network === "grpc") link += `&type=grpc&serviceName=${encodeURIComponent(serviceName)}`;
@@ -364,17 +370,23 @@ export async function buildClashProxyObject(
 ): Promise<any> {
   const settings = await getSettings();
   const isFloe = nodeAddress.includes("cloud") || nodeAddress.includes("floe");
-  const defaultName = inboundTag.includes("direct")
-    ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
-    : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP");
+  const defaultName = inboundTag.includes("frankfurt")
+    ? "Frankfurt"
+    : (inboundTag.includes("direct")
+      ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
+      : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP"));
   const name = inboundOverrides?.name || defaultName;
   const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
   const port = customPort ? customPort : nodePort;
   
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
-  const defaultWsPath = (inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events";
+  const defaultSni = inboundTag.includes("frankfurt") ? "auth.nada.mu" : (process.env.XRAY_SNI || "");
+  const sni = inboundOverrides?.sni || nodeReality?.sni || defaultSni;
+  const hostAddress = inboundOverrides?.address || (inboundTag.includes("frankfurt") ? "auth.nada.mu" : nodeAddress);
+  const defaultWsPath = inboundTag.includes("frankfurt")
+    ? "/api/v3/events"
+    : ((inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events");
   const wsPath = inboundOverrides?.path || nodeReality?.path || settings[`INBOUND_${inboundTag}_PATH`] || defaultWsPath;
   const serviceName = inboundOverrides?.serviceName || inboundOverrides?.path || settings[`INBOUND_${inboundTag}_SERVICE_NAME`] || "cloud-sync";
   
@@ -384,7 +396,7 @@ export async function buildClashProxyObject(
   const proxy: any = {
     name,
     type: "vless",
-    server: nodeAddress,
+    server: hostAddress,
     port,
     uuid: xrayUuid,
     network,
@@ -401,7 +413,7 @@ export async function buildClashProxyObject(
     proxy["ws-opts"] = {
       path: wsPath,
       headers: {
-        Host: sni || nodeAddress,
+        Host: sni || hostAddress,
       },
     };
   }
