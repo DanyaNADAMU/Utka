@@ -279,7 +279,7 @@ export async function getXrayInboundTags(grpcHost: string): Promise<string[]> {
         }
         const tags: string[] = res.inbounds
           .map((i: any) => i.tag || (typeof i === 'string' ? i : ''))
-          .filter((t: string) => t && t !== 'api' && t !== 'dokodemo-door' && !t.startsWith('grpc-in'))
+          .filter((t: string) => t && t !== 'api' && t !== 'dokodemo-door' && !t.startsWith('grpc-in') && !t.includes('front'))
           .sort((a: string, b: string) => a.localeCompare(b));
         resolve(tags);
       });
@@ -306,7 +306,10 @@ export async function buildClientLink(
   inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
 ): Promise<string> {
   const settings = await getSettings();
-  const defaultName = (inboundTag.includes("direct") ? "Glacier • Direct" : ((inboundTag.includes("grpc") || nodeAddress.includes("cloud") || nodeAddress.includes("floe")) ? "🇩🇪 Floe • Frankfurt" : "Glacier • WARP"));
+  const isFloe = nodeAddress.includes("cloud") || nodeAddress.includes("floe");
+  const defaultName = inboundTag.includes("direct")
+    ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
+    : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP");
   const displayName = inboundOverrides?.name || defaultName;
   const name = encodeURIComponent(displayName);
   
@@ -360,7 +363,10 @@ export async function buildClashProxyObject(
   inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
 ): Promise<any> {
   const settings = await getSettings();
-  const defaultName = (inboundTag.includes("direct") ? "Glacier • Direct" : ((inboundTag.includes("grpc") || nodeAddress.includes("cloud") || nodeAddress.includes("floe")) ? "🇩🇪 Floe • Frankfurt" : "Glacier • WARP"));
+  const isFloe = nodeAddress.includes("cloud") || nodeAddress.includes("floe");
+  const defaultName = inboundTag.includes("direct")
+    ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
+    : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP");
   const name = inboundOverrides?.name || defaultName;
   const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
   const port = customPort ? customPort : nodePort;
