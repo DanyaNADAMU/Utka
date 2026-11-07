@@ -69,14 +69,17 @@ try {
 /**
  * Add a VLESS user to an existing inbound
  */
-export async function addVlessUser(grpcHost: string, inboundTag: string, email: string, uuid: string): Promise<boolean> {
+export async function addVlessUser(grpcHost: string, inboundTag: string, email: string, uuid: string, flow?: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     try {
       const { handler } = getClients(grpcHost);
       const Account = root.lookupType("xray.proxy.vless.Account");
+      const defaultFlow = (process.env.XRAY_FLOW !== undefined)
+        ? process.env.XRAY_FLOW
+        : (process.env.XRAY_NETWORK === "ws" ? "" : "xtls-rprx-vision");
       const accountMsg = Account.create({
         id: uuid,
-        flow: "xtls-rprx-vision",
+        flow: flow !== undefined ? flow : defaultFlow,
         encryption: "none"
       });
       const accountBytes = Account.encode(accountMsg).finish();
