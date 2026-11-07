@@ -303,7 +303,7 @@ export async function buildClientLink(
   nodeAddress: string, 
   nodePort: number,
   nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
+  inboundOverrides?: { address?: string; port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
 ): Promise<string> {
   const settings = await getSettings();
   const isFloe = nodeAddress.includes("cloud") || nodeAddress.includes("floe");
@@ -366,7 +366,7 @@ export async function buildClashProxyObject(
   nodeAddress: string, 
   nodePort: number,
   nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
+  inboundOverrides?: { address?: string; port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
 ): Promise<any> {
   const settings = await getSettings();
   const isFloe = nodeAddress.includes("cloud") || nodeAddress.includes("floe");
