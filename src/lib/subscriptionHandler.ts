@@ -89,12 +89,14 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
   }
 
   // 3. Fallback: allow standard subscription route conventions:
-  // /<token> (length 1) or /s/<token> or /sub/<token> (length 2)
+  // /<token> (length 1) or /s/<token> or /sub/<token> (length 2) or /api/sub/<token> (length 3)
   if (!token) {
     if (slug.length === 1) {
       token = slug[0];
     } else if (slug.length === 2 && (slug[0] === 's' || slug[0] === 'sub')) {
       token = slug[1];
+    } else if (slug.length === 3 && slug[0] === 'api' && (slug[1] === 's' || slug[1] === 'sub')) {
+      token = slug[2];
     }
   }
 
