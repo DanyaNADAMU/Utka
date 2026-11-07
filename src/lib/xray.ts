@@ -310,7 +310,7 @@ export async function buildClientLink(
   nodeAddress: string, 
   nodePort: number,
   nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string }
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string }
 ): Promise<string> {
   const settings = await getSettings();
   const displayName = inboundOverrides?.name || (inboundTag.includes("direct") ? "Glacier • Direct" : "Glacier • WARP");
@@ -362,7 +362,7 @@ export async function buildClashProxyObject(
   nodeAddress: string, 
   nodePort: number,
   nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string }
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string }
 ): Promise<any> {
   const settings = await getSettings();
   const name = inboundOverrides?.name || (inboundTag.includes("direct") ? "Glacier • Direct" : "Glacier • WARP");
