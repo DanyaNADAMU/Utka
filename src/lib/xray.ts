@@ -309,8 +309,8 @@ export async function buildClientLink(
   nodeName: string, 
   nodeAddress: string, 
   nodePort: number,
-  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string }
+  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string }
 ): Promise<string> {
   const settings = await getSettings();
   const name = encodeURIComponent(inboundTag);
@@ -325,7 +325,7 @@ export async function buildClientLink(
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
   const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
-  const wsPath = inboundOverrides?.path || (nodeReality as any)?.path || settings[`INBOUND_${inboundTag}_PATH`] || process.env.XRAY_WS_PATH || "/api/v1/events";
+  const wsPath = inboundOverrides?.path || nodeReality?.path || settings[`INBOUND_${inboundTag}_PATH`] || process.env.XRAY_WS_PATH || "/api/v1/events";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || (process.env.XRAY_NETWORK || "ws");
   const security = pbk ? "reality" : (sni ? "tls" : "none");
@@ -359,8 +359,8 @@ export async function buildClashProxyObject(
   nodeName: string, 
   nodeAddress: string, 
   nodePort: number,
-  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string }
+  nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string }
 ): Promise<any> {
   const settings = await getSettings();
   const name = inboundTag;
@@ -370,7 +370,7 @@ export async function buildClashProxyObject(
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
   const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
-  const wsPath = inboundOverrides?.path || (nodeReality as any)?.path || settings[`INBOUND_${inboundTag}_PATH`] || process.env.XRAY_WS_PATH || "/api/v1/events";
+  const wsPath = inboundOverrides?.path || nodeReality?.path || settings[`INBOUND_${inboundTag}_PATH`] || process.env.XRAY_WS_PATH || "/api/v1/events";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || (process.env.XRAY_NETWORK || "ws");
   const security = pbk ? "reality" : (sni ? "tls" : "none");
