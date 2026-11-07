@@ -1,12 +1,12 @@
 import { auth } from "@/auth";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 export default async function RootPage() {
   const session = await auth();
 
-  // Stealth: unauthenticated visitors receive a standard 404
+  // Redirect unauthenticated visitors to sign in via Authentik
   if (!session?.user) {
-    notFound();
+    redirect("/api/auth/signin");
   }
 
   // Authenticated users are routed to their respective workspace
