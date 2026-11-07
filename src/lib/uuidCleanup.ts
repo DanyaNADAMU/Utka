@@ -37,8 +37,11 @@ export async function cleanupExpiredUuids(
 
     for (const exp of expiredUuids) {
       try {
-        const apiHost = exp.node ? exp.node.apiHost : 'unix:///app/xray/api.sock';
-        await removeUserFn(apiHost, exp.inboundTag, exp.xrayEmail);
+        const isStaticNode = !exp.node?.apiHost || exp.node?.apiHost === 'static' || exp.node?.apiHost === 'none';
+        if (!isStaticNode) {
+          const apiHost = exp.node ? exp.node.apiHost : 'unix:///app/xray/api.sock';
+          await removeUserFn(apiHost, exp.inboundTag, exp.xrayEmail);
+        }
         await database.expiringUuid.delete({ where: { id: exp.id } });
         result.cleaned += 1;
       } catch (err) {

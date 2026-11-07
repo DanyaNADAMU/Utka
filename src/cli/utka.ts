@@ -89,6 +89,20 @@ async function handleStatus() {
     console.log(`\x1b[32m✔ Configured Nodes:\x1b[0m ${nodes.length}`);
 
     for (const node of nodes) {
+      const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
+      if (isStaticNode) {
+        let tagList = 'static';
+        if (node.inboundSettings) {
+          try {
+            tagList = Object.keys(JSON.parse(node.inboundSettings)).join(', ');
+          } catch {}
+        }
+        console.log(
+          `  • Node \x1b[1m${node.name}\x1b[0m (${node.address}): \x1b[32mSTATIC NODE\x1b[0m | Inbounds: [${tagList}]`
+        );
+        continue;
+      }
+
       const start = Date.now();
       const tags = await getXrayInboundTags(node.apiHost);
       const latency = Date.now() - start;

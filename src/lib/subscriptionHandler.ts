@@ -4,7 +4,19 @@ import { addVlessUser, getClientInboundTags, getXrayInboundTags, buildClientLink
 import { getSettings } from '@/lib/settings';
 
 async function getNodeInboundTags(node: any, masterTags: string[]): Promise<string[]> {
-  if (node.apiHost) {
+  if (node.inboundSettings) {
+    try {
+      const parsed = JSON.parse(node.inboundSettings);
+      const customTags = Object.keys(parsed);
+      if (customTags.length > 0) {
+        return customTags;
+      }
+    } catch {
+      // fallback
+    }
+  }
+  const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
+  if (node.apiHost && !isStaticNode) {
     const remoteTags = await getXrayInboundTags(node.apiHost);
     if (remoteTags.length > 0) {
       return remoteTags;
@@ -132,6 +144,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
   // 1. Create missing inbounds for active nodes
   const inboundsToCreate = [];
   for (const node of activeNodes) {
+    const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
     const nodeTags = nodeTagsCache.get(node.id) || activeInboundTags;
     for (const tag of nodeTags) {
       const exists = sub.inbounds.find((i: any) => i.inboundTag === tag && i.nodeId === node.id);
@@ -140,7 +153,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
           subscriptionId: sub.id,
           nodeId: node.id,
           inboundTag: tag,
-          xrayUuid: crypto.randomUUID()
+          xrayUuid: (isStaticNode && node.adminUuid) ? node.adminUuid : crypto.randomUUID()
         });
       }
     }

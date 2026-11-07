@@ -425,6 +425,11 @@ export async function syncNodeUsers(nodeId: string): Promise<{ total: number; su
     const node = await db.node.findUnique({ where: { id: nodeId } });
     if (!node || !node.isActive) return { total: 0, success: 0 };
 
+    const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
+    if (isStaticNode) {
+      return { total: 0, success: 0 };
+    }
+
     const inbounds = await db.subscriptionInbound.findMany({
       where: { nodeId: node.id }
     });

@@ -114,6 +114,9 @@ async function tick() {
     const uuidLiveStats: Record<string, { up: bigint, down: bigint, subId: string, nodeId: string }> = {};
     
     for (const node of nodes) {
+      const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
+      if (isStaticNode) continue;
+
       console.log(`[Daemon] Querying stats for node ${node.name} (${node.id}) at ${node.apiHost}...`);
       const allStats = await queryAllUserStats(node.apiHost, true);
       
