@@ -29,19 +29,12 @@ const xrayStats = (grpc.loadPackageDefinition(statsDef) as any).xray.app.stats.c
 const clientsCache: Record<string, { handler: any, stats: any }> = {};
 
 export function invalidateClientCache(grpcHost: string) {
-  let host = grpcHost;
-  if (!host || !host.startsWith('unix://')) {
-    host = 'unix:///app/xray/api.sock';
-  }
+  const host = grpcHost || process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
   delete clientsCache[host];
 }
 
 export function getClients(grpcHost: string) {
-  let host = grpcHost;
-  // Auto-migrate legacy tcp configurations to unix socket
-  if (!host || !host.startsWith('unix://')) {
-    host = 'unix:///app/xray/api.sock';
-  }
+  let host = grpcHost || process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
   
   if (!clientsCache[host]) {
     clientsCache[host] = {
@@ -310,10 +303,11 @@ export async function buildClientLink(
   nodeAddress: string, 
   nodePort: number,
   nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string }
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
 ): Promise<string> {
   const settings = await getSettings();
-  const displayName = inboundOverrides?.name || (inboundTag.includes("direct") ? "Glacier • Direct" : "Glacier • WARP");
+  const defaultName = (inboundTag.includes("direct") ? "Glacier • Direct" : ((inboundTag.includes("grpc") || nodeAddress.includes("cloud") || nodeAddress.includes("floe")) ? "🇩🇪 Floe • Frankfurt" : "Glacier • WARP"));
+  const displayName = inboundOverrides?.name || defaultName;
   const name = encodeURIComponent(displayName);
   
   // Apply per-inbound settings from overrides or global settings
@@ -328,6 +322,7 @@ export async function buildClientLink(
   const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
   const defaultWsPath = (inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events";
   const wsPath = inboundOverrides?.path || nodeReality?.path || settings[`INBOUND_${inboundTag}_PATH`] || defaultWsPath;
+  const serviceName = inboundOverrides?.serviceName || inboundOverrides?.path || settings[`INBOUND_${inboundTag}_SERVICE_NAME`] || "cloud-sync";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || (process.env.XRAY_NETWORK || "ws");
   const security = pbk ? "reality" : (sni ? "tls" : "none");
@@ -336,7 +331,7 @@ export async function buildClientLink(
     let link = `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none`;
     if (network === "tcp") link += `&type=tcp`;
     if (network === "ws") link += `&type=ws&path=${encodeURIComponent(wsPath)}`;
-    if (network === "grpc") link += `&type=grpc`;
+    if (network === "grpc") link += `&type=grpc&serviceName=${encodeURIComponent(serviceName)}`;
     
     link += `&security=${security}`;
     
@@ -362,10 +357,11 @@ export async function buildClashProxyObject(
   nodeAddress: string, 
   nodePort: number,
   nodeReality?: { sni?: string | null; pbk?: string | null; sid?: string | null; path?: string | null },
-  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string }
+  inboundOverrides?: { port?: number; flow?: string; network?: string; sni?: string; pbk?: string; sid?: string; path?: string; name?: string; serviceName?: string }
 ): Promise<any> {
   const settings = await getSettings();
-  const name = inboundOverrides?.name || (inboundTag.includes("direct") ? "Glacier • Direct" : "Glacier • WARP");
+  const defaultName = (inboundTag.includes("direct") ? "Glacier • Direct" : ((inboundTag.includes("grpc") || nodeAddress.includes("cloud") || nodeAddress.includes("floe")) ? "🇩🇪 Floe • Frankfurt" : "Glacier • WARP"));
+  const name = inboundOverrides?.name || defaultName;
   const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
   const port = customPort ? customPort : nodePort;
   
@@ -374,6 +370,7 @@ export async function buildClashProxyObject(
   const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
   const defaultWsPath = (inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events";
   const wsPath = inboundOverrides?.path || nodeReality?.path || settings[`INBOUND_${inboundTag}_PATH`] || defaultWsPath;
+  const serviceName = inboundOverrides?.serviceName || inboundOverrides?.path || settings[`INBOUND_${inboundTag}_SERVICE_NAME`] || "cloud-sync";
   
   const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || (process.env.XRAY_NETWORK || "ws");
   const security = pbk ? "reality" : (sni ? "tls" : "none");
@@ -400,6 +397,12 @@ export async function buildClashProxyObject(
       headers: {
         Host: sni || nodeAddress,
       },
+    };
+  }
+
+  if (network === "grpc") {
+    proxy["grpc-opts"] = {
+      "grpc-service-name": serviceName,
     };
   }
 

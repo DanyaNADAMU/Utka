@@ -380,45 +380,51 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
   for (const inbound of updatedSub.inbounds) {
     if (!inbound.node || !inbound.node.isActive) continue;
 
-    const newUuid = crypto.randomUUID();
-    const oldUuid = inbound.xrayUuid;
-    const newXrayEmail = `${updatedSub.id}_${inbound.inboundTag}_${newUuid}`;
-    const oldXrayEmail = `${updatedSub.id}_${inbound.inboundTag}_${oldUuid}`;
+    const isStaticNode = !inbound.node.apiHost || inbound.node.apiHost === 'static' || inbound.node.apiHost === 'none';
+    let currentUuid = inbound.xrayUuid;
 
-    // Add old UUID to ExpiringUuid
-    await db.expiringUuid.create({
-      data: {
-        subscriptionId: updatedSub.id,
-        xrayUuid: oldUuid,
-        xrayEmail: oldXrayEmail,
-        inboundTag: inbound.inboundTag,
-        nodeId: inbound.nodeId,
-        expiresAt: expiresAt
-      }
-    });
+    if (!isStaticNode) {
+      const newUuid = crypto.randomUUID();
+      const oldUuid = inbound.xrayUuid;
+      const newXrayEmail = `${updatedSub.id}_${inbound.inboundTag}_${newUuid}`;
+      const oldXrayEmail = `${updatedSub.id}_${inbound.inboundTag}_${oldUuid}`;
 
-    // Add new UUID to UuidHistory
-    await db.uuidHistory.create({
-      data: {
-        subscriptionId: updatedSub.id,
-        inboundTag: inbound.inboundTag,
-        xrayUuid: newUuid,
-        nodeId: inbound.nodeId
-      }
-    });
+      // Add old UUID to ExpiringUuid
+      await db.expiringUuid.create({
+        data: {
+          subscriptionId: updatedSub.id,
+          xrayUuid: oldUuid,
+          xrayEmail: oldXrayEmail,
+          inboundTag: inbound.inboundTag,
+          nodeId: inbound.nodeId,
+          expiresAt: expiresAt
+        }
+      });
 
-    // Update new UUID in SubscriptionInbound
-    await db.subscriptionInbound.update({
-      where: { id: inbound.id },
-      data: { xrayUuid: newUuid }
-    });
+      // Add new UUID to UuidHistory
+      await db.uuidHistory.create({
+        data: {
+          subscriptionId: updatedSub.id,
+          inboundTag: inbound.inboundTag,
+          xrayUuid: newUuid,
+          nodeId: inbound.nodeId
+        }
+      });
 
-    // Add new UUID to Xray (on the specific node)
-    await addVlessUser(inbound.node.apiHost, inbound.inboundTag, newXrayEmail, newUuid);
+      // Update new UUID in SubscriptionInbound
+      await db.subscriptionInbound.update({
+        where: { id: inbound.id },
+        data: { xrayUuid: newUuid }
+      });
+
+      // Add new UUID to Xray (on the specific node)
+      await addVlessUser(inbound.node.apiHost, inbound.inboundTag, newXrayEmail, newUuid);
+      currentUuid = newUuid;
+    }
 
     const vlessLink = await buildClientLink(
       inbound.inboundTag,
-      newUuid,
+      currentUuid,
       `${updatedSub.name || 'Utka'} - ${inbound.node.name}`,
       inbound.node.address,
       inbound.node.port,
