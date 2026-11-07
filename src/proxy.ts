@@ -19,15 +19,11 @@ const NOT_FOUND_HTML = `<!DOCTYPE html>
 export const proxy = auth((req) => {
   const pathname = req.nextUrl.pathname;
 
-  // Unauthenticated visitors to any web page route get a generic 404 (pure stealth mode)
+  // Unauthenticated visitors to web routes: redirect to sign-in
   if (!req.auth) {
-    return new NextResponse(NOT_FOUND_HTML, {
-      status: 404,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "x-robots-tag": "noindex, nofollow, noarchive",
-      },
-    });
+    const signinUrl = new URL("/api/auth/signin", req.url);
+    signinUrl.searchParams.set("callbackUrl", req.url);
+    return NextResponse.redirect(signinUrl);
   }
 
   // Authenticated user at root: redirect to role workspace
