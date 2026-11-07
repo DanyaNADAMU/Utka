@@ -322,14 +322,15 @@ export async function buildClientLink(
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
   const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
+  const wsPath = inboundOverrides?.path || (nodeReality as any)?.path || settings[`INBOUND_${inboundTag}_PATH`] || process.env.XRAY_WS_PATH || "/api/v1/events";
   
-  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
+  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || (process.env.XRAY_NETWORK || "ws");
   const security = pbk ? "reality" : (sni ? "tls" : "none");
 
   if (protocol === "vless") {
     let link = `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none`;
     if (network === "tcp") link += `&type=tcp`;
-    if (network === "ws") link += `&type=ws`;
+    if (network === "ws") link += `&type=ws&path=${encodeURIComponent(wsPath)}`;
     if (network === "grpc") link += `&type=grpc`;
     
     link += `&security=${security}`;
@@ -366,8 +367,9 @@ export async function buildClashProxyObject(
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
   const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
+  const wsPath = inboundOverrides?.path || (nodeReality as any)?.path || settings[`INBOUND_${inboundTag}_PATH`] || process.env.XRAY_WS_PATH || "/api/v1/events";
   
-  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
+  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || (process.env.XRAY_NETWORK || "ws");
   const security = pbk ? "reality" : (sni ? "tls" : "none");
 
   const proxy: any = {
@@ -384,6 +386,15 @@ export async function buildClashProxyObject(
   if (security === "reality" || security === "tls") {
     proxy.servername = sni;
     proxy["client-fingerprint"] = "chrome";
+  }
+
+  if (network === "ws") {
+    proxy["ws-opts"] = {
+      path: wsPath,
+      headers: {
+        Host: sni || nodeAddress,
+      },
+    };
   }
 
   if (security === "reality") {
