@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "source_commit": "8e1973249202ed4b6ba231af8c02fa2c5d4e5b11",
+  "git_object_format": "sha1",
+  "payload_format": "git-commit-id-v1",
+  "submitted_at": "2026-11-09T13:32:27Z",
+  "proof": "8e1973249202ed4b6ba231af8c02fa2c5d4e5b11.ots",
+  "source_ref": "refs/heads/main",
+  "triggers": [
+    "max_age"
+  ]
+}
