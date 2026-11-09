@@ -1,0 +1,45 @@
+name: OpenTimestamps Daily Upgrade & Verify
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  ots:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git Author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install OpenTimestamps
+        run: pipx install git-ots
+
+      - name: Fetch OTS tags and proofs
+        run: |
+          git fetch origin 'refs/tags/ots/*:refs/tags/ots/*' || true
+
+      - name: Upgrade pending timestamps
+        run: git ots upgrade
+
+      - name: Run timestamping if due
+        run: git ots run || true
+
+      - name: Verify all timestamps
+        run: git ots verify
+
+      - name: Push upgraded proofs and tags back
+        run: |
+          git push origin HEAD:${{ github.ref_name }} || true
+          git push origin 'refs/tags/ots/*:refs/tags/ots/*' || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
