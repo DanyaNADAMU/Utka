@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Project Rules (`AGENTS.md`)**: Embedded standard repository rules and domain boundary specification following the canonical Template layout.
+- **Bilingual Documentation (`README.md`, `README.ru.md`, `docs/`)**: Added comprehensive English and Russian user and administrator documentation, quick start guides, architecture topology diagrams, and CLI manuals.
+- **MIT License (`LICENSE`)**: Added standard permissive open-source license.
+- **Authentik Group-to-Role Synchronization (`src/auth.ts`)**: Implemented automatic admin role elevation on login based on Authentik admin group claims (Admin Implication Invariant).
+
+### Changed
+- **Privacy Sanitization**: Parameterized all infrastructure domains and private server IPs via generic environment variables (`XRAY_SERVER_DOMAIN_OR_IP`, `BASE_DOMAIN`, `FRANKFURT_HOST`, `FRANKFURT_SNI`, `BRAND_NAME`) with zero leakage in defaults.
+- **Package Metadata**: Bumped version to `1.2.0` in `package.json` and synchronized built CLI bundle (`bin/utka.js`).
+
+### Removed
+- **Repository Scratch Scripts**: Purged ad-hoc database maintenance and debug scripts from the repository root (`fix_db.js`, `query.js`, `test_sub.js`, `wipe_traffic.ts`).
+- **Legacy Deploy Script**: Removed deprecated `deploy.sh` script containing legacy project naming and direct-push patterns.
+- **Erroneous Gitignore Entry**: Removed `AGENTS.md` from `.gitignore`.
+
 ## [v1.1.0] - 2026-11-15
 
 ### Added
