@@ -45,7 +45,6 @@ next-env.d.ts
 .logs/
 
 # ai & personal configs
-AGENTS.md
 CLAUDE.md
 plan.md
 walkthrough.md

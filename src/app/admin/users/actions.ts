@@ -44,7 +44,7 @@ export async function createUserAction(data: {
       defaultNode = await db.node.create({
         data: {
           name: 'Main Server',
-          address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
+          address: process.env.XRAY_SERVER_DOMAIN || process.env.XRAY_SERVER_DOMAIN_OR_IP || '127.0.0.1',
           port: 443,
           apiHost: process.env.XRAY_API_URL || 'unix:///app/xray/api.sock',
         },

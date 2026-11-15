@@ -15,10 +15,7 @@ ruleset=🏠 Local Network,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/mas
 ; 3. Direct downloads & P2P torrents to protect VPS bandwidth and prevent DMCA abuse
 ruleset=DIRECT,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Ruleset/Download.list
 
-; 4. Internal infrastructure and domains
-ruleset=DIRECT,[]DOMAIN-SUFFIX,nada.mu
-
-; 5. Gaming and direct bypass rules
+; 4. Gaming and direct bypass rules
 ruleset=DIRECT,[]DOMAIN-SUFFIX,cubecraft.net
 ruleset=DIRECT,[]DOMAIN-KEYWORD,cubecraft
 

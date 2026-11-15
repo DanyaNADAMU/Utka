@@ -64,7 +64,7 @@ describe('buildClientLink & buildClashProxyObject', () => {
       'vless-frankfurt',
       'e963b51b-411a-4293-9c86-f13c6622ec14',
       'Glacier',
-      'git.nada.mu',
+      'vpn.example.com',
       443
     );
     expect(linkFrankfurt).toContain('#Frankfurt');
@@ -73,7 +73,7 @@ describe('buildClientLink & buildClashProxyObject', () => {
       'vless-in',
       'e963b51b-411a-4293-9c86-f13c6622ec14',
       'Glacier',
-      'git.nada.mu',
+      'vpn.example.com',
       443
     );
     expect(linkMoscow).toContain('#Moscow');

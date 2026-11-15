@@ -324,9 +324,11 @@ export async function buildClientLink(
   
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  const defaultSni = inboundTag.includes("frankfurt") ? "auth.nada.mu" : (process.env.XRAY_SNI || "");
+  const defaultFrankfurtHost = process.env.FRANKFURT_HOST || (settings.FRANKFURT_HOST || nodeAddress);
+  const defaultFrankfurtSni = process.env.FRANKFURT_SNI || (settings.FRANKFURT_SNI || defaultFrankfurtHost);
+  const defaultSni = inboundTag.includes("frankfurt") ? defaultFrankfurtSni : (process.env.XRAY_SNI || "");
   const sni = inboundOverrides?.sni || nodeReality?.sni || defaultSni;
-  const hostAddress = inboundOverrides?.address || (inboundTag.includes("frankfurt") ? "auth.nada.mu" : nodeAddress);
+  const hostAddress = inboundOverrides?.address || (inboundTag.includes("frankfurt") ? defaultFrankfurtHost : nodeAddress);
   const defaultWsPath = inboundTag.includes("frankfurt")
     ? "/api/v3/events"
     : ((inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events");
@@ -381,9 +383,11 @@ export async function buildClashProxyObject(
   
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  const defaultSni = inboundTag.includes("frankfurt") ? "auth.nada.mu" : (process.env.XRAY_SNI || "");
+  const defaultFrankfurtHost = process.env.FRANKFURT_HOST || (settings.FRANKFURT_HOST || nodeAddress);
+  const defaultFrankfurtSni = process.env.FRANKFURT_SNI || (settings.FRANKFURT_SNI || defaultFrankfurtHost);
+  const defaultSni = inboundTag.includes("frankfurt") ? defaultFrankfurtSni : (process.env.XRAY_SNI || "");
   const sni = inboundOverrides?.sni || nodeReality?.sni || defaultSni;
-  const hostAddress = inboundOverrides?.address || (inboundTag.includes("frankfurt") ? "auth.nada.mu" : nodeAddress);
+  const hostAddress = inboundOverrides?.address || (inboundTag.includes("frankfurt") ? defaultFrankfurtHost : nodeAddress);
   const defaultWsPath = inboundTag.includes("frankfurt")
     ? "/api/v3/events"
     : ((inboundTag.includes("activity") || inboundTag.includes("direct")) ? "/api/v1/activity" : "/api/v1/events");

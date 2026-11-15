@@ -17,7 +17,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   const dict = await getDictionary();
   const locale = await getLocale();
   const settings = await getSettings();
-  const authUrl = process.env.AUTH_URL || 'https://nada.mu';
+  const authUrl = process.env.AUTH_URL || 'http://localhost:3000';
   const { id } = await params;
 
   const sub = await db.subscription.findUnique({
@@ -40,7 +40,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
       masterNode = await db.node.create({
         data: {
           name: 'Master',
-          address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
+          address: process.env.XRAY_SERVER_DOMAIN || process.env.XRAY_SERVER_DOMAIN_OR_IP || '127.0.0.1',
           port: 443,
           apiHost: masterApiHost,
           isActive: true

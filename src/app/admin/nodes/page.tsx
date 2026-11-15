@@ -16,7 +16,7 @@ export default async function NodesPage() {
     masterNode = await db.node.create({
       data: {
         name: 'Master',
-        address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
+        address: process.env.XRAY_SERVER_DOMAIN || process.env.XRAY_SERVER_DOMAIN_OR_IP || '127.0.0.1',
         port: 443,
         apiHost: masterApiHost,
         isMaster: true,

@@ -35329,17 +35329,11 @@ var xrayProxyman = grpc.loadPackageDefinition(proxymanDef).xray.app.proxyman.com
 var xrayStats = grpc.loadPackageDefinition(statsDef).xray.app.stats.command;
 var clientsCache = {};
 function invalidateClientCache(grpcHost) {
-  let host = grpcHost;
-  if (!host || !host.startsWith("unix://")) {
-    host = "unix:///app/xray/api.sock";
-  }
+  const host = grpcHost || process.env.XRAY_API_URL || "unix:///app/xray/api.sock";
   delete clientsCache[host];
 }
 function getClients(grpcHost) {
-  let host = grpcHost;
-  if (!host || !host.startsWith("unix://")) {
-    host = "unix:///app/xray/api.sock";
-  }
+  const host = grpcHost || process.env.XRAY_API_URL || "unix:///app/xray/api.sock";
   if (!clientsCache[host]) {
     clientsCache[host] = {
       handler: new xrayProxyman.HandlerService(host, grpc.credentials.createInsecure()),
@@ -35360,14 +35354,15 @@ try {
 } catch (e) {
   console.error("Failed to load Xray protobufs:", e);
 }
-async function addVlessUser(grpcHost, inboundTag, email, uuid) {
+async function addVlessUser(grpcHost, inboundTag, email, uuid, flow) {
   return new Promise((resolve, reject) => {
     try {
       const { handler } = getClients(grpcHost);
       const Account = root.lookupType("xray.proxy.vless.Account");
+      const defaultFlow = process.env.XRAY_FLOW !== void 0 ? process.env.XRAY_FLOW : process.env.XRAY_NETWORK === "ws" ? "" : "xtls-rprx-vision";
       const accountMsg = Account.create({
         id: uuid,
-        flow: "xtls-rprx-vision",
+        flow: flow !== void 0 ? flow : defaultFlow,
         encryption: "none"
       });
       const accountBytes = Account.encode(accountMsg).finish();
@@ -35451,7 +35446,7 @@ async function getXrayInboundTags(grpcHost) {
         if (!res || !res.inbounds || !Array.isArray(res.inbounds)) {
           return resolve([]);
         }
-        const tags = res.inbounds.map((i) => i.tag || (typeof i === "string" ? i : "")).filter((t) => t && t !== "api" && t !== "dokodemo-door" && !t.startsWith("grpc-in")).sort((a, b) => a.localeCompare(b));
+        const tags = res.inbounds.map((i) => i.tag || (typeof i === "string" ? i : "")).filter((t) => t && t !== "api" && t !== "dokodemo-door" && !t.startsWith("grpc-in") && !t.includes("front")).sort((a, b) => a.localeCompare(b));
         resolve(tags);
       });
     } catch (e) {
@@ -35463,21 +35458,31 @@ async function getXrayInboundTags(grpcHost) {
 }
 async function buildClientLink(inboundTag, xrayUuid, nodeName, nodeAddress, nodePort, nodeReality, inboundOverrides) {
   const settings = await getSettings();
-  const name = encodeURIComponent(inboundTag);
+  const isFloe = nodeAddress.includes("cloud") || nodeAddress.includes("floe");
+  const defaultName = inboundTag.includes("frankfurt") ? "Frankfurt" : inboundTag.includes("direct") ? isFloe ? "\u{1F1E9}\u{1F1EA} Floe \u2022 Direct" : "Glacier \u2022 Direct" : isFloe ? "\u{1F1E9}\u{1F1EA} Floe \u2022 WARP" : "Moscow";
+  const displayName = inboundOverrides?.name || defaultName;
+  const name = encodeURIComponent(displayName);
   const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
   const customFlow = inboundOverrides?.flow || settings[`INBOUND_${inboundTag}_FLOW`] || "xtls-rprx-vision";
   const port = customPort ? customPort : nodePort;
   const protocol = "vless";
   const pbk = inboundOverrides?.pbk || nodeReality?.pbk || process.env.XRAY_PUBLIC_KEY || "";
   const sid = inboundOverrides?.sid || nodeReality?.sid || process.env.XRAY_SHORT_ID || "";
-  const sni = inboundOverrides?.sni || nodeReality?.sni || process.env.XRAY_SNI || "";
-  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || "tcp";
+  const defaultFrankfurtHost = process.env.FRANKFURT_HOST || (settings.FRANKFURT_HOST || nodeAddress);
+  const defaultFrankfurtSni = process.env.FRANKFURT_SNI || (settings.FRANKFURT_SNI || defaultFrankfurtHost);
+  const defaultSni = inboundTag.includes("frankfurt") ? defaultFrankfurtSni : process.env.XRAY_SNI || "";
+  const sni = inboundOverrides?.sni || nodeReality?.sni || defaultSni;
+  const hostAddress = inboundOverrides?.address || (inboundTag.includes("frankfurt") ? defaultFrankfurtHost : nodeAddress);
+  const defaultWsPath = inboundTag.includes("frankfurt") ? "/api/v3/events" : inboundTag.includes("activity") || inboundTag.includes("direct") ? "/api/v1/activity" : "/api/v1/events";
+  const wsPath = inboundOverrides?.path || nodeReality?.path || settings[`INBOUND_${inboundTag}_PATH`] || defaultWsPath;
+  const serviceName = inboundOverrides?.serviceName || inboundOverrides?.path || settings[`INBOUND_${inboundTag}_SERVICE_NAME`] || "cloud-sync";
+  const network = inboundOverrides?.network || settings[`INBOUND_${inboundTag}_NETWORK`] || (process.env.XRAY_NETWORK || "ws");
   const security = pbk ? "reality" : sni ? "tls" : "none";
   if (protocol === "vless") {
-    let link = `vless://${xrayUuid}@${nodeAddress}:${port}?encryption=none`;
+    let link = `vless://${xrayUuid}@${hostAddress}:${port}?encryption=none`;
     if (network === "tcp") link += `&type=tcp`;
-    if (network === "ws") link += `&type=ws`;
-    if (network === "grpc") link += `&type=grpc`;
+    if (network === "ws") link += `&type=ws&path=${encodeURIComponent(wsPath)}`;
+    if (network === "grpc") link += `&type=grpc&serviceName=${encodeURIComponent(serviceName)}`;
     link += `&security=${security}`;
     if (security === "reality" || security === "tls") {
       link += `&sni=${sni}&fp=chrome`;
@@ -35493,6 +35498,10 @@ async function syncNodeUsers(nodeId) {
   try {
     const node = await db_default.node.findUnique({ where: { id: nodeId } });
     if (!node || !node.isActive) return { total: 0, success: 0 };
+    const isStaticNode = !node.apiHost || node.apiHost === "static" || node.apiHost === "none";
+    if (isStaticNode) {
+      return { total: 0, success: 0 };
+    }
     const inbounds = await db_default.subscriptionInbound.findMany({
       where: { nodeId: node.id }
     });
@@ -35540,7 +35549,7 @@ async function createUserService(params) {
     targetNode = await db_default.node.create({
       data: {
         name: "Main Server",
-        address: process.env.XRAY_SERVER_DOMAIN || "nada.mu",
+        address: process.env.XRAY_SERVER_DOMAIN || process.env.XRAY_SERVER_DOMAIN_OR_IP || "127.0.0.1",
         port: 443,
         xrayPort: 7999,
         apiHost: process.env.XRAY_API_URL || "unix:///app/xray/api.sock"
@@ -35558,9 +35567,14 @@ async function createUserService(params) {
   });
   const activeNodes = await db_default.node.findMany({ where: { isActive: true } });
   const createdInbounds = [];
+  const isAdmin = user.role === "ADMIN";
+  const defaultClientTags = ["vless-frankfurt", "vless-in"];
   for (const node of activeNodes) {
     const nodeTags = await getXrayInboundTags(node.apiHost);
     for (const tag of nodeTags) {
+      if (!isAdmin && (!node.isMaster || !defaultClientTags.includes(tag))) {
+        continue;
+      }
       const newUuid = import_crypto.default.randomUUID();
       const inb = await db_default.subscriptionInbound.create({
         data: {
@@ -35706,7 +35720,7 @@ async function getUserDetailsService(identifier) {
       console.error(`[userService] Failed to generate link for inbound ${inb.inboundTag}:`, err);
     }
   }
-  const baseDomain = process.env.BASE_DOMAIN || process.env.AUTH_URL || "https://dash.test.nada.mu";
+  const baseDomain = process.env.BASE_DOMAIN || process.env.AUTH_URL || "http://localhost:3000";
   const subUrl = `${baseDomain}/s/${sub.token}`;
   return {
     user: sub.user,
@@ -35846,6 +35860,20 @@ async function handleStatus() {
     const nodes = await db_default.node.findMany();
     console.log(`\x1B[32m\u2714 Configured Nodes:\x1B[0m ${nodes.length}`);
     for (const node of nodes) {
+      const isStaticNode = !node.apiHost || node.apiHost === "static" || node.apiHost === "none";
+      if (isStaticNode) {
+        let tagList = "static";
+        if (node.inboundSettings) {
+          try {
+            tagList = Object.keys(JSON.parse(node.inboundSettings)).join(", ");
+          } catch {
+          }
+        }
+        console.log(
+          `  \u2022 Node \x1B[1m${node.name}\x1B[0m (${node.address}): \x1B[32mSTATIC NODE\x1B[0m | Inbounds: [${tagList}]`
+        );
+        continue;
+      }
       const start = Date.now();
       const tags = await getXrayInboundTags(node.apiHost);
       const latency = Date.now() - start;

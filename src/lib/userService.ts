@@ -49,7 +49,7 @@ export async function createUserService(params: CreateUserParams) {
     targetNode = await db.node.create({
       data: {
         name: 'Main Server',
-        address: process.env.XRAY_SERVER_DOMAIN || 'nada.mu',
+        address: process.env.XRAY_SERVER_DOMAIN || process.env.XRAY_SERVER_DOMAIN_OR_IP || '127.0.0.1',
         port: 443,
         xrayPort: 7999,
         apiHost: process.env.XRAY_API_URL || 'unix:///app/xray/api.sock',
@@ -249,7 +249,7 @@ export async function getUserDetailsService(identifier: string) {
     }
   }
 
-  const baseDomain = process.env.BASE_DOMAIN || process.env.AUTH_URL || 'https://dash.test.nada.mu';
+  const baseDomain = process.env.BASE_DOMAIN || process.env.AUTH_URL || 'http://localhost:3000';
   const subUrl = `${baseDomain}/s/${sub.token}`;
 
   return {

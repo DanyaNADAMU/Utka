@@ -8,7 +8,7 @@ import { fetchTrafficState } from "@/lib/trafficClient";
 export default async function AdminUsersPage() {
   const dict = await getDictionary();
   const settings = await getSettings();
-  const authUrl = process.env.AUTH_URL || 'https://nada.mu';
+  const authUrl = process.env.AUTH_URL || 'http://localhost:3000';
 
   // Fetch all subscriptions with user relation
   const subscriptions = await db.subscription.findMany({

@@ -267,7 +267,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
     const trafficDown = trafficLogs._sum.down || BigInt(0);
     const trafficTotal = trafficUp + trafficDown;
 
-    const host = headerGet('host') || 'nada.mu';
+    const host = headerGet('host') || process.env.BASE_DOMAIN?.replace(/^https?:\/\//, '') || 'localhost';
     const protocol = headerGet('x-forwarded-proto') || 'https';
     const subUrl = `${protocol}://${host}/${slug.join('/')}`;
     const subQrSvg = await generateQrSvg(subUrl);
@@ -390,8 +390,7 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
     const masterAddress =
       process.env.XRAY_SERVER_DOMAIN_OR_IP ||
       process.env.XRAY_SERVER_DOMAIN ||
-      headerGet('host').split(':')[0] ||
-      '81.30.105.65';
+      (headerGet('host') ? headerGet('host').split(':')[0] : '127.0.0.1');
 
     for (const tag of activeInboundTags) {
       const masterUuid = crypto.randomUUID();

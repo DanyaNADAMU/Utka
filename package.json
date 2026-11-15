@@ -1,6 +1,6 @@
 {
   "name": "utka",
-  "version": "0.2.0",
+  "version": "1.2.0",
   "description": "Utka: modular, stealth proxy management suite (utka-core, utka-sub, utka-web, utka-cli)",
   "private": true,
   "bin": {

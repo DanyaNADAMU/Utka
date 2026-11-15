@@ -16,7 +16,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, account, profile }) {
       if (profile?.sub && user.email) {
         const userCount = await db.user.count();
-        let role = "USER";
+
+        // Check Authentik group membership (Part I §7 Admin Implication Invariant)
+        const groups: string[] = Array.isArray((profile as any)?.groups)
+          ? (profile as any).groups
+          : [];
+        const isAuthentikAdmin = groups.some((g: string) =>
+          typeof g === 'string' && (
+            g.toLowerCase().includes('admin') ||
+            g.toLowerCase() === 'authentik admins' ||
+            g.toLowerCase() === 'superusers'
+          )
+        );
+
+        let role = isAuthentikAdmin ? "ADMIN" : "USER";
         if (userCount === 0) {
           role = "ADMIN";
         }
@@ -24,7 +37,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Find or create the user in our database
         let dbUser = await db.user.upsert({
           where: { authentikId: profile.sub },
-          update: { email: user.email, name: user.name || null },
+          update: {
+            email: user.email,
+            name: user.name || null,
+            // Synchronize role from Authentik admin group membership
+            ...(isAuthentikAdmin ? { role: "ADMIN" } : {})
+          },
           create: {
             authentikId: profile.sub,
             email: user.email,
@@ -53,7 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             defaultNode = await db.node.create({
               data: {
                 name: "Main Server",
-                address: process.env.XRAY_SERVER_DOMAIN || "nada.mu",
+                address: process.env.XRAY_SERVER_DOMAIN || process.env.XRAY_SERVER_DOMAIN_OR_IP || "127.0.0.1",
                 port: 443,
                 apiHost: process.env.XRAY_API_URL || "unix:///app/xray/api.sock"
               }

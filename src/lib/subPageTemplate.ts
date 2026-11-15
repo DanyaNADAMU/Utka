@@ -69,6 +69,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
   const clashmiUrl = `clashmi://install-config?url=${encodedSubUrl}&name=${encodedName}`;
 
   const displayName = subName || userName || 'Subscription';
+  const brandName = process.env.BRAND_NAME || 'Utka';
 
   const lastFetchedStr = lastFetched
     ? new Date(lastFetched).toLocaleString('ru-RU', {
@@ -88,7 +89,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>${escapeHtml(displayName)} | nada.mu</title>
+  <title>${escapeHtml(displayName)} | ${escapeHtml(brandName)}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -680,7 +681,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           <span id="themeIcon">🌙</span>
         </button>
 
-        <!-- Language Switcher button in exact nada.mu landing style -->
+        <!-- Language Switcher button -->
         <button class="lang-switcher-btn" id="langToggleBtn" onclick="toggleLanguage()" title="Switch Language">
           <span style="font-size: 1rem; line-height: 1;" id="langFlag">🇷🇺</span>
           <span id="langCode">RU</span>
@@ -899,7 +900,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
 
     <!-- Footer -->
     <footer style="text-align: center; font-size: 0.8125rem; color: var(--text-muted); padding: 2rem 0 1rem 0;" id="footerText">
-      nada.mu &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение
+      ${escapeHtml(brandName)} &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение
     </footer>
 
   </div>
@@ -959,7 +960,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           "Скопируйте ссылку подписки: <button class='copy-code-btn' onclick='copySubLink()' title='Нажмите для копирования'>${safeHtmlSubUrl} 📋</button> и вставьте в раздел «Подписки / Profiles».",
           "Включите системный прокси / TUN-режим."
         ],
-        footer: "nada.mu &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение"
+        footer: "${escapeJs(brandName)} &copy; ${new Date().getFullYear()} &bull; Безопасное и быстрое подключение"
       },
       en: {
         status_active: "Subscription Active",
@@ -999,7 +1000,7 @@ export function renderSubscriptionHtml(data: SubscriptionPageData): string {
           "Copy subscription link: <button class='copy-code-btn' onclick='copySubLink()' title='Click to copy'>${safeHtmlSubUrl} 📋</button> and paste into «Profiles» section.",
           "Enable system proxy / TUN mode."
         ],
-        footer: "nada.mu &copy; ${new Date().getFullYear()} &bull; Fast & Secure Connection"
+        footer: "${escapeJs(brandName)} &copy; ${new Date().getFullYear()} &bull; Fast & Secure Connection"
       }
     };
 

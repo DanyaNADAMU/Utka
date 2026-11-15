@@ -66,7 +66,8 @@ export default async function Dashboard() {
   const subPath = settings.SUB_PATH.replace('[token]', sub.token);
   // Ensure subPath starts with slash
   const safeSubPath = subPath.startsWith('/') ? subPath : `/${subPath}`;
-  const subLink = `${process.env.AUTH_URL || 'https://nada.mu'}${safeSubPath}`;
+  const authUrl = process.env.AUTH_URL || 'http://localhost:3000';
+  const subLink = `${authUrl}${safeSubPath}`;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8 flex flex-col items-center selection:bg-emerald-500/30">
