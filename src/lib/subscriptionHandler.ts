@@ -163,15 +163,16 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
       }
     }
   } else {
-    // Non-admin users: only get 'vless-frankfurt' on the Master node (Glacier -> Floe -> WARP)
+    // Non-admin users: ensure default client inbounds on Master node (Frankfurt and Moscow)
+    // Only auto-create if user currently has NO inbounds configured at all
     const masterNode = activeNodes.find(n => n.isMaster) || activeNodes[0];
-    if (masterNode) {
-      const exists = sub.inbounds.find((i: any) => i.inboundTag === 'vless-frankfurt' && i.nodeId === masterNode.id);
-      if (!exists) {
+    if (masterNode && sub.inbounds.length === 0) {
+      const defaultClientTags = ['vless-frankfurt', 'vless-in'];
+      for (const tag of defaultClientTags) {
         inboundsToCreate.push({
           subscriptionId: sub.id,
           nodeId: masterNode.id,
-          inboundTag: 'vless-frankfurt',
+          inboundTag: tag,
           xrayUuid: crypto.randomUUID()
         });
       }
@@ -198,13 +199,9 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
     };
   }
 
-  // 3. Clean up stale inbounds that no longer exist on active nodes or not allowed for regular users
+  // 3. Clean up stale inbounds that no longer exist on active nodes
   const staleInboundIds: string[] = [];
   for (const inbound of currentSub.inbounds) {
-    if (!isAdmin && (inbound.inboundTag !== 'vless-frankfurt' || !inbound.node?.isMaster)) {
-      staleInboundIds.push(inbound.id);
-      continue;
-    }
     if (!inbound.node || !inbound.node.isActive || !activeNodeMap.has(inbound.nodeId)) {
       staleInboundIds.push(inbound.id);
       continue;

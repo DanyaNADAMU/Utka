@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "source_commit": "92e24c529a972e8ace8ba91144868d31109a119a",
+  "git_object_format": "sha1",
+  "payload_format": "git-commit-id-v1",
+  "submitted_at": "2026-11-15T12:27:42Z",
+  "proof": "92e24c529a972e8ace8ba91144868d31109a119a.ots",
+  "source_ref": "refs/heads/feat/client-inbounds-moscow",
+  "triggers": [
+    "max_age"
+  ]
+}

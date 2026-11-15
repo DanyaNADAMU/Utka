@@ -34,7 +34,7 @@ export function invalidateClientCache(grpcHost: string) {
 }
 
 export function getClients(grpcHost: string) {
-  let host = grpcHost || process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
+  const host = grpcHost || process.env.XRAY_API_URL || 'unix:///app/xray/api.sock';
   
   if (!clientsCache[host]) {
     clientsCache[host] = {
@@ -311,7 +311,7 @@ export async function buildClientLink(
     ? "Frankfurt"
     : (inboundTag.includes("direct")
       ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
-      : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP"));
+      : (isFloe ? "🇩🇪 Floe • WARP" : "Moscow"));
   const displayName = inboundOverrides?.name || defaultName;
   const name = encodeURIComponent(displayName);
   
@@ -374,7 +374,7 @@ export async function buildClashProxyObject(
     ? "Frankfurt"
     : (inboundTag.includes("direct")
       ? (isFloe ? "🇩🇪 Floe • Direct" : "Glacier • Direct")
-      : (isFloe ? "🇩🇪 Floe • WARP" : "Glacier • WARP"));
+      : (isFloe ? "🇩🇪 Floe • WARP" : "Moscow"));
   const name = inboundOverrides?.name || defaultName;
   const customPort = inboundOverrides?.port || (settings[`INBOUND_${inboundTag}_PORT`] ? parseInt(settings[`INBOUND_${inboundTag}_PORT`]) : null);
   const port = customPort ? customPort : nodePort;

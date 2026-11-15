@@ -11,7 +11,7 @@ describe('buildClientLink & buildClashProxyObject', () => {
     vi.clearAllMocks();
   });
 
-  it('builds a valid VLESS Reality client link', async () => {
+  it('builds a valid VLESS Reality client link with override name', async () => {
     const link = await buildClientLink(
       'VLESS-Inbound',
       'e963b51b-411a-4293-9c86-f13c6622ec14',
@@ -22,7 +22,8 @@ describe('buildClientLink & buildClashProxyObject', () => {
         sni: 'dl.google.com',
         pbk: 'test_pub_key',
         sid: 'test_sid',
-      }
+      },
+      { name: 'VLESS-Inbound' }
     );
 
     expect(link).toContain('vless://e963b51b-411a-4293-9c86-f13c6622ec14@vpn.example.com:443');
@@ -33,7 +34,7 @@ describe('buildClientLink & buildClashProxyObject', () => {
     expect(link).toContain('#VLESS-Inbound');
   });
 
-  it('builds a valid Clash proxy object', async () => {
+  it('builds a valid Clash proxy object with override name', async () => {
     const clash = await buildClashProxyObject(
       'Node-Reality',
       'e963b51b-411a-4293-9c86-f13c6622ec14',
@@ -44,7 +45,8 @@ describe('buildClientLink & buildClashProxyObject', () => {
         sni: 'dl.google.com',
         pbk: 'test_pub_key',
         sid: 'test_sid',
-      }
+      },
+      { name: 'Node-Reality' }
     );
 
     expect(clash.name).toBe('Node-Reality');
@@ -55,6 +57,26 @@ describe('buildClientLink & buildClashProxyObject', () => {
     expect(clash.tls).toBe(true);
     expect(clash['reality-opts']['public-key']).toBe('test_pub_key');
     expect(clash['reality-opts']['short-id']).toBe('test_sid');
+  });
+
+  it('assigns intelligent default display names: Frankfurt and Moscow', async () => {
+    const linkFrankfurt = await buildClientLink(
+      'vless-frankfurt',
+      'e963b51b-411a-4293-9c86-f13c6622ec14',
+      'Glacier',
+      'git.nada.mu',
+      443
+    );
+    expect(linkFrankfurt).toContain('#Frankfurt');
+
+    const linkMoscow = await buildClientLink(
+      'vless-in',
+      'e963b51b-411a-4293-9c86-f13c6622ec14',
+      'Glacier',
+      'git.nada.mu',
+      443
+    );
+    expect(linkMoscow).toContain('#Moscow');
   });
 
   it('manages gRPC client cache and invalidation', () => {

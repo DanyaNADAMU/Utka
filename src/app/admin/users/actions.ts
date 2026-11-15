@@ -61,11 +61,12 @@ export async function createUserAction(data: {
 
     const activeNodes = await db.node.findMany({ where: { isActive: true } });
     const isAdmin = newUser.role === 'ADMIN';
+    const defaultClientTags = ['vless-frankfurt', 'vless-in'];
 
     for (const node of activeNodes) {
       const nodeTags = await getXrayInboundTags(node.apiHost);
       for (const tag of nodeTags) {
-        if (!isAdmin && (!node.isMaster || tag !== 'vless-frankfurt')) {
+        if (!isAdmin && (!node.isMaster || !defaultClientTags.includes(tag))) {
           continue;
         }
         const newUuid = crypto.randomUUID();

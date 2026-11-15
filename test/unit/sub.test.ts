@@ -46,7 +46,7 @@ describe('dash-sub service', () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.status).toBe('ok');
-    expect(data.service).toBe('dash-sub');
+    expect(data.service).toBe('utka-sub');
     expect(typeof data.uptime).toBe('number');
   });
 
@@ -83,7 +83,7 @@ describe('dash-sub service', () => {
     try {
       const health = await checkSubHealth();
       expect(health.status).toBe('ok');
-      expect(health.service).toBe('dash-sub');
+      expect(health.service).toBe('utka-sub');
       expect(typeof health.uptime).toBe('number');
     } finally {
       process.env.SUB_URL = originalSubUrl;
@@ -102,8 +102,14 @@ describe('dash-sub service', () => {
   });
 
   it('getConfigIniContent returns valid default configuration if file missing', async () => {
-    const config = await getConfigIniContent();
-    expect(config).toBe(DEFAULT_CONFIG_INI);
-    expect(config).toContain('clash_mode=rule');
+    const originalConfigIniPath = process.env.CONFIG_INI_PATH;
+    process.env.CONFIG_INI_PATH = '/tmp/nonexistent-config.ini';
+    try {
+      const config = await getConfigIniContent();
+      expect(config).toBe(DEFAULT_CONFIG_INI);
+      expect(config).toContain('clash_mode=rule');
+    } finally {
+      process.env.CONFIG_INI_PATH = originalConfigIniPath;
+    }
   });
 });
