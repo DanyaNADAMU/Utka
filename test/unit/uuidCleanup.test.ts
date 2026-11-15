@@ -32,7 +32,7 @@ describe('cleanupExpiredUuids', () => {
         xrayUuid: 'uuid-2',
         xrayEmail: 'sub1_inbound2_uuid-2',
         inboundTag: 'vless-reality-ipv6',
-        node: null,
+        node: { apiHost: 'unix:///app/xray/api.sock' },
       },
     ];
 
