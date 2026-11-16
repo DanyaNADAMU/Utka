@@ -440,11 +440,15 @@ export async function buildClashProxyObject(
 }
 
 /**
- * Re-adds all active SubscriptionInbound UUIDs to Xray on a specific node via gRPC
+ * Re-adds all active SubscriptionInbound and unexpired ExpiringUuid to Xray on a specific node via gRPC
  */
-export async function syncNodeUsers(nodeId: string): Promise<{ total: number; success: number }> {
+export async function syncNodeUsers(
+  nodeId: string,
+  database = db,
+  addUserFn: typeof addVlessUser = addVlessUser
+): Promise<{ total: number; success: number }> {
   try {
-    const node = await db.node.findUnique({ where: { id: nodeId } });
+    const node = await database.node.findUnique({ where: { id: nodeId } });
     if (!node || !node.isActive) return { total: 0, success: 0 };
 
     const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
@@ -452,21 +456,44 @@ export async function syncNodeUsers(nodeId: string): Promise<{ total: number; su
       return { total: 0, success: 0 };
     }
 
-    const inbounds = await db.subscriptionInbound.findMany({
+    const inbounds = await database.subscriptionInbound.findMany({
       where: { nodeId: node.id }
     });
 
-    console.log(`[Sync] Syncing ${inbounds.length} active UUIDs to node ${node.name} (${node.id})...`);
+    const expiring = await database.expiringUuid.findMany({
+      where: {
+        nodeId: node.id,
+        expiresAt: { gt: new Date() }
+      }
+    });
+
+    console.log(`[Sync] Syncing ${inbounds.length} active and ${expiring.length} expiring UUIDs to node ${node.name} (${node.id})...`);
     let successCount = 0;
+    const seen = new Set<string>();
 
     for (const inb of inbounds) {
+      const key = `${inb.inboundTag}:${inb.xrayUuid}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
       const email = `${inb.subscriptionId}_${inb.inboundTag}_${inb.xrayUuid}`;
-      const ok = await addVlessUser(node.apiHost, inb.inboundTag, email, inb.xrayUuid);
+      const ok = await addUserFn(node.apiHost, inb.inboundTag, email, inb.xrayUuid);
       if (ok) successCount++;
     }
 
-    console.log(`[Sync] Node ${node.name}: ${successCount}/${inbounds.length} users synced successfully.`);
-    return { total: inbounds.length, success: successCount };
+    for (const exp of expiring) {
+      const key = `${exp.inboundTag}:${exp.xrayUuid}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const email = exp.xrayEmail || `${exp.subscriptionId}_${exp.inboundTag}_${exp.xrayUuid}`;
+      const ok = await addUserFn(node.apiHost, exp.inboundTag, email, exp.xrayUuid);
+      if (ok) successCount++;
+    }
+
+    const total = seen.size;
+    console.log(`[Sync] Node ${node.name}: ${successCount}/${total} users synced successfully.`);
+    return { total, success: successCount };
   } catch (e) {
     console.error(`[Sync] Failed to sync users for node ${nodeId}:`, e);
     return { total: 0, success: 0 };
