@@ -31,6 +31,7 @@ ruleset=🚀 Proxy,[]DOMAIN-SUFFIX,gemini.google.com
 ruleset=🚀 Proxy,[]DOMAIN-SUFFIX,google.com
 ruleset=🚀 Proxy,[]DOMAIN-SUFFIX,googleapis.com
 ruleset=🚀 Proxy,[]DOMAIN-SUFFIX,gstatic.com
+ruleset=🚀 Proxy,[]DOMAIN-SUFFIX,googleusercontent.com
 ruleset=🚀 Proxy,[]DOMAIN-KEYWORD,google
 ruleset=🚀 Proxy,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Gemini/Gemini.list
 ruleset=🚀 Proxy,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.list
