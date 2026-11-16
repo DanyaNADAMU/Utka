@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.2.2] - 2026-11-16
+
+### Fixed
+- **Xray User Synchronization**: Re-sync unexpired `ExpiringUuid` records alongside active subscription inbounds to Xray in `syncNodeUsers()`, ensuring clients in transition survive node reconnects and service restarts without authentication rejection.
+
+## [v1.2.1] - 2026-11-16
+
+### Fixed
+- **Clash Rules**: Route `googleusercontent.com` to proxy for Gemini user assets.
+
 ## [v1.2.0] - 2026-11-15
 
 ### Added
