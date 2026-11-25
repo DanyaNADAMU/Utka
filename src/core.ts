@@ -1,7 +1,12 @@
 import http from 'http';
 import { EventEmitter } from 'events';
 import db from '@/lib/db';
-import { queryAllUserStats, syncNodeUsers } from '@/lib/xray';
+import {
+  getInboundUsers,
+  getXraySysStats,
+  queryAllUserStats,
+  syncNodeUsers,
+} from '@/lib/xray';
 import { cleanupExpiredUuids } from '@/lib/uuidCleanup';
 
 // Make BigInt serialize to JSON as string
@@ -58,6 +63,78 @@ const cachedUuidAggregates: Record<
 export const trafficState: Record<string, TrafficState> = {};
 export const uuidTrafficState: Record<string, TrafficState> = {};
 export const nodeStatusState: Record<string, boolean> = {};
+
+export interface NodeReconcileTracker {
+  syncedOnBoot: Record<string, boolean>;
+  lastUptime: Record<string, number | undefined>;
+  inFlight: Set<string>;
+}
+
+export function createNodeReconcileTracker(): NodeReconcileTracker {
+  return {
+    syncedOnBoot: {},
+    lastUptime: {},
+    inFlight: new Set<string>(),
+  };
+}
+
+const nodeReconcileTracker = createNodeReconcileTracker();
+
+/**
+ * Reconciles Xray in-memory users for a node on startup, offline recovery, or
+ * fast Xray process restart (uptime drop between 5-second ticks).
+ */
+export async function reconcileNodeIfNeeded(
+  node: { id: string; name: string; apiHost: string },
+  wasOffline: boolean,
+  tracker: NodeReconcileTracker = nodeReconcileTracker,
+  deps: {
+    getSysStatsFn?: typeof getXraySysStats;
+    syncFn?: (nodeId: string) => Promise<{ total: number; success: number }>;
+  } = {}
+): Promise<boolean> {
+  const getSysStatsFn = deps.getSysStatsFn ?? getXraySysStats;
+  const syncFn =
+    deps.syncFn ??
+    ((nodeId: string) => syncNodeUsers(nodeId, db, undefined, getInboundUsers));
+
+  const sysStats = await getSysStatsFn(node.apiHost);
+  const prevUptime = tracker.lastUptime[node.id];
+  const xrayRestarted =
+    sysStats !== null &&
+    prevUptime !== undefined &&
+    sysStats.uptime < prevUptime;
+
+  if (sysStats !== null) {
+    tracker.lastUptime[node.id] = sysStats.uptime;
+  }
+
+  const needsSync = !tracker.syncedOnBoot[node.id] || wasOffline || xrayRestarted;
+  if (!needsSync || tracker.inFlight.has(node.id)) {
+    return false;
+  }
+
+  const reason = xrayRestarted
+    ? 'Xray uptime drop detected'
+    : wasOffline
+      ? 'node came back ONLINE'
+      : 'initial boot reconciliation';
+  console.log(`[Utka-Core] Node ${node.name} (${node.id}): ${reason}. Syncing missing users...`);
+
+  tracker.inFlight.add(node.id);
+  try {
+    const res = await syncFn(node.id);
+    if (res.total === 0 || res.success === res.total) {
+      tracker.syncedOnBoot[node.id] = true;
+    }
+    return true;
+  } catch (err) {
+    console.error(`[Utka-Core] User sync failed for node ${node.name} (${node.id}):`, err);
+    return false;
+  } finally {
+    tracker.inFlight.delete(node.id);
+  }
+}
 
 let isTicking = false;
 let dbSyncRunning = false;
@@ -118,16 +195,15 @@ export async function tick() {
 
       if (allStats === null) {
         nodeStatusState[node.id] = false;
+        nodeReconcileTracker.lastUptime[node.id] = undefined;
+        nodeReconcileTracker.syncedOnBoot[node.id] = false;
         continue;
       }
 
       const wasOffline = nodeStatusState[node.id] === false;
       nodeStatusState[node.id] = true;
 
-      if (wasOffline) {
-        console.log(`[Worker] Node ${node.name} (${node.id}) came back ONLINE. Triggering user sync...`);
-        syncNodeUsers(node.id).catch(console.error);
-      }
+      reconcileNodeIfNeeded(node, wasOffline).catch(console.error);
 
       for (const [email, stat] of Object.entries(allStats)) {
         if (stat.up === BigInt(0) && stat.down === BigInt(0)) continue;

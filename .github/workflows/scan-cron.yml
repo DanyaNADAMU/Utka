@@ -1,0 +1,18 @@
+name: Deployed Image Re-scan
+
+# Caller stub: the drift detector lives in the shared catalog. Re-scans
+# the deployed production image daily so CVEs published after release
+# surface as a red run (patch-release signal).
+on:
+  schedule:
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rescan:
+    uses: Danyanadamu/Workflows/.github/workflows/scan-cron.yml@v1
+    with:
+      images: ghcr.io/danyanadamu/utka:latest

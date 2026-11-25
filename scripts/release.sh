@@ -103,3 +103,9 @@ printf "${GREEN}================================================================
 if [ -f "$REPO_ROOT/scripts/release-check.sh" ]; then
     "$REPO_ROOT/scripts/release-check.sh"
 fi
+
+# Push main + tag to the sole origin (GitHub); the tag push itself
+# triggers the Actions release workflow (GHCR build + Glacier deploy).
+printf "${BLUE}==> Pushing main and %s to GitHub...${NC}\n" "$TAG"
+git push origin main
+git push origin "$TAG"

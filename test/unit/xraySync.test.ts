@@ -187,4 +187,93 @@ describe('syncNodeUsers', () => {
     expect(res).toEqual({ total: 2, success: 1 });
     expect(mockAddUser).toHaveBeenCalledTimes(2);
   });
+
+  it('skips users already present in Xray inbound and only adds missing ones', async () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Glacier',
+      isActive: true,
+      apiHost: 'unix:///run/xray/api.sock',
+    };
+
+    const inbounds = [
+      {
+        id: 'inb-1',
+        subscriptionId: 'sub-1',
+        inboundTag: 'vless-in',
+        xrayUuid: 'uuid-present',
+        nodeId: 'node-1',
+      },
+      {
+        id: 'inb-2',
+        subscriptionId: 'sub-2',
+        inboundTag: 'vless-in',
+        xrayUuid: 'uuid-missing',
+        nodeId: 'node-1',
+      },
+    ];
+
+    const expiring = [
+      {
+        id: 'exp-1',
+        subscriptionId: 'sub-3',
+        inboundTag: 'vless-frankfurt',
+        xrayUuid: 'uuid-exp-present',
+        xrayEmail: 'sub-3_vless-frankfurt_uuid-exp-present',
+        nodeId: 'node-1',
+        expiresAt: new Date(Date.now() + 3600000),
+      },
+    ];
+
+    const mockDb = {
+      node: { findUnique: vi.fn().mockResolvedValue(mockNode) },
+      subscriptionInbound: { findMany: vi.fn().mockResolvedValue(inbounds) },
+      expiringUuid: { findMany: vi.fn().mockResolvedValue(expiring) },
+    };
+
+    const mockAddUser = vi.fn().mockResolvedValue(true);
+    const mockGetInboundUsers = vi.fn().mockImplementation(async (_host: string, tag: string) => {
+      if (tag === 'vless-in') return ['sub-1_vless-in_uuid-present'];
+      if (tag === 'vless-frankfurt') return ['sub-3_vless-frankfurt_uuid-exp-present'];
+      return [];
+    });
+
+    const res = await syncNodeUsers('node-1', mockDb as any, mockAddUser, mockGetInboundUsers);
+
+    expect(res).toEqual({ total: 3, success: 3 });
+    expect(mockAddUser).toHaveBeenCalledTimes(1);
+    expect(mockAddUser).toHaveBeenCalledWith(
+      'unix:///run/xray/api.sock',
+      'vless-in',
+      'sub-2_vless-in_uuid-missing',
+      'uuid-missing'
+    );
+  });
+
+  it('falls back to adding all users when getInboundUsers returns null', async () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Glacier',
+      isActive: true,
+      apiHost: 'unix:///run/xray/api.sock',
+    };
+
+    const mockDb = {
+      node: { findUnique: vi.fn().mockResolvedValue(mockNode) },
+      subscriptionInbound: {
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'inb-1', subscriptionId: 'sub-1', inboundTag: 'vless-in', xrayUuid: 'uuid-1', nodeId: 'node-1' },
+        ]),
+      },
+      expiringUuid: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+
+    const mockAddUser = vi.fn().mockResolvedValue(true);
+    const mockGetInboundUsers = vi.fn().mockResolvedValue(null);
+
+    const res = await syncNodeUsers('node-1', mockDb as any, mockAddUser, mockGetInboundUsers);
+
+    expect(res).toEqual({ total: 1, success: 1 });
+    expect(mockAddUser).toHaveBeenCalledTimes(1);
+  });
 });

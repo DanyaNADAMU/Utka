@@ -1,7 +1,8 @@
 #!/bin/sh
 # ==============================================================================
 # Utka Unified Container Entrypoint
-# Dynamically runs utka-core, utka-sub, and/or utka-web based on flags
+# Dynamically runs utka-core, utka-sub, and/or utka-web based on flags while
+# forwarding SIGTERM/SIGINT cleanly so utka-core flushes traffic before exit.
 # ==============================================================================
 set -e
 
@@ -9,7 +10,7 @@ set -e
 trap '' HUP
 
 echo "[Utka] Syncing PostgreSQL database schema..."
-prisma db push --accept-data-loss --skip-generate
+prisma db push --skip-generate
 
 ENABLE_CORE="${UTKA_ENABLE_CORE:-${ENABLE_WORKER:-true}}"
 ENABLE_SUB="${UTKA_ENABLE_SUB:-${ENABLE_SUB:-true}}"
@@ -20,6 +21,18 @@ if [ "$ENABLE_CORE" != "true" ] && [ "$ENABLE_SUB" != "true" ] && [ "$ENABLE_WEB
     exit 1
 fi
 
+CHILD_PIDS=""
+
+shutdown() {
+    for pid in $CHILD_PIDS; do
+        kill -TERM "$pid" 2>/dev/null || true
+    done
+    wait 2>/dev/null || true
+    exit 0
+}
+
+trap shutdown TERM INT
+
 # 1. Start utka-core in the background if enabled
 if [ "$ENABLE_CORE" = "true" ]; then
     echo "[Utka] Starting utka-core (background stats & sync engine)..."
@@ -28,21 +41,28 @@ if [ "$ENABLE_CORE" = "true" ]; then
     else
         node /app/worker.js &
     fi
-    CORE_PID=$!
+    CHILD_PIDS="$CHILD_PIDS $!"
 fi
 
-# 2. Select foreground process based on hierarchy (WEB > SUB > CORE)
+# 2. Start utka-sub in the background if enabled alongside web, or foreground otherwise
 if [ "$ENABLE_WEB" = "true" ]; then
     if [ "$ENABLE_SUB" = "true" ]; then
         echo "[Utka] Starting utka-sub (subscription delivery engine on port 8008)..."
         node /app/sub.js &
+        CHILD_PIDS="$CHILD_PIDS $!"
     fi
     echo "[Utka] Starting utka-web (administrative UI on port 3000)..."
-    exec node /app/server.js
+    node /app/server.js &
+    CHILD_PIDS="$CHILD_PIDS $!"
 elif [ "$ENABLE_SUB" = "true" ]; then
     echo "[Utka] Starting utka-sub (subscription delivery engine on port 8008)..."
-    exec node /app/sub.js
-else
-    echo "[Utka] Running utka-core in foreground..."
-    exec wait $CORE_PID
+    node /app/sub.js &
+    CHILD_PIDS="$CHILD_PIDS $!"
 fi
+
+# Wait for any foreground/background child to exit and propagate its exit status
+set +e
+wait
+EXIT_CODE=$?
+set -e
+exit "$EXIT_CODE"
