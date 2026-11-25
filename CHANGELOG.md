@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Container Image (`Dockerfile`)**: Removed unused `docker-cli` package to reduce image size and CVE surface.
 - **Release Automation (`scripts/release.sh`, `scripts/release-check.sh`)**: Synchronized with ecosystem release scripts to push `main` and signed tags to `origin`.
 
+### Fixed
+- **Security & Linter Gates (`package.json`, `package-lock.json`, `entrypoint.sh`, `scripts/release.sh`, `.hadolint.yaml`)**: Upgraded `next` / `eslint-config-next` to `16.4.6` and refreshed lockfile dependencies via `npm audit fix`, eliminating all critical and moderate npm advisories (`0` critical production dependencies); resolved `shellcheck` (`SC2059`, `SC2317`) and `hadolint` policy checks.
+
 ### Removed
 - **Legacy CI & Ad-hoc Deploy Scripts**: Removed `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`, `scripts/build-nadamudash.sh`, and `scripts/deploy-nadamudash.sh`.
 

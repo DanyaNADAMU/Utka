@@ -23,6 +23,7 @@ fi
 
 CHILD_PIDS=""
 
+# shellcheck disable=SC2317
 shutdown() {
     for pid in $CHILD_PIDS; do
         kill -TERM "$pid" 2>/dev/null || true

@@ -6,6 +6,7 @@
 #   scripts/release.sh v1.2.0
 #   scripts/release.sh 1.2.0
 # ==============================================================================
+# shellcheck disable=SC2059
 set -e
 
 RED='\033[0;31m'

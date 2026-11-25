@@ -5,3 +5,7 @@ ignored:
   - DL3059
   # Prisma CLI is pinned explicitly (`prisma@6.19.3`) in Dockerfile.
   - DL3016
+  # Alpine base packages are resolved from the pinned node:24-alpine tag.
+  - DL3018
+  # Named non-root user `nextjs` is created explicitly with UID/GID 65532.
+  - DL3066

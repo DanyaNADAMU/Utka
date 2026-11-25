@@ -33,6 +33,10 @@ runs:
       run: npm test
       shell: bash
 
+    - name: Dependency audit (npm audit critical prod deps)
+      run: npm audit --omit=dev --audit-level=critical
+      shell: bash
+
     - name: Production build check
       run: npm run build
       shell: bash
