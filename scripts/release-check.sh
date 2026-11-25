@@ -13,6 +13,7 @@
 #   0 - All invariants passed or emergency override active
 #   1 - Release invariant violation detected
 # ==============================================================================
+# shellcheck disable=SC2059
 set -e
 
 RED='\033[0;31m'

@@ -1,0 +1,7 @@
+# Hadolint policy for the Utka image.
+failure-threshold: error
+ignored:
+  # Consecutive RUN steps keep each layer step independently reviewable.
+  - DL3059
+  # Prisma CLI is pinned explicitly (`prisma@6.19.3`) in Dockerfile.
+  - DL3016

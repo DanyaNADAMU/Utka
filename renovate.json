@@ -1,0 +1,32 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "description": "Self-hosted Renovate: every bump arrives as a PR validated by the same pipelines it feeds. Update PRs need a real PAT (RENOVATE_TOKEN) because GITHUB_TOKEN-authored PRs do not trigger CI workflows.",
+  "schedule": ["before 6am on Monday"],
+  "prHourlyLimit": 2,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/[^/]+\\.yml$"],
+      "matchStrings": ["GITLEAKS_VERSION: '(?<currentValue>[0-9.]+)'"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "gitleaks/gitleaks",
+      "extractVersionTemplate": "^(?<version>v?)"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/[^/]+\\.yml$"],
+      "matchStrings": ["HADOLINT_VERSION: '(?<currentValue>[0-9.]+)'"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "hadolint/hadolint",
+      "extractVersionTemplate": "^(?<version>v?)"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/[^/]+\\.yml$"],
+      "matchStrings": ["attest-build-provenance@(?<currentDigest>[0-9a-f]{40})"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "actions/attest-build-provenance"
+    }
+  ]
+}

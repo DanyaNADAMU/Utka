@@ -229,6 +229,50 @@ export async function queryAllUserStats(grpcHost: string, reset: boolean = false
 }
 
 /**
+ * Query Xray process system stats (including Uptime in seconds) via gRPC StatsService.
+ */
+export async function getXraySysStats(grpcHost: string): Promise<{ uptime: number } | null> {
+  return new Promise((resolve) => {
+    try {
+      const { stats } = getClients(grpcHost);
+      stats.getSysStats({}, (err: Error, res: { Uptime?: number | string } | null) => {
+        if (err || !res) {
+          invalidateClientCache(grpcHost);
+          return resolve(null);
+        }
+        resolve({ uptime: Number(res.Uptime ?? 0) });
+      });
+    } catch {
+      invalidateClientCache(grpcHost);
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Query currently registered user emails on an Xray inbound via gRPC HandlerService.
+ * Returns null if the RPC fails or is unsupported so callers can safely fall back.
+ */
+export async function getInboundUsers(grpcHost: string, inboundTag: string): Promise<string[] | null> {
+  return new Promise((resolve) => {
+    try {
+      const { handler } = getClients(grpcHost);
+      handler.getInboundUsers({ tag: inboundTag, email: '' }, (err: Error, res: { users?: Array<{ email?: string }> } | null) => {
+        if (err || !res) {
+          return resolve(null);
+        }
+        const emails = Array.isArray(res.users)
+          ? res.users.map((u) => u.email || '').filter(Boolean)
+          : [];
+        resolve(emails);
+      });
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
  * Parses config.json and returns all inbound tags except 'api' (dokodemo-door)
  */
 import fs from 'fs/promises';
@@ -440,12 +484,14 @@ export async function buildClashProxyObject(
 }
 
 /**
- * Re-adds all active SubscriptionInbound and unexpired ExpiringUuid to Xray on a specific node via gRPC
+ * Re-adds missing active SubscriptionInbound and unexpired ExpiringUuid entries
+ * to Xray on a specific node via gRPC without disrupting already-registered users.
  */
 export async function syncNodeUsers(
   nodeId: string,
   database = db,
-  addUserFn: typeof addVlessUser = addVlessUser
+  addUserFn: typeof addVlessUser = addVlessUser,
+  getInboundUsersFn?: typeof getInboundUsers
 ): Promise<{ total: number; success: number }> {
   try {
     const node = await database.node.findUnique({ where: { id: nodeId } });
@@ -468,26 +514,53 @@ export async function syncNodeUsers(
     });
 
     console.log(`[Sync] Syncing ${inbounds.length} active and ${expiring.length} expiring UUIDs to node ${node.name} (${node.id})...`);
-    let successCount = 0;
+
+    const desiredEntries: Array<{ inboundTag: string; xrayUuid: string; email: string }> = [];
     const seen = new Set<string>();
 
     for (const inb of inbounds) {
       const key = `${inb.inboundTag}:${inb.xrayUuid}`;
       if (seen.has(key)) continue;
       seen.add(key);
-
-      const email = `${inb.subscriptionId}_${inb.inboundTag}_${inb.xrayUuid}`;
-      const ok = await addUserFn(node.apiHost, inb.inboundTag, email, inb.xrayUuid);
-      if (ok) successCount++;
+      desiredEntries.push({
+        inboundTag: inb.inboundTag,
+        xrayUuid: inb.xrayUuid,
+        email: `${inb.subscriptionId}_${inb.inboundTag}_${inb.xrayUuid}`,
+      });
     }
 
     for (const exp of expiring) {
       const key = `${exp.inboundTag}:${exp.xrayUuid}`;
       if (seen.has(key)) continue;
       seen.add(key);
+      desiredEntries.push({
+        inboundTag: exp.inboundTag,
+        xrayUuid: exp.xrayUuid,
+        email: exp.xrayEmail || `${exp.subscriptionId}_${exp.inboundTag}_${exp.xrayUuid}`,
+      });
+    }
 
-      const email = exp.xrayEmail || `${exp.subscriptionId}_${exp.inboundTag}_${exp.xrayUuid}`;
-      const ok = await addUserFn(node.apiHost, exp.inboundTag, email, exp.xrayUuid);
+    // Snapshot currently loaded users per inbound tag so already-connected users are not touched.
+    const existingByTag = new Map<string, Set<string> | null>();
+    if (getInboundUsersFn) {
+      const uniqueTags = Array.from(new Set(desiredEntries.map((entry) => entry.inboundTag)));
+      await Promise.all(
+        uniqueTags.map(async (tag) => {
+          const emails = await getInboundUsersFn(node.apiHost, tag);
+          existingByTag.set(tag, emails ? new Set(emails) : null);
+        })
+      );
+    }
+
+    let successCount = 0;
+    for (const entry of desiredEntries) {
+      const existing = existingByTag.get(entry.inboundTag);
+      if (existing && existing.has(entry.email)) {
+        successCount++;
+        continue;
+      }
+
+      const ok = await addUserFn(node.apiHost, entry.inboundTag, entry.email, entry.xrayUuid);
       if (ok) successCount++;
     }
 

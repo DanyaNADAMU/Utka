@@ -1,0 +1,10 @@
+# Local gitleaks tuning: lockfiles, OpenTimestamps proofs, and public
+# template placeholders carry hex/base64-looking strings by design.
+title = "Utka gitleaks allowlist"
+
+[allowlist]
+description = "Lockfiles and OpenTimestamps proofs carry hashes/digests by design"
+paths = [
+  '''package-lock\.json''',
+  '''\.opentimestamps/.*''',
+]

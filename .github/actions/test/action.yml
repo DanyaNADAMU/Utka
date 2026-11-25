@@ -1,0 +1,38 @@
+name: 'Utka test suite'
+description: >
+  Generate Prisma client, run ESLint, strict TypeScript type-check,
+  Vitest unit and integration tests, and production bundle build with npm
+  cache. Shared by build.yml (every push) and release.yml (tagged releases),
+  so a production image can never be built from untested code.
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      with:
+        node-version: '24'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+      shell: bash
+
+    - name: Generate Prisma Client
+      run: npx prisma generate
+      shell: bash
+
+    - name: Lint (ESLint)
+      run: npm run lint
+      shell: bash
+
+    - name: Type check (tsc)
+      run: npm run type-check
+      shell: bash
+
+    - name: Unit & integration tests (Vitest)
+      run: npm test
+      shell: bash
+
+    - name: Production build check
+      run: npm run build
+      shell: bash

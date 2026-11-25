@@ -1,0 +1,20 @@
+name: Main Protection Audit
+
+# Caller stub: the drift auditor lives in the shared catalog. The expected
+# contract is committed at .github/protection-expected.json; the audit
+# token is an optional read-only fine-grained PAT — until it is
+# provisioned as the PROTECTION_AUDIT_TOKEN secret the job warns and
+# passes, so enabling this never blocks pipelines.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    uses: Danyanadamu/Workflows/.github/workflows/protection-audit.yml@v1
+    secrets:
+      protection_token: ${{ secrets.PROTECTION_AUDIT_TOKEN }}

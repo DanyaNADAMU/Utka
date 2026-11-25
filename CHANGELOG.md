@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Unified CI/CD Pipelines (`.github/workflows/`, `.github/actions/test/`)**: Adopted the organization's shared `Danyanadamu/Workflows@v1` pipelines (`build.yml`, `release.yml`, `ots-cron.yml`, `codeql.yml`, `protection-audit.yml`, `renovate-cron.yml`, `scan-cron.yml`) with gitleaks secret scanning, shellcheck/hadolint linting, Sigstore build-provenance attestations, and digest-pinned rootless Quadlet deploys via `scripts/deploy-utka.sh`.
+- **Zero-Disconnect Xray User Reconciliation (`src/lib/xray.ts`, `src/core.ts`, `src/lib/trafficDaemon.ts`)**: Added `getXraySysStats` (uptime-based fast-restart detection) and `getInboundUsers` diffing in `syncNodeUsers` so `utka-core` restores missing users on startup and after fast Xray restarts without touching active client sessions.
+
+### Changed
+- **Safe Container Entrypoint (`entrypoint.sh`)**: Removed `--accept-data-loss` from startup `prisma db push` and added `SIGTERM`/`SIGINT` forwarding to child processes so `utka-core` flushes pending traffic cleanly on container updates.
+- **Worker Deduplication (`src/worker.ts`)**: Consolidated legacy worker entrypoint onto `src/core.ts`.
+- **Container Image (`Dockerfile`)**: Removed unused `docker-cli` package to reduce image size and CVE surface.
+- **Release Automation (`scripts/release.sh`, `scripts/release-check.sh`)**: Synchronized with ecosystem release scripts to push `main` and signed tags to `origin`.
+
+### Removed
+- **Legacy CI & Ad-hoc Deploy Scripts**: Removed `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`, `scripts/build-nadamudash.sh`, and `scripts/deploy-nadamudash.sh`.
+
 ## [v1.2.2] - 2026-11-16
 
 ### Fixed

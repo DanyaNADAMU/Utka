@@ -1,5 +1,6 @@
 import db from "@/lib/db";
-import { queryAllUserStats, syncNodeUsers } from "@/lib/xray";
+import { queryAllUserStats } from "@/lib/xray";
+import { createNodeReconcileTracker, reconcileNodeIfNeeded } from "@/core";
 import { EventEmitter } from 'events';
 
 export const trafficEventEmitter: EventEmitter = (globalThis as any).trafficEventEmitter || new EventEmitter();
@@ -55,6 +56,9 @@ export const nodeStatusState: Record<string, boolean> = (globalThis as any).node
 
 let isRunning = (globalThis as any).isRunning || false;
 let dbSyncRunning = (globalThis as any).dbSyncRunning || false;
+const daemonReconcileTracker =
+  (globalThis as any).daemonReconcileTracker || createNodeReconcileTracker();
+(globalThis as any).daemonReconcileTracker = daemonReconcileTracker;
 
 export function startDaemon() {
   if (isRunning) return;
@@ -123,15 +127,14 @@ async function tick() {
       if (allStats === null) {
         console.log(`[Daemon] Node ${node.name} (${node.id}) returned NULL (OFFLINE)`);
         nodeStatusState[node.id] = false;
+        daemonReconcileTracker.lastUptime[node.id] = undefined;
+        daemonReconcileTracker.syncedOnBoot[node.id] = false;
         continue;
       }
       const wasOffline = nodeStatusState[node.id] === false;
       console.log(`[Daemon] Node ${node.name} (${node.id}) returned stats (ONLINE)`);
       nodeStatusState[node.id] = true;
-      if (wasOffline) {
-        console.log(`[Daemon] Node ${node.name} (${node.id}) came back ONLINE. Triggering user sync...`);
-        syncNodeUsers(node.id).catch(console.error);
-      }
+      reconcileNodeIfNeeded(node, wasOffline, daemonReconcileTracker).catch(console.error);
       
       for (const [email, stat] of Object.entries(allStats)) {
         if (stat.up === BigInt(0) && stat.down === BigInt(0)) continue;

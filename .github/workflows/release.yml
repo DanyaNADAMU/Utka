@@ -1,0 +1,106 @@
+name: Release Utka
+
+# Production pipeline: signed semver tags gate through release-precheck,
+# run the full test suite, build the release image through the shared
+# catalog, sign Sigstore provenance, and roll out to production (Glacier).
+# Tag push is the only trigger: production deploys never ride on plain
+# commits to main.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  precheck:
+    # Shared gate: strict SemVer, CHANGELOG section, SSH tag-signature
+    # verification against .allowed_signers, ancestry from main.
+    uses: Danyanadamu/Workflows/.github/workflows/release-precheck.yml@v1
+    with:
+      base_branch: main
+
+  test:
+    needs: precheck
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Test suite (lint, tsc, vitest, build)
+        uses: ./.github/actions/test
+
+  build:
+    needs: test
+    # Single canonical build path from the shared catalog.
+    permissions:
+      contents: read
+      packages: write
+    uses: Danyanadamu/Workflows/.github/workflows/container-build.yml@v1
+    with:
+      context: .
+      file: ./Dockerfile
+      image_tag: ${{ github.ref_name }}
+      extra_tags: latest
+
+  attest:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # The signing right lives on the caller's own job: id-token grants
+    # never cross a `uses:` boundary, so the catalog cannot sign for us.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Sign release provenance (Sigstore, runner OIDC)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/danyanadamu/utka
+          subject-digest: ${{ needs.build.outputs.image_digest }}
+
+  deploy:
+    needs: [build, attest]
+    permissions:
+      contents: read
+      attestations: read
+    uses: Danyanadamu/Workflows/.github/workflows/deploy.yml@v1
+    with:
+      host: ${{ vars.PROD_HOST }}
+      port: ${{ vars.PROD_PORT }}
+      user: apps
+      image: ${{ needs.build.outputs.image_ref }}
+    secrets:
+      deploy_key: ${{ secrets.PROD_DEPLOY_KEY }}
+      host_key: ${{ secrets.PROD_DEPLOY_HOST_KEY }}
+
+  release-notes:
+    needs: deploy
+    # Release evidence: the CHANGELOG section travels to the GitHub
+    # Release object right after the production rollout it describes.
+    # Idempotent for re-runs (edit vs create).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Publish GitHub Release from the CHANGELOG section
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          awk -v tag="## [$TAG]" '
+            substr($0, 1, length(tag)) == tag { in_section = 1; next }
+            in_section && /^## \[/ { exit }
+            in_section { print }
+          ' CHANGELOG.md > release-notes.md
+          [ -s release-notes.md ] || { echo "::error::CHANGELOG section for $TAG is empty"; exit 1; }
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag
+          fi
