@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "source_commit": "9a97dac19ef262869ce7f404113c836d3ebead37",
+  "git_object_format": "sha1",
+  "payload_format": "git-commit-id-v1",
+  "submitted_at": "2026-11-25T21:27:36Z",
+  "proof": "9a97dac19ef262869ce7f404113c836d3ebead37.ots",
+  "source_ref": "refs/heads/fix/ots-hooks",
+  "triggers": [
+    "max_age"
+  ]
+}
