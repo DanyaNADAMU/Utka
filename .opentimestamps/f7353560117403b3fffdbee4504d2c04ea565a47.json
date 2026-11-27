@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "source_commit": "f7353560117403b3fffdbee4504d2c04ea565a47",
+  "git_object_format": "sha1",
+  "payload_format": "git-commit-id-v1",
+  "submitted_at": "2026-11-27T06:12:36Z",
+  "proof": "f7353560117403b3fffdbee4504d2c04ea565a47.ots",
+  "source_ref": "refs/heads/feat/cicd-and-xray-resilience",
+  "triggers": [
+    "max_age"
+  ]
+}
