@@ -1,6 +1,7 @@
 import http from 'http';
 import { processSubscription } from '@/lib/subscriptionHandler';
 import { getConfigIniContent } from '@/lib/clashConfig';
+import { closeHttpServerGracefully } from '@/lib/httpShutdown';
 import db from '@/lib/db';
 
 /**
@@ -75,9 +76,8 @@ export function startSubServer() {
 
   const shutdown = async (signal: string) => {
     console.log(`\n[Sub] Received ${signal}. Shutting down gracefully...`);
-    server.close(() => {
-      console.log('[Sub] HTTP server closed.');
-    });
+    await closeHttpServerGracefully(server);
+    console.log('[Sub] HTTP server closed.');
     try {
       await db.$disconnect();
     } catch {}
