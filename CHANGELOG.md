@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.3.0] - 2026-11-27
+
 ### Added
 - **Unified CI/CD Pipelines (`.github/workflows/`, `.github/actions/test/`)**: Adopted the organization's shared `Danyanadamu/Workflows@v1` pipelines (`build.yml`, `release.yml`, `ots-cron.yml`, `codeql.yml`, `protection-audit.yml`, `renovate-cron.yml`, `scan-cron.yml`) with gitleaks secret scanning, shellcheck/hadolint linting, Sigstore build-provenance attestations, and digest-pinned rootless Quadlet deploys via `scripts/deploy-utka.sh`.
 - **Zero-Disconnect Xray User Reconciliation (`src/lib/xray.ts`, `src/core.ts`, `src/lib/trafficDaemon.ts`)**: Added `getXraySysStats` (uptime-based fast-restart detection) and `getInboundUsers` diffing in `syncNodeUsers` so `utka-core` restores missing users on startup and after fast Xray restarts without touching active client sessions.
