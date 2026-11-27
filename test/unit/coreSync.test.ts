@@ -59,4 +59,40 @@ describe('reconcileNodeIfNeeded', () => {
     expect(recovered).toBe(true);
     expect(syncFn).toHaveBeenCalledTimes(3);
   });
+
+  it('runs a quiet periodic diff reconciliation once reconcileIntervalMs elapses', async () => {
+    const tracker = createNodeReconcileTracker();
+    const getSysStatsFn = vi.fn().mockResolvedValue({ uptime: 100 });
+    const syncFn = vi.fn().mockResolvedValue({ total: 2, success: 2 });
+
+    const boot = await reconcileNodeIfNeeded(node, false, tracker, {
+      getSysStatsFn,
+      syncFn,
+      nowMs: 1_000,
+      reconcileIntervalMs: 60_000,
+    });
+    expect(boot).toBe(true);
+    expect(syncFn).toHaveBeenLastCalledWith(node.id, { quietIfUpToDate: false });
+
+    getSysStatsFn.mockResolvedValue({ uptime: 130 });
+    const beforeInterval = await reconcileNodeIfNeeded(node, false, tracker, {
+      getSysStatsFn,
+      syncFn,
+      nowMs: 31_000,
+      reconcileIntervalMs: 60_000,
+    });
+    expect(beforeInterval).toBe(false);
+    expect(syncFn).toHaveBeenCalledTimes(1);
+
+    getSysStatsFn.mockResolvedValue({ uptime: 160 });
+    const atInterval = await reconcileNodeIfNeeded(node, false, tracker, {
+      getSysStatsFn,
+      syncFn,
+      nowMs: 61_000,
+      reconcileIntervalMs: 60_000,
+    });
+    expect(atInterval).toBe(true);
+    expect(syncFn).toHaveBeenCalledTimes(2);
+    expect(syncFn).toHaveBeenLastCalledWith(node.id, { quietIfUpToDate: true });
+  });
 });

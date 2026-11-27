@@ -35691,8 +35691,25 @@ var statsDef = protoLoader.loadSync(STATS_PROTO, loadOptions);
 var xrayProxyman = grpc.loadPackageDefinition(proxymanDef).xray.app.proxyman.command;
 var xrayStats = grpc.loadPackageDefinition(statsDef).xray.app.stats.command;
 var clientsCache = {};
+var DEFAULT_XRAY_GRPC_TIMEOUT_MS = 5e3;
+function getGrpcCallOptions(timeoutMs = Number(process.env.XRAY_GRPC_TIMEOUT_MS) || DEFAULT_XRAY_GRPC_TIMEOUT_MS) {
+  return {
+    deadline: new Date(Date.now() + timeoutMs)
+  };
+}
 function invalidateClientCache(grpcHost) {
   const host = grpcHost || process.env.XRAY_API_URL || "unix:///app/xray/api.sock";
+  const cached = clientsCache[host];
+  if (cached) {
+    try {
+      cached.handler?.close?.();
+    } catch {
+    }
+    try {
+      cached.stats?.close?.();
+    } catch {
+    }
+  }
   delete clientsCache[host];
 }
 function getClients(grpcHost) {
@@ -35747,7 +35764,7 @@ async function addVlessUser(grpcHost, inboundTag, email, uuid, flow) {
           type: "xray.app.proxyman.command.AddUserOperation",
           value: opBytes
         }
-      }, (err, res) => {
+      }, getGrpcCallOptions(), (err, res) => {
         if (err) {
           if (err.message && err.message.toLowerCase().includes("already exists")) {
             return resolve(true);
@@ -35780,18 +35797,20 @@ async function removeVlessUser(grpcHost, inboundTag, email) {
           type: "xray.app.proxyman.command.RemoveUserOperation",
           value: opBytes
         }
-      }, (err, res) => {
+      }, getGrpcCallOptions(), (err, res) => {
         if (err) {
           if (err.message && (err.message.toLowerCase().includes("not found") || err.message.toLowerCase().includes("does not exist"))) {
             return resolve(true);
           }
           console.error("[Xray API] RemoveUser Error:", err);
+          invalidateClientCache(grpcHost);
           return resolve(false);
         }
         resolve(true);
       });
     } catch (e) {
       console.error("[Xray API] RemoveUser Exception:", e);
+      invalidateClientCache(grpcHost);
       resolve(false);
     }
   });
@@ -35800,7 +35819,7 @@ async function getXrayInboundTags(grpcHost) {
   return new Promise((resolve) => {
     try {
       const { handler } = getClients(grpcHost);
-      handler.listInbounds({ isOnlyTags: true }, (err, res) => {
+      handler.listInbounds({ isOnlyTags: true }, getGrpcCallOptions(), (err, res) => {
         if (err) {
           console.error(`[Xray API] ListInbounds Error for ${grpcHost}:`, err);
           invalidateClientCache(grpcHost);
@@ -35857,7 +35876,7 @@ async function buildClientLink(inboundTag, xrayUuid, nodeName, nodeAddress, node
   }
   return `vless://${xrayUuid}@${nodeAddress}:${port}`;
 }
-async function syncNodeUsers(nodeId, database = db_default, addUserFn = addVlessUser, getInboundUsersFn) {
+async function syncNodeUsers(nodeId, database = db_default, addUserFn = addVlessUser, getInboundUsersFn, options) {
   try {
     const node = await database.node.findUnique({ where: { id: nodeId } });
     if (!node || !node.isActive) return { total: 0, success: 0 };
@@ -35874,7 +35893,6 @@ async function syncNodeUsers(nodeId, database = db_default, addUserFn = addVless
         expiresAt: { gt: /* @__PURE__ */ new Date() }
       }
     });
-    console.log(`[Sync] Syncing ${inbounds.length} active and ${expiring.length} expiring UUIDs to node ${node.name} (${node.id})...`);
     const desiredEntries = [];
     const seen = /* @__PURE__ */ new Set();
     for (const inb of inbounds) {
@@ -35907,18 +35925,26 @@ async function syncNodeUsers(nodeId, database = db_default, addUserFn = addVless
         })
       );
     }
-    let successCount = 0;
-    for (const entry of desiredEntries) {
+    const missingEntries = desiredEntries.filter((entry) => {
       const existing = existingByTag.get(entry.inboundTag);
-      if (existing && existing.has(entry.email)) {
-        successCount++;
-        continue;
-      }
-      const ok = await addUserFn(node.apiHost, entry.inboundTag, entry.email, entry.xrayUuid);
-      if (ok) successCount++;
-    }
+      return !(existing && existing.has(entry.email));
+    });
     const total = seen.size;
-    console.log(`[Sync] Node ${node.name}: ${successCount}/${total} users synced successfully.`);
+    let successCount = total - missingEntries.length;
+    if (!options?.quietIfUpToDate || missingEntries.length > 0) {
+      console.log(
+        `[Sync] Syncing ${inbounds.length} active and ${expiring.length} expiring UUIDs (${missingEntries.length} missing) to node ${node.name} (${node.id})...`
+      );
+    }
+    for (const entry of missingEntries) {
+      const ok = await addUserFn(node.apiHost, entry.inboundTag, entry.email, entry.xrayUuid);
+      if (ok) {
+        successCount++;
+      }
+    }
+    if (!options?.quietIfUpToDate || missingEntries.length > 0 || successCount < total) {
+      console.log(`[Sync] Node ${node.name}: ${successCount}/${total} users synced successfully.`);
+    }
     return { total, success: successCount };
   } catch (e) {
     console.error(`[Sync] Failed to sync users for node ${nodeId}:`, e);

@@ -7,6 +7,7 @@ import {
   queryAllUserStats,
   syncNodeUsers,
 } from '@/lib/xray';
+import { closeHttpServerGracefully } from '@/lib/httpShutdown';
 import { cleanupExpiredUuids } from '@/lib/uuidCleanup';
 
 // Make BigInt serialize to JSON as string
@@ -64,9 +65,12 @@ export const trafficState: Record<string, TrafficState> = {};
 export const uuidTrafficState: Record<string, TrafficState> = {};
 export const nodeStatusState: Record<string, boolean> = {};
 
+const DEFAULT_RECONCILE_INTERVAL_MS = 60_000;
+
 export interface NodeReconcileTracker {
   syncedOnBoot: Record<string, boolean>;
   lastUptime: Record<string, number | undefined>;
+  lastReconcileAt: Record<string, number | undefined>;
   inFlight: Set<string>;
 }
 
@@ -74,6 +78,7 @@ export function createNodeReconcileTracker(): NodeReconcileTracker {
   return {
     syncedOnBoot: {},
     lastUptime: {},
+    lastReconcileAt: {},
     inFlight: new Set<string>(),
   };
 }
@@ -81,8 +86,9 @@ export function createNodeReconcileTracker(): NodeReconcileTracker {
 const nodeReconcileTracker = createNodeReconcileTracker();
 
 /**
- * Reconciles Xray in-memory users for a node on startup, offline recovery, or
- * fast Xray process restart (uptime drop between 5-second ticks).
+ * Reconciles Xray in-memory users for a node on startup, offline recovery,
+ * fast Xray process restart (uptime drop between 5-second ticks), or on a
+ * periodic diff-check cadence so isolated RPC mutation failures self-heal.
  */
 export async function reconcileNodeIfNeeded(
   node: { id: string; name: string; apiHost: string },
@@ -90,13 +96,20 @@ export async function reconcileNodeIfNeeded(
   tracker: NodeReconcileTracker = nodeReconcileTracker,
   deps: {
     getSysStatsFn?: typeof getXraySysStats;
-    syncFn?: (nodeId: string) => Promise<{ total: number; success: number }>;
+    syncFn?: (nodeId: string, options?: { quietIfUpToDate?: boolean }) => Promise<{ total: number; success: number }>;
+    nowMs?: number;
+    reconcileIntervalMs?: number;
   } = {}
 ): Promise<boolean> {
   const getSysStatsFn = deps.getSysStatsFn ?? getXraySysStats;
   const syncFn =
     deps.syncFn ??
-    ((nodeId: string) => syncNodeUsers(nodeId, db, undefined, getInboundUsers));
+    ((nodeId: string, options?: { quietIfUpToDate?: boolean }) =>
+      syncNodeUsers(nodeId, db, undefined, getInboundUsers, options));
+  const nowMs = deps.nowMs ?? Date.now();
+  const reconcileIntervalMs =
+    deps.reconcileIntervalMs ??
+    (Number(process.env.XRAY_RECONCILE_INTERVAL_MS) || DEFAULT_RECONCILE_INTERVAL_MS);
 
   const sysStats = await getSysStatsFn(node.apiHost);
   const prevUptime = tracker.lastUptime[node.id];
@@ -109,23 +122,30 @@ export async function reconcileNodeIfNeeded(
     tracker.lastUptime[node.id] = sysStats.uptime;
   }
 
-  const needsSync = !tracker.syncedOnBoot[node.id] || wasOffline || xrayRestarted;
+  const lastReconciled = tracker.lastReconcileAt[node.id] ?? 0;
+  const intervalElapsed = tracker.syncedOnBoot[node.id] && (nowMs - lastReconciled >= reconcileIntervalMs);
+  const urgentSync = !tracker.syncedOnBoot[node.id] || wasOffline || xrayRestarted;
+  const needsSync = urgentSync || intervalElapsed;
+
   if (!needsSync || tracker.inFlight.has(node.id)) {
     return false;
   }
 
-  const reason = xrayRestarted
-    ? 'Xray uptime drop detected'
-    : wasOffline
-      ? 'node came back ONLINE'
-      : 'initial boot reconciliation';
-  console.log(`[Utka-Core] Node ${node.name} (${node.id}): ${reason}. Syncing missing users...`);
+  if (urgentSync) {
+    const reason = xrayRestarted
+      ? 'Xray uptime drop detected'
+      : wasOffline
+        ? 'node came back ONLINE'
+        : 'initial boot reconciliation';
+    console.log(`[Utka-Core] Node ${node.name} (${node.id}): ${reason}. Syncing missing users...`);
+  }
 
   tracker.inFlight.add(node.id);
   try {
-    const res = await syncFn(node.id);
+    const res = await syncFn(node.id, { quietIfUpToDate: !urgentSync });
     if (res.total === 0 || res.success === res.total) {
       tracker.syncedOnBoot[node.id] = true;
+      tracker.lastReconcileAt[node.id] = nowMs;
     }
     return true;
   } catch (err) {
@@ -140,6 +160,18 @@ let isTicking = false;
 let dbSyncRunning = false;
 let isShuttingDown = false;
 let tickTimer: NodeJS.Timeout | null = null;
+let activeTickPromise: Promise<void> | null = null;
+let activeDbSyncPromise: Promise<unknown> | null = null;
+
+/**
+ * One-time normalization of legacy docker-compose Xray socket address on boot.
+ */
+export async function migrateLegacyNodeApiHost(): Promise<void> {
+  await db.node.updateMany({
+    where: { apiHost: 'xray:7999' },
+    data: { apiHost: 'unix:///app/xray/api.sock' },
+  });
+}
 
 function updateStateObj(
   stateMap: Record<string, TrafficState>,
@@ -171,15 +203,9 @@ export async function tick() {
   if (isTicking || isShuttingDown) return;
   isTicking = true;
 
-  try {
+  const run = async () => {
     const now = new Date();
     const seconds = now.getSeconds();
-
-    // Ensure apiHost standard socket path
-    await db.node.updateMany({
-      where: { apiHost: 'xray:7999' },
-      data: { apiHost: 'unix:///app/xray/api.sock' },
-    });
 
     const nodes = await db.node.findMany({ where: { isActive: true } });
 
@@ -187,23 +213,34 @@ export async function tick() {
     const subNodeLiveStats: Record<string, { up: bigint; down: bigint; subId: string; nodeId: string }> = {};
     const uuidLiveStats: Record<string, { up: bigint; down: bigint; subId: string; nodeId: string }> = {};
 
-    for (const node of nodes) {
-      const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
-      if (isStaticNode) continue;
+    const apiNodes = nodes.filter(
+      (node) => node.apiHost && node.apiHost !== 'static' && node.apiHost !== 'none'
+    );
 
-      const allStats = await queryAllUserStats(node.apiHost, true);
+    // Poll and reconcile active nodes in parallel so a stalled remote node does not block local nodes.
+    const nodeResults = await Promise.allSettled(
+      apiNodes.map(async (node) => {
+        const allStats = await queryAllUserStats(node.apiHost, true);
 
-      if (allStats === null) {
-        nodeStatusState[node.id] = false;
-        nodeReconcileTracker.lastUptime[node.id] = undefined;
-        nodeReconcileTracker.syncedOnBoot[node.id] = false;
-        continue;
-      }
+        if (allStats === null) {
+          nodeStatusState[node.id] = false;
+          nodeReconcileTracker.lastUptime[node.id] = undefined;
+          nodeReconcileTracker.syncedOnBoot[node.id] = false;
+          nodeReconcileTracker.lastReconcileAt[node.id] = undefined;
+          return null;
+        }
 
-      const wasOffline = nodeStatusState[node.id] === false;
-      nodeStatusState[node.id] = true;
+        const wasOffline = nodeStatusState[node.id] === false;
+        nodeStatusState[node.id] = true;
 
-      reconcileNodeIfNeeded(node, wasOffline).catch(console.error);
+        await reconcileNodeIfNeeded(node, wasOffline);
+        return { node, allStats };
+      })
+    );
+
+    for (const outcome of nodeResults) {
+      if (outcome.status !== 'fulfilled' || !outcome.value) continue;
+      const { node, allStats } = outcome.value;
 
       for (const [email, stat] of Object.entries(allStats)) {
         if (stat.up === BigInt(0) && stat.down === BigInt(0)) continue;
@@ -310,15 +347,22 @@ export async function tick() {
     // Minute boundary flush and cleanup
     if (seconds < 5 && !dbSyncRunning) {
       dbSyncRunning = true;
-      Promise.all([syncToDbAndAggregate(), cleanupExpiredUuids()]).finally(() => {
+      activeDbSyncPromise = Promise.all([syncToDbAndAggregate(), cleanupExpiredUuids()]).finally(() => {
         dbSyncRunning = false;
+        activeDbSyncPromise = null;
       });
     }
-  } catch (err) {
-    console.error('[Worker] Tick error:', err);
-  } finally {
-    isTicking = false;
-  }
+  };
+
+  activeTickPromise = run()
+    .catch((err) => {
+      console.error('[Worker] Tick error:', err);
+    })
+    .finally(() => {
+      isTicking = false;
+      activeTickPromise = null;
+    });
+  await activeTickPromise;
 }
 
 export async function syncToDbAndAggregate() {
@@ -611,7 +655,11 @@ export function startWorker() {
     console.log(`[Utka-Core] Internal stats/IPC server listening on http://${host}:${port}`);
   });
 
-  calculateAggregations().catch(console.error);
+  migrateLegacyNodeApiHost()
+    .catch(console.error)
+    .finally(() => {
+      calculateAggregations().catch(console.error);
+    });
 
   const now = Date.now();
   const delay = 5000 - (now % 5000);
@@ -621,13 +669,21 @@ export function startWorker() {
     tickTimer = setInterval(tick, 5000);
   }, delay);
 
-  // Graceful shutdown handling
+  // Graceful shutdown handling: wait for active tick/DB flush so reset Xray deltas are never lost
   const shutdown = async (signal: string) => {
     if (isShuttingDown) return;
     isShuttingDown = true;
     console.log(`\n[Worker] Received ${signal}. Shutting down gracefully...`);
 
     if (tickTimer) clearInterval(tickTimer);
+
+    const waitDeadline = new Promise<void>((resolve) => setTimeout(resolve, 10000));
+    if (activeTickPromise) {
+      await Promise.race([activeTickPromise, waitDeadline]);
+    }
+    if (activeDbSyncPromise) {
+      await Promise.race([activeDbSyncPromise, waitDeadline]);
+    }
 
     try {
       console.log('[Worker] Flushing pending uncommitted traffic to database...');
@@ -636,9 +692,8 @@ export function startWorker() {
       console.error('[Worker] Error during shutdown flush:', err);
     }
 
-    server.close(() => {
-      console.log('[Worker] HTTP server closed.');
-    });
+    await closeHttpServerGracefully(server);
+    console.log('[Worker] HTTP server closed.');
 
     try {
       await db.$disconnect();

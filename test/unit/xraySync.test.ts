@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { syncNodeUsers } from '@/lib/xray';
+import { getGrpcCallOptions, syncNodeUsers } from '@/lib/xray';
 
 describe('syncNodeUsers', () => {
   it('returns 0 when node is not found or inactive', async () => {
@@ -275,5 +275,45 @@ describe('syncNodeUsers', () => {
 
     expect(res).toEqual({ total: 1, success: 1 });
     expect(mockAddUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips addUser calls cleanly when quietIfUpToDate is enabled and all users exist', async () => {
+    const mockNode = {
+      id: 'node-1',
+      name: 'Glacier',
+      isActive: true,
+      apiHost: 'unix:///run/xray/api.sock',
+    };
+
+    const mockDb = {
+      node: { findUnique: vi.fn().mockResolvedValue(mockNode) },
+      subscriptionInbound: {
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'inb-1', subscriptionId: 'sub-1', inboundTag: 'vless-in', xrayUuid: 'uuid-1', nodeId: 'node-1' },
+        ]),
+      },
+      expiringUuid: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+
+    const mockAddUser = vi.fn().mockResolvedValue(true);
+    const mockGetInboundUsers = vi.fn().mockResolvedValue(['sub-1_vless-in_uuid-1']);
+
+    const res = await syncNodeUsers('node-1', mockDb as any, mockAddUser, mockGetInboundUsers, {
+      quietIfUpToDate: true,
+    });
+
+    expect(res).toEqual({ total: 1, success: 1 });
+    expect(mockAddUser).not.toHaveBeenCalled();
+  });
+
+  it('creates gRPC call options with a bounded deadline', () => {
+    const before = Date.now();
+    const opts = getGrpcCallOptions(4000);
+    const after = Date.now();
+
+    expect(opts.deadline).toBeInstanceOf(Date);
+    const deadlineMs = (opts.deadline as Date).getTime();
+    expect(deadlineMs).toBeGreaterThanOrEqual(before + 4000);
+    expect(deadlineMs).toBeLessThanOrEqual(after + 4000);
   });
 });

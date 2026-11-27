@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Periodic Diff Reconciliation & gRPC Deadlines (`src/lib/xray.ts`, `src/core.ts`, `src/lib/trafficDaemon.ts`)**: Added explicit gRPC call deadlines (`XRAY_GRPC_TIMEOUT_MS`, default 5s), channel cleanup on error in `invalidateClientCache`, parallel per-node polling (`Promise.allSettled`) so a stalled remote node cannot block local Xray sync/stats, and a quiet 60s periodic diff check (`XRAY_RECONCILE_INTERVAL_MS`) to self-heal isolated `addVlessUser` failures without touching active sessions.
+
+### Changed
+- **Graceful HTTP & Traffic Flush Shutdown (`src/lib/httpShutdown.ts`, `src/core.ts`, `src/sub.ts`)**: Waits for in-flight ticks, DB flushes, and active HTTP connections before exiting so reset Xray traffic deltas and in-flight subscription responses are never dropped on container restarts; moved legacy `xray:7999` normalization from the 5s tick loop to startup.
+
+### Fixed
+- **Subscription Link Log Privacy (`src/lib/subscriptionHandler.ts`)**: Removed raw `vless://` link logging (which exposed client UUIDs in `journalctl`).
+
 ## [v1.3.0] - 2026-11-27
 
 ### Added

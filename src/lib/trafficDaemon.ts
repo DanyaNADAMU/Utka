@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import { queryAllUserStats } from "@/lib/xray";
-import { createNodeReconcileTracker, reconcileNodeIfNeeded } from "@/core";
+import { createNodeReconcileTracker, migrateLegacyNodeApiHost, reconcileNodeIfNeeded } from "@/core";
 import { EventEmitter } from 'events';
 
 export const trafficEventEmitter: EventEmitter = (globalThis as any).trafficEventEmitter || new EventEmitter();
@@ -69,7 +69,11 @@ export function startDaemon() {
   const now = Date.now();
   const delay = 5000 - (now % 5000);
   
-  calculateAggregations().catch(console.error);
+  migrateLegacyNodeApiHost()
+    .catch(console.error)
+    .finally(() => {
+      calculateAggregations().catch(console.error);
+    });
   
   setTimeout(() => {
     tick();
@@ -106,36 +110,38 @@ async function tick() {
     const now = new Date();
     const seconds = now.getSeconds();
 
-    await db.node.updateMany({
-      where: { apiHost: 'xray:7999' },
-      data: { apiHost: 'unix:///app/xray/api.sock' }
-    });
-
     const nodes = await db.node.findMany({ where: { isActive: true } });
     
     const subLiveStats: Record<string, { up: bigint, down: bigint }> = {}; // Overall for sub
     const subNodeLiveStats: Record<string, { up: bigint, down: bigint, subId: string, nodeId: string }> = {}; // Per node
     const uuidLiveStats: Record<string, { up: bigint, down: bigint, subId: string, nodeId: string }> = {};
     
-    for (const node of nodes) {
-      const isStaticNode = !node.apiHost || node.apiHost === 'static' || node.apiHost === 'none';
-      if (isStaticNode) continue;
+    const apiNodes = nodes.filter(
+      (node) => node.apiHost && node.apiHost !== 'static' && node.apiHost !== 'none'
+    );
 
-      console.log(`[Daemon] Querying stats for node ${node.name} (${node.id}) at ${node.apiHost}...`);
-      const allStats = await queryAllUserStats(node.apiHost, true);
-      
-      if (allStats === null) {
-        console.log(`[Daemon] Node ${node.name} (${node.id}) returned NULL (OFFLINE)`);
-        nodeStatusState[node.id] = false;
-        daemonReconcileTracker.lastUptime[node.id] = undefined;
-        daemonReconcileTracker.syncedOnBoot[node.id] = false;
-        continue;
-      }
-      const wasOffline = nodeStatusState[node.id] === false;
-      console.log(`[Daemon] Node ${node.name} (${node.id}) returned stats (ONLINE)`);
-      nodeStatusState[node.id] = true;
-      reconcileNodeIfNeeded(node, wasOffline, daemonReconcileTracker).catch(console.error);
-      
+    const nodeResults = await Promise.allSettled(
+      apiNodes.map(async (node) => {
+        const allStats = await queryAllUserStats(node.apiHost, true);
+
+        if (allStats === null) {
+          nodeStatusState[node.id] = false;
+          daemonReconcileTracker.lastUptime[node.id] = undefined;
+          daemonReconcileTracker.syncedOnBoot[node.id] = false;
+          daemonReconcileTracker.lastReconcileAt[node.id] = undefined;
+          return null;
+        }
+        const wasOffline = nodeStatusState[node.id] === false;
+        nodeStatusState[node.id] = true;
+        await reconcileNodeIfNeeded(node, wasOffline, daemonReconcileTracker);
+        return { node, allStats };
+      })
+    );
+
+    for (const outcome of nodeResults) {
+      if (outcome.status !== 'fulfilled' || !outcome.value) continue;
+      const { node, allStats } = outcome.value;
+
       for (const [email, stat] of Object.entries(allStats)) {
         if (stat.up === BigInt(0) && stat.down === BigInt(0)) continue;
         

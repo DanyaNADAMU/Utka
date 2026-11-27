@@ -467,7 +467,6 @@ export async function processSubscription(options: ProcessSubOptions): Promise<P
       },
       getInboundOverride(inbound.node, inbound.inboundTag)
     );
-    console.log(`[Generated VLESS Link for node ${inbound.node.name}]`, vlessLink);
     links.push(vlessLink);
   }
 
