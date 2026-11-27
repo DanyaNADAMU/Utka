@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.3.1] - 2026-11-27
+
 ### Added
 - **Periodic Diff Reconciliation & gRPC Deadlines (`src/lib/xray.ts`, `src/core.ts`, `src/lib/trafficDaemon.ts`)**: Added explicit gRPC call deadlines (`XRAY_GRPC_TIMEOUT_MS`, default 5s), channel cleanup on error in `invalidateClientCache`, parallel per-node polling (`Promise.allSettled`) so a stalled remote node cannot block local Xray sync/stats, and a quiet 60s periodic diff check (`XRAY_RECONCILE_INTERVAL_MS`) to self-heal isolated `addVlessUser` failures without touching active sessions.
 
